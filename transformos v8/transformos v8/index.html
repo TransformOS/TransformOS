@@ -1,0 +1,619 @@
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TransformOS — The Operating System for Organisational Transformation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0D1B2A;--navy2:#142236;--navy3:#1C2F45;
+  --gold:#C9922A;--gold2:#E8B454;--gold3:#F5D48A;
+  --cream:#F2EDE4;--mist:#B8C4D0;--slate:#6B7F92;--white:#FFFFFF;
+  --border:rgba(201,146,42,0.18);--bdim:rgba(184,196,208,0.12);
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --mono:'DM Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--navy);color:var(--cream);font-family:var(--sans);font-size:16px;line-height:1.7;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(201,146,42,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(201,146,42,0.025) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1.25rem 4rem;border-bottom:1px solid var(--border);background:rgba(13,27,42,0.94);backdrop-filter:blur(16px)}
+.nav-logo{font-family:var(--serif);font-size:1.5rem;font-weight:600;color:var(--white);letter-spacing:.02em;text-decoration:none}
+.nav-logo span{color:var(--gold2)}
+.nav-links{display:flex;gap:2.5rem;list-style:none}
+.nav-links a{font-size:.78rem;font-weight:400;letter-spacing:.12em;text-transform:uppercase;color:var(--mist);text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--gold2)}
+.nav-cta{font-size:.78rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--navy);background:var(--gold2);padding:.6rem 1.4rem;text-decoration:none;transition:all .2s}
+.nav-cta:hover{background:var(--gold3);transform:translateY(-1px)}
+
+/* HERO */
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:8rem 4rem 6rem;overflow:hidden;z-index:1}
+.hero-eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold2);margin-bottom:1.8rem;opacity:0;animation:fadeUp .8s ease .2s forwards}
+.hero-title{font-family:var(--serif);font-size:clamp(2.4rem,4.8vw,4.6rem);font-weight:300;line-height:1.08;color:var(--white);max-width:860px;opacity:0;animation:fadeUp .9s ease .4s forwards}
+.hero-title em{font-style:italic;color:var(--gold2)}
+.hero-subtitle{font-size:1.05rem;font-weight:300;color:var(--mist);max-width:500px;margin-top:2rem;line-height:1.85;opacity:0;animation:fadeUp .9s ease .6s forwards}
+.hero-actions{display:flex;gap:1rem;margin-top:3rem;opacity:0;animation:fadeUp .9s ease .8s forwards}
+.btn-primary{display:inline-block;font-size:.78rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--navy);background:var(--gold2);padding:.9rem 2.2rem;text-decoration:none;transition:all .2s}
+.btn-primary:hover{background:var(--gold3);transform:translateY(-2px)}
+.btn-secondary{display:inline-block;font-size:.78rem;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--mist);border:1px solid var(--bdim);padding:.9rem 2.2rem;text-decoration:none;transition:all .2s}
+.btn-secondary:hover{color:var(--white);border-color:var(--gold)}
+.hero-line{position:absolute;right:14%;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,transparent,var(--border),transparent);opacity:0;animation:fadeIn 1.5s ease 1s forwards}
+.hero-stats{position:absolute;right:4rem;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:2.2rem;opacity:0;animation:fadeIn 1s ease 1.2s forwards}
+.stat-block{text-align:right}
+.stat-number{font-family:var(--serif);font-size:2.8rem;font-weight:300;color:var(--gold2);line-height:1}
+.stat-label{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);margin-top:.3rem}
+
+/* SHARED */
+section{position:relative;z-index:1}
+.section-label{font-family:var(--mono);font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold2);margin-bottom:1.2rem;display:flex;align-items:center;gap:.8rem}
+.section-label::before{content:'';display:block;width:2rem;height:1px;background:var(--gold2)}
+.section-title{font-family:var(--serif);font-size:clamp(2rem,3.5vw,3.2rem);font-weight:300;line-height:1.15;color:var(--white);max-width:680px}
+.section-title em{font-style:italic;color:var(--gold2)}
+.body-text{font-size:1rem;font-weight:300;color:var(--mist);line-height:1.88}
+
+/* INTRO */
+.intro-section{background:var(--navy2);border-top:1px solid var(--bdim);border-bottom:1px solid var(--bdim);padding:7rem 4rem}
+.intro-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;margin-top:3.5rem;align-items:start}
+.intro-body{font-size:1rem;font-weight:300;color:var(--mist);line-height:1.9;margin-top:1.2rem}
+.intro-pillars{display:flex;flex-direction:column}
+.pillar{padding:1.6rem 0;border-bottom:1px solid var(--bdim);display:grid;grid-template-columns:2rem 1fr;gap:1.2rem;align-items:start}
+.pillar:first-child{border-top:1px solid var(--bdim)}
+.pillar-num{font-family:var(--mono);font-size:.68rem;color:var(--gold2);padding-top:.2rem}
+.pillar-title{font-family:var(--serif);font-size:1.1rem;font-weight:600;color:var(--white);margin-bottom:.35rem}
+.pillar-body{font-size:.86rem;font-weight:300;color:var(--mist);line-height:1.75}
+
+/* SERVICES */
+.services-section{padding:7rem 4rem;background:var(--navy)}
+
+/* 2x2 grid */
+.grid-4{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--bdim);margin-top:3.5rem}
+
+/* flagship row */
+.flagship-row{background:var(--bdim);padding:2px;margin-top:2px}
+
+/* cards */
+.scard{background:var(--navy);padding:2.8rem 2.4rem;transition:background .3s;position:relative}
+.scard:hover{background:var(--navy2)}
+.scard.flagship{background:var(--navy3);max-width:680px;width:100%;margin:0 auto}
+.scard.flagship:hover{background:#1e3347}
+
+.stag{font-family:var(--mono);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold2);margin-bottom:1.2rem;display:flex;align-items:center;gap:.5rem}
+.stag::before{content:'';display:block;width:.35rem;height:.35rem;background:var(--gold2);border-radius:50%}
+.sname{font-family:var(--serif);font-size:1.75rem;font-weight:400;color:var(--white);line-height:1.12;margin-bottom:1rem}
+.sname.lg{font-size:2rem}
+.sdesc{font-size:.88rem;font-weight:300;color:var(--mist);line-height:1.82;margin-bottom:1.6rem}
+.delivers{display:flex;flex-direction:column;gap:.42rem}
+.di{font-size:.78rem;color:var(--slate);display:flex;align-items:baseline;gap:.5rem;font-weight:300}
+.di::before{content:'→';color:var(--gold2);font-size:.7rem;flex-shrink:0}
+.delivers-2{display:grid;grid-template-columns:1fr 1fr;gap:.4rem 2rem}
+.slink{display:inline-flex;align-items:center;gap:.5rem;font-size:.74rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--gold2);text-decoration:none;margin-top:1.8rem;border-bottom:1px solid transparent;transition:border-color .2s}
+.slink:hover{border-color:var(--gold2)}
+.slink::after{content:'→'}
+
+/* board modes */
+.binner{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.4rem}
+.bmode{background:rgba(201,146,42,.055);border:1px solid var(--border);padding:1rem 1.1rem}
+.bmode-label{font-family:var(--mono);font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold2);margin-bottom:.35rem}
+.bmode-title{font-family:var(--serif);font-size:1rem;font-weight:600;color:var(--white);margin-bottom:.3rem}
+.bmode-desc{font-size:.78rem;color:var(--mist);line-height:1.65;font-weight:300}
+
+/* HOW */
+.how-section{padding:7rem 4rem;background:var(--navy2);border-top:1px solid var(--bdim);border-bottom:1px solid var(--bdim)}
+.how-steps{display:grid;grid-template-columns:repeat(7,1fr);gap:0;margin-top:4rem}
+.hstep{padding:0 1.2rem;border-left:1px solid var(--bdim)}
+.hstep:first-child{border-left:none;padding-left:0}
+.hn{font-family:var(--mono);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold2);margin-bottom:.8rem}
+.htitle{font-family:var(--serif);font-size:1rem;font-weight:600;color:var(--white);margin-bottom:.5rem;line-height:1.2}
+.hdesc{font-size:.74rem;color:var(--slate);line-height:1.7;font-weight:300}
+
+/* WHO */
+.who-section{padding:7rem 4rem;background:var(--navy)}
+.who-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:4rem;background:var(--bdim)}
+.wcard{background:var(--navy);padding:2.5rem 2rem;transition:background .25s}
+.wcard:hover{background:var(--navy2)}
+.wicon{width:2.5rem;height:2.5rem;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;font-size:1rem}
+.wtitle{font-family:var(--serif);font-size:1.3rem;font-weight:600;color:var(--white);margin-bottom:.8rem}
+.wdesc{font-size:.85rem;color:var(--mist);line-height:1.82;font-weight:300}
+
+/* PROOF */
+.proof-section{background:var(--navy2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.proof-grid{display:grid;grid-template-columns:repeat(4,1fr);background:var(--bdim)}
+.pitem{background:var(--navy2);padding:2.5rem 2rem;text-align:center;border-right:1px solid var(--bdim)}
+.pitem:last-child{border-right:none}
+.pnum{font-family:var(--serif);font-size:3.5rem;font-weight:300;color:var(--gold2);line-height:1}
+.punit{font-family:var(--serif);font-size:1.5rem;color:var(--gold2)}
+.plabel{font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);margin-top:.6rem;font-weight:300}
+
+/* CTA */
+.cta-section{background:var(--navy);text-align:center;padding:8rem 4rem}
+.cta-section .section-label{justify-content:center}
+.cta-section .section-label::before{display:none}
+.ctitle{font-family:var(--serif);font-size:clamp(2.4rem,4.5vw,4.2rem);font-weight:300;color:var(--white);max-width:640px;margin:0 auto 1.5rem;line-height:1.1}
+.ctitle em{font-style:italic;color:var(--gold2)}
+.csub{font-size:1rem;font-weight:300;color:var(--mist);max-width:440px;margin:0 auto 2.5rem;line-height:1.85}
+.cform{display:flex;max-width:440px;margin:0 auto;border:1px solid var(--border)}
+.cinput{flex:1;background:var(--navy2);border:none;outline:none;padding:.95rem 1.2rem;font-family:var(--sans);font-size:.88rem;color:var(--white);font-weight:300}
+.cinput::placeholder{color:var(--slate)}
+.csubmit{background:var(--gold2);border:none;color:var(--navy);font-family:var(--sans);font-size:.75rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;padding:.95rem 1.5rem;cursor:pointer;transition:background .2s;white-space:nowrap}
+.csubmit:hover{background:var(--gold3)}
+.cnote{font-size:.72rem;color:var(--slate);margin-top:1rem;font-weight:300}
+
+/* FOOTER */
+footer{background:var(--navy);border-top:1px solid var(--bdim);padding:2.5rem 4rem;display:flex;align-items:center;justify-content:space-between}
+.flogo{font-family:var(--serif);font-size:1.2rem;font-weight:600;color:var(--white)}
+.flogo span{color:var(--gold2)}
+.fnote{font-size:.74rem;color:var(--slate);font-weight:300}
+.flinks{display:flex;gap:2rem;list-style:none}
+.flinks a{font-size:.74rem;color:var(--slate);text-decoration:none;letter-spacing:.08em;text-transform:uppercase;transition:color .2s}
+.flinks a:hover{color:var(--gold2)}
+
+/* SME STABLE */
+.sme-section{padding:7rem 4rem;background:var(--navy)}
+.sme-header{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:start;margin-bottom:4.5rem}
+.sme-lede{font-size:.95rem;font-weight:300;color:var(--mist);line-height:1.9;margin-top:1.2rem}
+.sme-lede strong{color:var(--white);font-weight:500}
+.sme-pill{display:inline-flex;align-items:center;gap:.6rem;font-family:var(--mono);font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--navy);background:var(--gold2);padding:.45rem 1rem;margin-top:1.8rem}
+.sme-pill::before{content:'◆';font-size:.5rem}
+.daily-card{border:1px solid var(--border);background:rgba(201,146,42,.04);padding:1.6rem 1.8rem}
+.daily-label{font-family:var(--mono);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold2);margin-bottom:.8rem;display:flex;align-items:center;gap:.6rem}
+.daily-label::before{content:'';width:.5rem;height:.5rem;background:var(--gold2);border-radius:50%;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.daily-title{font-family:var(--serif);font-size:1.15rem;font-weight:600;color:var(--white);margin-bottom:.6rem}
+.daily-body{font-size:.84rem;font-weight:300;color:var(--mist);line-height:1.8}
+.daily-uploads{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+.tag{font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);border:1px solid var(--bdim);padding:.3rem .7rem}
+
+/* skill cards grid */
+.stable-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--bdim)}
+.skill-card{background:var(--navy2);padding:2.2rem 2rem;transition:background .25s;position:relative}
+.skill-card:hover{background:var(--navy3)}
+.sk-num{font-family:var(--mono);font-size:.6rem;letter-spacing:.18em;color:var(--gold2);margin-bottom:1rem}
+.sk-name{font-family:var(--serif);font-size:1.4rem;font-weight:400;color:var(--white);margin-bottom:.25rem;line-height:1.1}
+.sk-persona{font-size:.72rem;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--gold2);margin-bottom:1rem}
+.sk-desc{font-size:.82rem;font-weight:300;color:var(--mist);line-height:1.78;margin-bottom:1.2rem}
+.sk-triggers{display:flex;flex-direction:column;gap:.3rem}
+.sk-t{font-size:.74rem;color:var(--slate);display:flex;align-items:baseline;gap:.45rem;font-weight:300}
+.sk-t::before{content:'↳';color:var(--gold2);font-size:.66rem;flex-shrink:0}
+
+/* pricing strip */
+.sme-pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--bdim);margin-top:2px}
+.price-tier{background:var(--navy2);padding:2rem 1.8rem;transition:background .25s}
+.price-tier:hover{background:var(--navy3)}
+.price-tier.featured{background:var(--navy3);position:relative}
+.price-tier.featured::before{content:'Most popular';position:absolute;top:0;left:0;right:0;text-align:center;font-family:var(--mono);font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;background:var(--gold2);color:var(--navy);padding:.35rem}
+.price-tier.featured .pt-inner{padding-top:1.4rem}
+.pt-inner{padding-top:.2rem}
+.pt-name{font-family:var(--serif);font-size:1.1rem;font-weight:600;color:var(--white);margin-bottom:.3rem}
+.pt-price{font-family:var(--serif);font-size:2.4rem;font-weight:300;color:var(--gold2);line-height:1;margin-bottom:.25rem}
+.pt-price span{font-size:1rem;color:var(--slate)}
+.pt-sub{font-size:.74rem;color:var(--slate);font-weight:300;margin-bottom:1.2rem;line-height:1.5}
+.pt-includes{display:flex;flex-direction:column;gap:.35rem}
+.pt-i{font-size:.78rem;color:var(--mist);display:flex;align-items:baseline;gap:.5rem;font-weight:300}
+.pt-i::before{content:'✓';color:var(--gold2);font-size:.7rem;flex-shrink:0}
+.pt-note{font-size:.7rem;color:var(--slate);margin-top:.8rem;font-style:italic}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* RESPONSIVE */
+@media(max-width:960px){
+  nav{padding:1rem 1.5rem}
+  .nav-links{display:none}
+  .hero,.intro-section,.services-section,.how-section,.who-section,.cta-section{padding:5rem 1.5rem}
+  .hero-stats,.hero-line{display:none}
+  .intro-grid,.grid-4,.who-grid{grid-template-columns:1fr}
+  .binner,.delivers-2{grid-template-columns:1fr}
+  .how-steps{grid-template-columns:1fr 1fr;gap:2rem}
+  .hstep{border-left:none;border-top:1px solid var(--bdim);padding:1.5rem 0}
+  .sme-section{padding:5rem 1.5rem}
+  .sme-header{grid-template-columns:1fr;gap:2.5rem}
+  .stable-grid{grid-template-columns:1fr 1fr}
+  .sme-pricing{grid-template-columns:1fr}
+  .pitem{border-right:none;border-bottom:1px solid var(--bdim)}
+  footer{flex-direction:column;gap:1.5rem;text-align:center;padding:2rem 1.5rem}
+  .cform{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="https://transformos.co.uk/#" class="nav-logo">Transform<span>OS</span></a>
+  <ul class="nav-links">
+    <li><a href="https://transformos.co.uk/#services">Services</a></li>
+    <li><a href="https://transformos.co.uk/#how">How it works</a></li>
+    <li><a href="https://transformos.co.uk/#sme">SME Stable</a></li>
+    <li><a href="https://transformos.co.uk/#who">Who it's for</a></li>
+    <li><a href="https://transformos.co.uk/#contact">Contact</a></li>
+  </ul>
+  <a href="gate.html" class="nav-cta">Try the SME Stable</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">The Operating System for Organisational Transformation</div>
+  <h1 class="hero-title">
+    You're about to go through the most rigorous, commercially grounded transformation and growth process <em>available.</em>
+  </h1>
+  <p class="hero-subtitle">
+    TransformOS is the first AI-powered transformation system built for boards, leadership teams, and the organisations that need to change most — not just those with the biggest budgets.
+  </p>
+  <div class="hero-actions">
+    <a href="https://transformos.co.uk/#services" class="btn-primary">Explore products</a>
+    <a href="https://transformos.co.uk/#services" class="btn-secondary">Explore services</a>
+  </div>
+  <div class="hero-line"></div>
+  <div class="hero-stats">
+    <div class="stat-block"><div class="stat-number">7</div><div class="stat-label">Transformation modules</div></div>
+    <div class="stat-block"><div class="stat-number">6</div><div class="stat-label">SME advisory skills</div></div>
+    <div class="stat-block"><div class="stat-number">1</div><div class="stat-label">Operating system</div></div>
+  </div>
+</section>
+
+<!-- INTRO -->
+<section class="intro-section" id="about">
+  <div class="intro-grid">
+    <div>
+      <div class="section-label reveal">What is TransformOS</div>
+      <h2 class="section-title reveal">Not a consultant. Not a framework. <em>An operating system.</em></h2>
+      <p class="intro-body reveal">Most organisations get handed a strategy deck and left to figure it out. TransformOS is different. It is a fully integrated diagnostic, strategic, and financial intelligence system — where every output feeds the next, and the full picture emerges from a single coherent engagement.</p>
+      <p class="intro-body reveal">Board-level rigour. AI-augmented intelligence. Human judgement at every decision point. Built for the organisations that need transformation most — not just those who can afford to commission the Big 4.</p>
+      <p class="intro-body reveal">Whether you are preparing for investment, planning an exit, stress-testing your strategy with your board, or committing to the full transformation journey — TransformOS gives you the intelligence to make the right moves, in the right order, with the right evidence.</p>
+    </div>
+    <div class="intro-pillars reveal">
+      <div class="pillar">
+        <div class="pillar-num">01</div>
+        <div>
+          <div class="pillar-title">A system, not a service</div>
+          <div class="pillar-body">Every module builds on the last. Diagnostic feeds strategy. Strategy feeds the roadmap. The roadmap feeds the financial model. Nothing produced in isolation — everything compounds into a complete picture.</div>
+        </div>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">02</div>
+        <div>
+          <div class="pillar-title">AI intelligence, human judgement</div>
+          <div class="pillar-body">The diagnostic depth and market intelligence that would take a Big 4 team weeks is delivered in hours — then validated and sharpened by experienced strategic judgement. Not AI replacing the consultant. AI giving the consultant 10x the power.</div>
+        </div>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">03</div>
+        <div>
+          <div class="pillar-title">Built for the underserved</div>
+          <div class="pillar-body">Public sector. Mission-led. Scale-up. Resource-constrained, purpose-driven organisations that are too often told premium strategic intelligence is not for them. It is now.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="services-section" id="services">
+  <div class="section-label reveal">What we offer</div>
+  <h2 class="section-title reveal">Five products. <em>One system.</em></h2>
+  <p class="body-text reveal" style="margin-top:1rem;max-width:560px">Each service is a complete, standalone engagement — and every one integrates into the full TransformOS operating system if you choose to go further.</p>
+
+  <!-- 2x2 -->
+  <div class="grid-4">
+    <div class="scard reveal">
+      <div class="stag">Diagnose</div>
+      <div class="sname">Business<br>Diagnostic</div>
+      <div class="sdesc">The most rigorous current-state assessment available to any organisation. Commercially grounded, evidence-based, and mercilessly honest about where your business truly stands — across 11 dimensions.</div>
+      <div class="delivers">
+        <div class="di">Health score across 11 TOM+ dimensions</div>
+        <div class="di">Market intelligence and competitive position</div>
+        <div class="di">Risk register with impact and likelihood ratings</div>
+        <div class="di">Strategic options and 90-day operational priorities</div>
+        <div class="di">Valuation multiplier baseline assessment</div>
+      </div>
+      <a class='slink' href='gate.html'>Start Diagnostic </a>
+    </div>
+
+    <div class="scard reveal">
+      <div class="stag">Simulate</div>
+      <div class="sname">Board Simulation<br>&amp; Sandbox</div>
+      <div class="sdesc">The only product of its kind. A fully facilitated, AI-powered environment where boards and leadership teams test real decisions before making them — and build the strategic capability to make better ones.</div>
+      <div class="binner">
+        <div class="bmode">
+          <div class="bmode-label">Mode 01</div>
+          <div class="bmode-title">Strategy Sandbox</div>
+          <div class="bmode-desc">Test real strategic decisions under simulated pressure using real data and AI-generated scenario modelling — before committing to them.</div>
+        </div>
+        <div class="bmode">
+          <div class="bmode-label">Mode 02</div>
+          <div class="bmode-title">Decision Simulator</div>
+          <div class="bmode-desc">A safe environment for boards and NEDs to rehearse high-stakes decisions and build strategic muscle before the real thing arrives.</div>
+        </div>
+      </div>
+      <a class='slink' href='gate.html'>Enter the Boardroom </a>
+    </div>
+
+    <div class="scard reveal">
+      <div class="stag">Prepare</div>
+      <div class="sname">Investment<br>Readiness</div>
+      <div class="sdesc">Are you actually ready for investment — or do you just think you are? We assess your business against 33 investor criteria and tell you the truth before a funder does.</div>
+      <div class="delivers">
+        <div class="di">33-factor investor readiness assessment</div>
+        <div class="di">Dual-mode: investor or founder perspective</div>
+        <div class="di">Valuation multiplier analysis — 25 factors</div>
+        <div class="di">Gap-to-fundable roadmap with clear priorities</div>
+        <div class="di">Investor narrative and positioning strategy</div>
+      </div>
+      <a class='slink' href='gate.html'>Start Assessment </a>
+    </div>
+
+    <div class="scard reveal">
+      <div class="stag">Exit</div>
+      <div class="sname">Exit<br>Readiness</div>
+      <div class="sdesc">Most businesses sell for a fraction of what they could. Exit Readiness closes the gap between what your business is worth today and what it could command at exit.</div>
+      <div class="delivers">
+        <div class="di">25-factor valuation multiplier assessment</div>
+        <div class="di">Enterprise value range and sector benchmark</div>
+        <div class="di">Top 5 multiplier improvement priorities</div>
+        <div class="di">Due diligence readiness review</div>
+        <div class="di">Value maximisation roadmap</div>
+      </div>
+      <a class='slink' href='gate.html'>Start Exit Assessment </a>
+    </div>
+  </div>
+
+  <!-- FLAGSHIP centred below -->
+  <div class="flagship-row">
+    <div class="scard flagship reveal">
+      <div class="stag">Transform</div>
+      <div class="sname lg">Organisational Transformation</div>
+      <div class="sdesc">The complete TransformOS engagement. Seven integrated modules — from diagnosis to financial model — delivering everything a board or leadership team needs to move from where they are to where they need to be. No gaps. No handoffs to another consultant. No excuses.</div>
+      <div class="delivers delivers-2">
+        <div class="di">Business Diagnostic — 11-dimension health score</div>
+        <div class="di">Strategic Opportunities — up to 11 ranked options</div>
+        <div class="di">Operational Excellence — 90-day improvement plan</div>
+        <div class="di">36-month Growth Roadmap — three levers, real targets</div>
+        <div class="di">Models Master — 6 strategic frameworks applied</div>
+        <div class="di">Board-ready Business Case — NPV, IRR, scenarios</div>
+        <div class="di">Target Operating Model — 11-dimension TOM+</div>
+        <div class="di">Full Financial Model — cash flow and projections</div>
+      </div>
+      <a class='slink' href='gate.html'>Begin Transformation </a>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
+  <div class="section-label reveal">The system</div>
+  <h2 class="section-title reveal">Seven modules. <em>One integrated journey.</em></h2>
+  <p class="body-text reveal" style="margin-top:1rem;max-width:500px">Each module builds on the last. Enter at any point — or run the full sequence for the complete picture.</p>
+  <div class="how-steps">
+    <div class="hstep reveal"><div class="hn">01</div><div class="htitle">Business Diagnostic</div><div class="hdesc">Where are you now — commercially, operationally, financially, strategically?</div></div>
+    <div class="hstep reveal"><div class="hn">02</div><div class="htitle">Operational Excellence</div><div class="hdesc">What do you fix in the next 90 days before scaling anything?</div></div>
+    <div class="hstep reveal"><div class="hn">03</div><div class="htitle">Strategic Opportunities</div><div class="hdesc">Where can you grow — and which opportunities are worth pursuing?</div></div>
+    <div class="hstep reveal"><div class="hn">04</div><div class="htitle">Models Master</div><div class="hdesc">What do the frameworks reveal about your future operating model?</div></div>
+    <div class="hstep reveal"><div class="hn">05</div><div class="htitle">Growth Roadmap</div><div class="hdesc">A 36-month phased plan. Three levers. Specific milestones. Real numbers.</div></div>
+    <div class="hstep reveal"><div class="hn">06</div><div class="htitle">Business Case</div><div class="hdesc">The financial and strategic case for your priority initiative — board-ready.</div></div>
+    <div class="hstep reveal"><div class="hn">07</div><div class="htitle">Financial Model</div><div class="hdesc">Cash flow, projections, and investment appraisal for the full plan.</div></div>
+  </div>
+</section>
+
+<!-- SME STABLE -->
+<section class="sme-section" id="sme">
+  <div class="sme-header">
+    <div>
+      <div class="section-label reveal">The SME Stable</div>
+      <h2 class="section-title reveal">Six expert advisors. <em>Always on call.</em></h2>
+      <p class="sme-lede reveal">The SME Stable is a suite of six AI-powered advisory skills — each one a senior-level specialist working exclusively for your business. Upload your data. Get a <strong>daily briefing</strong> before you've finished your morning coffee. Ask anything. Get the kind of expert counsel that used to cost thousands a day.</p>
+      <p class="sme-lede reveal" style="margin-top:.8rem">Every skill activates automatically when you upload business data. No prompting required. No waiting for a consultant to call back. Just intelligence, the moment you need it.</p>
+      <div class="sme-pill reveal">Part of the TransformOS ecosystem</div>
+      <a href="gate.html" class="slink" style="margin-top:1.5rem">Enter the SME Stable </a>
+    </div>
+    <div class="daily-card reveal">
+      <div class="daily-label">Live daily briefing</div>
+      <div class="daily-title">Good morning. Here's what your business is telling you today.</div>
+      <div class="daily-body">Your Q3 pipeline has dropped 18% vs last month — three deals have stalled at proposal stage. Cash runway is 9.4 weeks at current burn. Your best-performing campaign has a 3.2× return but is under-funded. One team member is showing early flight-risk signals. Four live tenders match your capability profile — two close this week.</div>
+      <div class="daily-uploads">
+        <span class="tag">Sales pipeline.csv</span>
+        <span class="tag">Management accounts.xlsx</span>
+        <span class="tag">Campaign report.pdf</span>
+        <span class="tag">Staff survey.xlsx</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6 skill cards -->
+  <div class="stable-grid">
+    <div class="skill-card reveal">
+      <div class="sk-num">01</div>
+      <div class="sk-name">Sales</div>
+      <div class="sk-persona">Sales Director</div>
+      <div class="sk-desc">Pipeline management, conversion rates, deal velocity, forecasting, prospecting strategy and sales process design — all grounded in your actual numbers, not generic advice.</div>
+      <div class="sk-triggers">
+        <div class="sk-t">Upload pipeline data → get stage-by-stage conversion analysis</div>
+        <div class="sk-t">Upload prospect list → get prioritised outreach strategy</div>
+        <div class="sk-t">Upload CRM export → get forecast and gap analysis</div>
+      </div>
+    </div>
+    <div class="skill-card reveal">
+      <div class="sk-num">02</div>
+      <div class="sk-name">Finance</div>
+      <div class="sk-persona">Chief Financial Officer</div>
+      <div class="sk-desc">Cash flow, margins, burn rate, pricing economics, forecasting and financial risk — your CFO-on-demand. Reads your actual accounts and tells you what the numbers mean and what to do about them.</div>
+      <div class="sk-triggers">
+        <div class="sk-t">Upload P&amp;L → get margin analysis and cost intelligence</div>
+        <div class="sk-t">Upload bank statements → get cash runway and burn rate</div>
+        <div class="sk-t">Upload management accounts → get financial health briefing</div>
+      </div>
+    </div>
+    <div class="skill-card reveal">
+      <div class="sk-num">03</div>
+      <div class="sk-name">Operations</div>
+      <div class="sk-persona">Chief Operating Officer</div>
+      <div class="sk-desc">Process efficiency, capacity planning, delivery quality, bottleneck diagnosis and workflow design. Turns operational data into a clear picture of where you're leaking time, money and margin.</div>
+      <div class="sk-triggers">
+        <div class="sk-t">Upload project tracker → get delivery performance analysis</div>
+        <div class="sk-t">Upload capacity plan → get utilisation and efficiency report</div>
+        <div class="sk-t">Upload ops data → get ranked improvement priorities</div>
+      </div>
+    </div>
+    <div class="skill-card reveal">
+      <div class="sk-num">04</div>
+      <div class="sk-name">Marketing</div>
+      <div class="sk-persona">Chief Marketing Officer</div>
+      <div class="sk-desc">Campaign performance, brand positioning, lead generation, content strategy, SEO and marketing ROI. Identifies what's working, what's wasted, and where your next pound of marketing spend should go.</div>
+      <div class="sk-triggers">
+        <div class="sk-t">Upload campaign report → get channel ROI breakdown</div>
+        <div class="sk-t">Upload analytics data → get acquisition and retention analysis</div>
+        <div class="sk-t">Upload social metrics → get content and engagement strategy</div>
+      </div>
+    </div>
+    <div class="skill-card reveal">
+      <div class="sk-num">05</div>
+      <div class="sk-name">Data Insights</div>
+      <div class="sk-persona">Head of Analytics</div>
+      <div class="sk-desc">The cross-business intelligence layer. Upload any data — sales, operational, financial, customer — and get the patterns, anomalies, trends and decisions that the raw numbers can't tell you on their own.</div>
+      <div class="sk-triggers">
+        <div class="sk-t">Upload any dataset → get the story the data is telling</div>
+        <div class="sk-t">Upload multiple sources → get cross-functional insights</div>
+        <div class="sk-t">Upload historical data → get trend analysis and forecasts</div>
+      </div>
+    </div>
+    <div class="skill-card reveal">
+      <div class="sk-num">06</div>
+      <div class="sk-name">Talent Management</div>
+      <div class="sk-persona">HR Director</div>
+      <div class="sk-desc">Hiring, performance, retention, team structure, culture, compensation and people risk. Goes beyond HR admin to give you the strategic people intelligence that actually drives business performance.</div>
+      <div class="sk-triggers">
+        <div class="sk-t">Upload org chart → get structure and capability analysis</div>
+        <div class="sk-t">Upload salary data → get retention risk and benchmarks</div>
+        <div class="sk-t">Upload performance data → get team health briefing</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pricing strip -->
+  <div class="sme-pricing">
+    <div class="price-tier reveal">
+      <div class="pt-inner">
+        <div class="pt-name">Single Skill</div>
+        <div class="pt-price">£5<span>/month</span></div>
+        <div class="pt-sub">One specialist advisor. Access whenever you need it.</div>
+        <div class="pt-includes">
+          <div class="pt-i">Choose one skill from the Stable</div>
+          <div class="pt-i">Daily briefing when data is uploaded</div>
+          <div class="pt-i">Unlimited questions and analysis</div>
+          <div class="pt-i">Downloadable reports</div>
+        </div>
+      </div>
+    </div>
+    <div class="price-tier featured reveal">
+      <div class="pt-inner">
+        <div class="pt-name">Full Stable</div>
+        <div class="pt-price">£25<span>/month</span></div>
+        <div class="pt-sub">All six skills. The complete advisory team for your business.</div>
+        <div class="pt-includes">
+          <div class="pt-i">All six skills — Sales, Finance, Operations, Marketing, Data Insights, Talent</div>
+          <div class="pt-i">Daily cross-business briefing</div>
+          <div class="pt-i">Unlimited questions and analysis</div>
+          <div class="pt-i">Downloadable reports in every skill</div>
+          <div class="pt-i">Skills talk to each other — joined-up intelligence</div>
+        </div>
+        <a href="gate.html" class="slink" style="margin-top:1.2rem;font-size:.7rem">Get started </a>
+      </div>
+    </div>
+    <div class="price-tier reveal">
+      <div class="pt-inner">
+        <div class="pt-name">Stable + Advisor</div>
+        <div class="pt-price">£95<span>/month</span></div>
+        <div class="pt-sub">The full Stable plus a quarterly human review session.</div>
+        <div class="pt-includes">
+          <div class="pt-i">Everything in Full Stable</div>
+          <div class="pt-i">Quarterly strategy review with a TransformOS advisor</div>
+          <div class="pt-i">Advisor reads your data before each session</div>
+          <div class="pt-i">Action plan produced and tracked each quarter</div>
+          <div class="pt-i">Priority access and faster response</div>
+        </div>
+        <div class="pt-note">Most popular with founders scaling past £1m revenue</div>
+        <a href="gate.html" class="slink" style="margin-top:1.2rem;font-size:.7rem">Get started </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHO -->
+<section class="who-section" id="who">
+  <div class="section-label reveal">Who it's for</div>
+  <h2 class="section-title reveal">Built for the organisations <em>that need it most.</em></h2>
+  <div class="who-grid">
+    <div class="wcard reveal"><div class="wicon">◈</div><div class="wtitle">Public Sector &amp; Mission-Led</div><div class="wdesc">Councils, NHS trusts, social enterprises, charities, and arms-length bodies navigating funding pressures, service redesign, and the need to do more with less. TransformOS brings commercial rigour to mission-driven organisations — without losing sight of the purpose.</div></div>
+    <div class="wcard reveal"><div class="wicon">◉</div><div class="wtitle">Commercial Scale-Ups</div><div class="wdesc">Ambitious businesses growing fast and starting to feel the structural strain. Revenue is there. The model, the team, and the systems have not caught up. TransformOS builds the strategic and operational architecture that scales with you — not after you.</div></div>
+    <div class="wcard reveal"><div class="wicon">◎</div><div class="wtitle">Boards &amp; Leadership Teams</div><div class="wdesc">Chairs, NEDs, CEOs, and executive directors who need a rigorous external intelligence layer — not another expensive consultant with a slide deck. TransformOS gives boards the diagnostic depth and strategic foresight to make decisions with confidence.</div></div>
+  </div>
+</section>
+
+<!-- PROOF -->
+<section class="proof-section">
+  <div class="proof-grid">
+    <div class="pitem reveal"><div class="pnum">11</div><div class="plabel">Diagnostic dimensions assessed</div></div>
+    <div class="pitem reveal"><div class="pnum">36</div><div class="plabel">Month roadmap delivered</div></div>
+    <div class="pitem reveal"><div class="pnum">25</div><div class="plabel">Valuation multiplier factors</div></div>
+    <div class="pitem reveal"><div class="pnum">5<span class="punit">–8</span></div><div class="plabel">Hours vs months for Big 4</div></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="contact">
+  <div class="section-label">Start the conversation</div>
+  <h2 class="ctitle">Ready to find out <em>what's really possible?</em></h2>
+  <p class="csub">Request a no-obligation briefing. We will show you exactly what TransformOS produces — and whether it is the right fit for your organisation.</p>
+  <form class="cform" onsubmit="handleSubmit(event)">
+    <input type="email" class="cinput" placeholder="Your email address" required="">
+    <button type="submit" class="csubmit">Request briefing</button>
+  </form>
+  <p class="cnote">No spam. No automated sequences. A real conversation with a real strategist.</p>
+</section>
+
+<footer>
+  <div class="flogo">Transform<span>OS</span></div>
+  <p class="fnote">The Operating System for Organisational Transformation</p>
+  <ul class="flinks">
+    <li><a href="https://transformos.co.uk/#services">Services</a></li>
+    <li><a href="https://transformos.co.uk/#how">How it works</a></li>
+    <li><a href="https://transformos.co.uk/#contact">Contact</a></li>
+  </ul>
+</footer>
+
+<script>
+  const revealEls = document.querySelectorAll('.reveal');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 55);
+        obs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.06, rootMargin: '0px 0px -40px 0px' });
+  revealEls.forEach(el => obs.observe(el));
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('.csubmit');
+    const inp = e.target.querySelector('.cinput');
+    btn.textContent = 'Sent';
+    btn.style.background = '#3B6D11';
+    btn.style.color = '#fff';
+    inp.value = '';
+    inp.placeholder = 'Thank you — we will be in touch shortly.';
+    setTimeout(() => {
+      btn.textContent = 'Request briefing';
+      btn.style.background = '';
+      btn.style.color = '';
+      inp.placeholder = 'Your email address';
+    }, 5000);
+  }
+</script>
+
+</body></html>
