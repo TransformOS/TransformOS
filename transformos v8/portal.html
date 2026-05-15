@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TransformOS — Your Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a0f;
+    --paper: #f5f3ee;
+    --teal: #1a7a6e;
+    --teal-light: #22a693;
+    --amber: #d4820a;
+    --amber-light: #f0a020;
+    --mist: rgba(255,255,255,0.06);
+    --ghost: #6b6860;
+    --red: #c0392b;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 9999; opacity: 0.6;
+  }
+
+  /* ── HEADER */
+  .site-header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 20px 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    background: rgba(10,10,15,0.9);
+    backdrop-filter: blur(12px);
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem; letter-spacing: 0.12em; color: var(--paper);
+  }
+  .logo span { color: var(--teal-light); }
+
+  .header-right { display: flex; align-items: center; gap: 24px; }
+
+  .user-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 0.12em;
+    color: var(--ghost); text-transform: uppercase;
+  }
+
+  .btn-signout {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ghost); background: none; border: none;
+    cursor: pointer; padding: 6px 0;
+    transition: color 0.2s;
+  }
+  .btn-signout:hover { color: var(--paper); }
+
+  /* ── MAIN */
+  .main { padding: 120px 48px 80px; max-width: 1100px; margin: 0 auto; }
+
+  /* ── COMPANY HEADER */
+  .company-header {
+    margin-bottom: 64px;
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  .company-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 0.2em;
+    color: var(--teal-light); text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .company-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    letter-spacing: 0.04em; line-height: 1;
+    margin-bottom: 12px;
+  }
+
+  .company-meta {
+    display: flex; gap: 32px; flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .meta-chip {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.12em;
+    color: var(--ghost); text-transform: uppercase;
+  }
+
+  .meta-chip span { color: var(--paper); }
+
+  /* ── PROGRESS OVERVIEW */
+  .progress-overview {
+    background: var(--mist);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 32px 40px;
+    margin-bottom: 48px;
+    display: flex; align-items: center; gap: 48px;
+    animation: fadeUp 0.6s ease 0.1s both;
+  }
+
+  .progress-stat { text-align: center; }
+
+  .progress-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem; line-height: 1;
+    color: var(--teal-light);
+  }
+
+  .progress-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 0.14em;
+    color: var(--ghost); text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .progress-bar-full {
+    flex: 1;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--teal), var(--teal-light));
+    border-radius: 2px;
+    transition: width 1s ease;
+  }
+
+  /* ── STAGES GRID */
+  .stages-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem; letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 24px;
+    text-transform: uppercase;
+  }
+
+  .stages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .stage-card {
+    background: var(--mist);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 28px 32px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .stage-card:hover { border-color: rgba(255,255,255,0.2); transform: translateY(-2px); }
+
+  .stage-card.complete { border-color: rgba(26,122,110,0.4); }
+  .stage-card.complete:hover { border-color: var(--teal-light); }
+
+  .stage-card.locked { opacity: 0.4; cursor: not-allowed; }
+  .stage-card.locked:hover { transform: none; border-color: rgba(255,255,255,0.08); }
+
+  .stage-card.active-stage { border-color: var(--amber); }
+  .stage-card.active-stage:hover { border-color: var(--amber-light); }
+
+  .stage-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .stage-card.complete::before { background: var(--teal); }
+  .stage-card.active-stage::before { background: var(--amber-light); }
+
+  .stage-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem; line-height: 1;
+    color: rgba(255,255,255,0.06);
+    position: absolute; top: 16px; right: 24px;
+    pointer-events: none;
+  }
+
+  .stage-status-chip {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 4px 10px; border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  .chip-complete { background: rgba(26,122,110,0.2); color: var(--teal-light); }
+  .chip-active { background: rgba(212,130,10,0.2); color: var(--amber-light); }
+  .chip-locked { background: rgba(255,255,255,0.06); color: var(--ghost); }
+  .chip-not-started { background: rgba(255,255,255,0.06); color: var(--ghost); }
+
+  .stage-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem; letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+
+  .stage-desc {
+    font-size: 0.82rem; color: var(--ghost); line-height: 1.5;
+  }
+
+  .stage-arrow {
+    position: absolute; bottom: 24px; right: 24px;
+    font-size: 1.2rem; color: var(--ghost);
+    transition: transform 0.2s, color 0.2s;
+  }
+
+  .stage-card:not(.locked):hover .stage-arrow {
+    transform: translateX(4px);
+    color: var(--paper);
+  }
+
+  /* ── FINAL REPORT CARD */
+  .report-card {
+    background: linear-gradient(135deg, rgba(26,122,110,0.15), rgba(212,130,10,0.1));
+    border: 1px solid rgba(26,122,110,0.3);
+    border-radius: 12px;
+    padding: 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 32px;
+    animation: fadeUp 0.6s ease 0.3s both;
+  }
+
+  .report-info .report-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.16em;
+    color: var(--teal-light); text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .report-info .report-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem; letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+
+  .report-info p {
+    font-size: 0.875rem; color: var(--ghost); max-width: 480px; line-height: 1.6;
+  }
+
+  .btn-report {
+    flex-shrink: 0;
+    background: var(--teal);
+    color: white; border: none; border-radius: 6px;
+    padding: 16px 32px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem; letter-spacing: 0.1em;
+    cursor: pointer; white-space: nowrap;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn-report:hover { background: var(--teal-light); transform: translateY(-1px); }
+  .btn-report:disabled { opacity: 0.4; pointer-events: none; }
+
+  /* ── LOADING */
+  .loading-screen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 60vh;
+    flex-direction: column; gap: 16px;
+  }
+
+  .spinner {
+    width: 32px; height: 32px;
+    border: 2px solid rgba(255,255,255,0.1);
+    border-top-color: var(--teal-light);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .loading-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem; letter-spacing: 0.16em;
+    color: var(--ghost); text-transform: uppercase;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── FOOTER */
+  .footer-strip {
+    padding: 24px 48px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 80px;
+  }
+
+  .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.3); }
+  .footer-logo span { color: var(--teal); }
+  .footer-legal { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.2); text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="logo">Transform<span>OS</span></div>
+  <div class="header-right">
+    <div class="user-name" id="userName">Loading…</div>
+    <button class="btn-signout" onclick="signOut()">Sign Out</button>
+  </div>
+</header>
+
+<main class="main" id="mainContent">
+  <div class="loading-screen">
+    <div class="spinner"></div>
+    <div class="loading-text">Loading your portal…</div>
+  </div>
+</main>
+
+<footer class="footer-strip">
+  <div class="footer-logo">Transform<span>OS</span></div>
+  <div class="footer-legal">© 2026 TransformOS · transformos.co.uk</div>
+</footer>
+
+<script>
+  const STAGE_DESCRIPTIONS = {
+    1: 'Deep analysis of your current commercial, financial and operational state.',
+    2: 'Defining your strategic vision and ambition through to 2030.',
+    3: 'Identifying quick wins and operational improvements for immediate impact.',
+    4: 'Uncovering and evaluating your top growth opportunities.',
+    5: 'Applying strategic frameworks and models to your business.',
+    6: 'Building your time-phased plan to achieve your growth ambition.',
+    7: 'The financial and strategic case for your transformation.',
+    8: 'Three-year financial projections, cash flow and investment model.'
+  };
+
+  const SINGLE_PRODUCT_STAGES = {
+    'business_diagnostic': [1],
+    'exit_readiness': [1, 2, 3],
+    'investment_readiness': [1, 2, 4, 7],
+    'board_simulation': [1, 2, 4, 5, 7],
+    'full_transformation': [1, 2, 3, 4, 5, 6, 7, 8]
+  };
+
+  let session = null;
+  let stagesData = [];
+
+  // ── AUTH CHECK
+  function checkAuth() {
+    const stored = localStorage.getItem('tos_session');
+    if (!stored) { window.location.href = 'login.html'; return null; }
+    session = JSON.parse(stored);
+    const expiresAt = new Date(session.expires_at * 1000);
+    if (expiresAt <= new Date()) { localStorage.removeItem('tos_session'); window.location.href = 'login.html'; return null; }
+    return session;
+  }
+
+  function signOut() {
+    localStorage.removeItem('tos_session');
+    window.location.href = 'login.html';
+  }
+
+  // ── LOAD PORTAL
+  async function loadPortal() {
+    if (!checkAuth()) return;
+
+    const company = session.company;
+    const productType = session.product_type || 'full_transformation';
+    const allowedStages = SINGLE_PRODUCT_STAGES[productType] || [1];
+
+    document.getElementById('userName').textContent = session.user?.user_metadata?.name || session.user?.email || '';
+
+    // Fetch stage data
+    try {
+      const res = await fetch('/.netlify/functions/get-stages', {
+        headers: { 'Authorization': `Bearer ${session.token}` }
+      });
+      const data = await res.json();
+      stagesData = data.stages || [];
+    } catch (e) {
+      stagesData = [];
+    }
+
+    renderPortal(company, productType, allowedStages);
+  }
+
+  function renderPortal(company, productType, allowedStages) {
+    const completedCount = stagesData.filter(s => s.status === 'complete').length;
+    const totalStages = allowedStages.length;
+    const progressPct = totalStages > 0 ? Math.round((completedCount / totalStages) * 100) : 0;
+    const allComplete = completedCount === totalStages;
+
+    const html = `
+      <div class="company-header">
+        <div class="company-eyebrow">Your Transformation Portal</div>
+        <div class="company-name">${company?.company_name || 'Your Company'}</div>
+        <div class="company-meta">
+          ${company?.sector ? `<div class="meta-chip">Sector <span>${company.sector}</span></div>` : ''}
+          ${company?.annual_revenue ? `<div class="meta-chip">Revenue <span>${company.annual_revenue}</span></div>` : ''}
+          ${company?.employee_count ? `<div class="meta-chip">People <span>${company.employee_count}</span></div>` : ''}
+          <div class="meta-chip">Product <span>${productType.replace(/_/g,' ').toUpperCase()}</span></div>
+        </div>
+      </div>
+
+      <div class="progress-overview">
+        <div class="progress-stat">
+          <div class="progress-number">${completedCount}</div>
+          <div class="progress-label">Stages Complete</div>
+        </div>
+        <div class="progress-stat">
+          <div class="progress-number">${totalStages - completedCount}</div>
+          <div class="progress-label">Remaining</div>
+        </div>
+        <div class="progress-bar-full">
+          <div class="progress-fill" style="width:${progressPct}%"></div>
+        </div>
+        <div class="progress-stat">
+          <div class="progress-number">${progressPct}%</div>
+          <div class="progress-label">Complete</div>
+        </div>
+      </div>
+
+      <div class="stages-title">Your Transformation Stages</div>
+
+      <div class="stages-grid">
+        ${allowedStages.map((stageNum, idx) => renderStageCard(stageNum, idx, allowedStages, completedCount)).join('')}
+      </div>
+
+      <div class="report-card">
+        <div class="report-info">
+          <div class="report-label">Final Deliverable</div>
+          <div class="report-title">Consolidated Transformation Report</div>
+          <p>All ${totalStages} stages compiled into a single, board-ready document. Available once all stages are complete.</p>
+        </div>
+        <button class="btn-report" ${allComplete ? '' : 'disabled'} onclick="downloadReport()">
+          ${allComplete ? 'Download Report →' : `${totalStages - completedCount} stages remaining`}
+        </button>
+      </div>
+    `;
+
+    document.getElementById('mainContent').innerHTML = html;
+  }
+
+  function renderStageCard(stageNum, idx, allowedStages, completedCount) {
+    const stageData = stagesData.find(s => s.stage_number === stageNum);
+    const status = stageData?.status || 'not_started';
+    const isComplete = status === 'complete';
+    const isFirst = idx === 0;
+    const previousComplete = idx === 0 || stagesData.find(s => s.stage_number === allowedStages[idx - 1])?.status === 'complete';
+    const isLocked = !isFirst && !previousComplete && !isComplete;
+    const isActive = !isComplete && !isLocked;
+
+    let cardClass = 'stage-card';
+    let chipClass = 'stage-status-chip chip-not-started';
+    let chipText = 'Not Started';
+    let onclick = '';
+
+    if (isComplete) {
+      cardClass += ' complete';
+      chipClass = 'stage-status-chip chip-complete';
+      chipText = 'Complete ✓';
+      onclick = `onclick="openStage(${stageNum})"`;
+    } else if (isLocked) {
+      cardClass += ' locked';
+      chipClass = 'stage-status-chip chip-locked';
+      chipText = 'Locked';
+    } else if (isActive) {
+      cardClass += ' active-stage';
+      chipClass = 'stage-status-chip chip-active';
+      chipText = status === 'in_progress' ? 'In Progress' : 'Ready';
+      onclick = `onclick="openStage(${stageNum})"`;
+    }
+
+    return `
+      <div class="${cardClass}" ${onclick} style="animation-delay:${idx * 0.05}s">
+        <div class="stage-number">${String(stageNum).padStart(2,'0')}</div>
+        <div class="${chipClass}">${chipText}</div>
+        <div class="stage-name">Stage ${stageNum} — ${getStageNames()[stageNum]}</div>
+        <p class="stage-desc">${STAGE_DESCRIPTIONS[stageNum]}</p>
+        ${!isLocked ? '<div class="stage-arrow">→</div>' : ''}
+      </div>
+    `;
+  }
+
+  function getStageNames() {
+    return {
+      1: 'Business Diagnostic',
+      2: 'Road to 2030',
+      3: 'Operational Excellence',
+      4: 'Strategic Opportunities',
+      5: 'Models Master',
+      6: 'Roadmap for Growth',
+      7: 'Business Case',
+      8: 'Financial Models'
+    };
+  }
+
+  function openStage(stageNum) {
+    window.location.href = `stage.html?stage=${stageNum}`;
+  }
+
+  function downloadReport() {
+    window.location.href = 'report.html';
+  }
+
+  loadPortal();
+</script>
+</body>
+</html>
