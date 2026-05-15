@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TransformOS — Stage</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a0f;
+    --paper: #f5f3ee;
+    --teal: #1a7a6e;
+    --teal-light: #22a693;
+    --amber: #d4820a;
+    --amber-light: #f0a020;
+    --mist: rgba(255,255,255,0.05);
+    --ghost: #6b6860;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 9999; opacity: 0.6;
+  }
+
+  /* ── HEADER */
+  .site-header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 18px 48px;
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    background: rgba(10,10,15,0.92);
+    backdrop-filter: blur(12px);
+  }
+
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 0.12em; color: var(--paper); text-decoration: none; }
+  .logo span { color: var(--teal-light); }
+
+  .header-stage {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 0.16em;
+    color: var(--ghost); text-transform: uppercase;
+    flex: 1; text-align: center;
+  }
+
+  .btn-back {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ghost); background: none; border: none;
+    cursor: pointer; text-decoration: none;
+    transition: color 0.2s;
+  }
+  .btn-back:hover { color: var(--paper); }
+
+  /* ── MAIN */
+  .main { padding: 100px 48px 80px; max-width: 900px; margin: 0 auto; }
+
+  /* ── STAGE HEADER */
+  .stage-header {
+    margin-bottom: 48px;
+    animation: fadeUp 0.5s ease forwards;
+  }
+
+  .stage-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 0.2em;
+    color: var(--amber-light); text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .stage-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    letter-spacing: 0.04em; line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .stage-subtitle { font-size: 1rem; color: var(--ghost); line-height: 1.7; max-width: 600px; }
+
+  /* ── GENERATE BUTTON */
+  .generate-panel {
+    background: var(--mist);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 40px;
+    margin-bottom: 40px;
+    text-align: center;
+    animation: fadeUp 0.5s ease 0.1s both;
+  }
+
+  .generate-panel p {
+    font-size: 0.9rem; color: var(--ghost);
+    line-height: 1.7; max-width: 540px; margin: 0 auto 32px;
+  }
+
+  .btn-generate {
+    background: linear-gradient(135deg, var(--teal), var(--teal-light));
+    color: white; border: none; border-radius: 8px;
+    padding: 18px 48px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem; letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+  }
+  .btn-generate:hover { transform: translateY(-2px); opacity: 0.9; }
+  .btn-generate:disabled { opacity: 0.5; pointer-events: none; }
+
+  /* ── GENERATING STATE */
+  .generating-state {
+    display: none;
+    text-align: center;
+    padding: 60px 40px;
+    animation: fadeUp 0.3s ease forwards;
+  }
+
+  .generating-state.visible { display: block; }
+
+  .generating-spinner {
+    width: 48px; height: 48px;
+    border: 3px solid rgba(255,255,255,0.08);
+    border-top-color: var(--teal-light);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 24px;
+  }
+
+  .generating-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem; letter-spacing: 0.06em;
+    margin-bottom: 12px;
+  }
+
+  .generating-sub {
+    font-size: 0.875rem; color: var(--ghost); line-height: 1.6;
+  }
+
+  .generating-dots::after {
+    content: '';
+    animation: dots 1.5s steps(4, end) infinite;
+  }
+
+  /* ── OUTPUT */
+  .output-panel {
+    display: none;
+    animation: fadeUp 0.5s ease forwards;
+  }
+
+  .output-panel.visible { display: block; }
+
+  .output-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px; flex-wrap: wrap; gap: 16px;
+  }
+
+  .output-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.16em;
+    color: var(--teal-light); text-transform: uppercase;
+  }
+
+  .output-actions { display: flex; gap: 12px; }
+
+  .btn-action {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 8px 16px; border-radius: 4px; cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-copy {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--ghost);
+  }
+  .btn-copy:hover { background: rgba(255,255,255,0.1); color: var(--paper); }
+
+  .btn-next {
+    background: var(--teal);
+    border: 1px solid var(--teal);
+    color: white;
+  }
+  .btn-next:hover { background: var(--teal-light); border-color: var(--teal-light); }
+
+  .output-content {
+    background: rgba(245,243,238,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 40px 44px;
+    font-size: 0.9rem;
+    line-height: 1.85;
+    color: rgba(245,243,238,0.85);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  .output-content::-webkit-scrollbar { width: 4px; }
+  .output-content::-webkit-scrollbar-track { background: transparent; }
+  .output-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+  /* ── ALREADY COMPLETE STATE */
+  .complete-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(26,122,110,0.15);
+    border: 1px solid rgba(26,122,110,0.3);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.12em;
+    color: var(--teal-light); text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .btn-rerun {
+    background: rgba(212,130,10,0.15);
+    border: 1px solid rgba(212,130,10,0.4);
+    color: var(--amber-light);
+  }
+  .btn-rerun:hover { background: rgba(212,130,10,0.25); border-color: var(--amber-light); }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes dots { 0%,20% { content: '.'; } 40% { content: '..'; } 60%,100% { content: '...'; } }
+
+  /* ── FOOTER */
+  .footer-strip {
+    padding: 24px 48px; margin-top: 80px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.3); }
+  .footer-logo span { color: var(--teal); }
+  .footer-legal { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: rgba(255,255,255,0.2); text-transform: uppercase; letter-spacing: 0.1em; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="portal.html" class="btn-back">← Portal</a>
+  <div class="header-stage" id="headerStage">Stage —</div>
+  <a href="portal.html" class="logo">Transform<span>OS</span></a>
+</header>
+
+<main class="main">
+
+  <div class="stage-header">
+    <div class="stage-eyebrow" id="stageEyebrow">Stage —</div>
+    <div class="stage-title" id="stageTitle">Loading…</div>
+    <p class="stage-subtitle" id="stageSubtitle"></p>
+  </div>
+
+  <!-- GENERATE PANEL -->
+  <div class="generate-panel" id="generatePanel">
+    <p id="generateDesc">This stage will be generated using your company profile, uploaded documents, and all prior stage outputs.</p>
+    <button class="btn-generate" id="generateBtn" onclick="runStage()">Generate Stage →</button>
+  </div>
+
+  <!-- GENERATING STATE -->
+  <div class="generating-state" id="generatingState">
+    <div class="generating-spinner"></div>
+    <div class="generating-title">Generating Your Report<span class="generating-dots"></span></div>
+    <p class="generating-sub">Our AI is analysing your company data and prior stage outputs.<br>This typically takes 30–60 seconds. Please don't close this tab.</p>
+  </div>
+
+  <!-- OUTPUT PANEL -->
+  <div class="output-panel" id="outputPanel">
+    <div class="output-header">
+      <div>
+        <div class="complete-badge">✓ Complete</div>
+        <div class="output-label" id="outputLabel">Stage Output</div>
+      </div>
+      <div class="output-actions">
+        <button class="btn-action btn-copy" onclick="copyOutput()">Copy Text</button>
+        <button class="btn-action btn-rerun" onclick="confirmRerun()">Re-run Stage ↺</button>
+        <button class="btn-action btn-next" id="nextBtn" onclick="goNext()">Next Stage →</button>
+      </div>
+    </div>
+    <div class="output-content" id="outputContent"></div>
+  </div>
+
+</main>
+
+<footer class="footer-strip">
+  <div class="footer-logo">Transform<span>OS</span></div>
+  <div class="footer-legal">© 2026 TransformOS · transformos.co.uk</div>
+</footer>
+
+<script>
+  const STAGE_NAMES = {
+    1: 'Business Diagnostic',
+    2: 'Road to 2030',
+    3: 'Operational Excellence',
+    4: 'Strategic Opportunities',
+    5: 'Models Master',
+    6: 'Roadmap for Growth',
+    7: 'Business Case',
+    8: 'Financial Models'
+  };
+
+  const STAGE_SUBTITLES = {
+    1: 'A comprehensive assessment of your current commercial, financial and operational state — the foundation everything else builds on.',
+    2: 'Your strategic vision and growth ambition defined. Where this business needs to be by 2030 and the thesis for getting there.',
+    3: 'Operational improvements ranked by impact. Quick wins you can execute immediately, and the medium-term operational priorities.',
+    4: 'Your top strategic growth opportunities identified, evaluated and ranked. The moves that will change the trajectory of this business.',
+    5: 'The most relevant strategic frameworks applied to your business. Canvases, matrices and models that sharpen strategic clarity.',
+    6: 'A time-phased, 36-month growth roadmap. Priorities by quarter, revenue trajectory, key initiatives with owners and milestones.',
+    7: 'The rigorous financial and strategic case for your transformation. Investment required, ROI, risks and board-ready recommendation.',
+    8: 'Three-year financial projections, cash flow model, investment plan and scenario analysis — the numbers behind the strategy.'
+  };
+
+  let session = null;
+  let stageNumber = 1;
+  let companyId = null;
+
+  function checkAuth() {
+    const stored = localStorage.getItem('tos_session');
+    if (!stored) { window.location.href = 'login.html'; return false; }
+    session = JSON.parse(stored);
+    const expiresAt = new Date(session.expires_at * 1000);
+    if (expiresAt <= new Date()) { localStorage.removeItem('tos_session'); window.location.href = 'login.html'; return false; }
+    return true;
+  }
+
+  async function initStage() {
+    if (!checkAuth()) return;
+
+    const params = new URLSearchParams(window.location.search);
+    stageNumber = parseInt(params.get('stage')) || 1;
+    companyId = session.company?.id;
+
+    // Always fetch company_id from server as fallback
+
+    const stageName = STAGE_NAMES[stageNumber];
+    document.title = `TransformOS — Stage ${stageNumber}: ${stageName}`;
+    document.getElementById('headerStage').textContent = `Stage ${stageNumber} of 8 — ${stageName}`;
+    document.getElementById('stageEyebrow').textContent = `Stage ${stageNumber} of 8`;
+    document.getElementById('stageTitle').textContent = stageName;
+    document.getElementById('stageSubtitle').textContent = STAGE_SUBTITLES[stageNumber];
+    document.getElementById('outputLabel').textContent = `Stage ${stageNumber} — ${stageName}`;
+
+    // Hide next button on last stage
+    if (stageNumber >= 8) {
+      document.getElementById('nextBtn').textContent = 'View Report →';
+    }
+
+    // Fetch company_id from server + check completion
+    try {
+      const res = await fetch('/.netlify/functions/get-stages', {
+        headers: { 'Authorization': `Bearer ${session.token}` }
+      });
+      const data = await res.json();
+
+      // Always use server company_id — session may not have it
+      if (data.company_id) {
+        companyId = data.company_id;
+        session.company = { ...session.company, id: companyId };
+        localStorage.setItem('tos_session', JSON.stringify(session));
+      }
+
+      const thisStage = (data.stages || []).find(s => s.stage_number === stageNumber);
+      if (thisStage?.status === 'complete' && thisStage?.output_content) {
+        showOutput(thisStage.output_content);
+      }
+    } catch (e) {
+      // Proceed to generate fresh
+    }
+  }
+
+  async function runStage() {
+    document.getElementById('generatePanel').style.display = 'none';
+    document.getElementById('generatingState').classList.add('visible');
+
+    try {
+      // Fire the background function — returns immediately
+      const res = await fetch('/.netlify/functions/run-stage-background', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.token}`
+        },
+        body: JSON.stringify({
+          stage_number: stageNumber,
+          company_id: companyId
+        })
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        document.getElementById('generatingState').classList.remove('visible');
+        document.getElementById('generatePanel').style.display = 'block';
+        document.getElementById('generateBtn').textContent = 'Retry Generation →';
+        alert(data.error || 'Generation failed. Please try again.');
+        return;
+      }
+
+      // Start polling for completion
+      pollForCompletion();
+
+    } catch (err) {
+      document.getElementById('generatingState').classList.remove('visible');
+      document.getElementById('generatePanel').style.display = 'block';
+      document.getElementById('generateBtn').textContent = 'Retry Generation →';
+      alert('Connection error. Please try again.');
+    }
+  }
+
+  let pollInterval = null;
+  let pollCount = 0;
+
+  function pollForCompletion() {
+    pollCount = 0;
+    pollInterval = setInterval(async () => {
+      pollCount++;
+
+      // Timeout after 5 minutes (100 x 3s polls)
+      if (pollCount > 100) {
+        clearInterval(pollInterval);
+        document.getElementById('generatingState').classList.remove('visible');
+        document.getElementById('generatePanel').style.display = 'block';
+        document.getElementById('generateBtn').textContent = 'Retry Generation →';
+        alert('Generation is taking longer than expected. Please try again.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`/.netlify/functions/check-stage-status?stage_number=${stageNumber}&company_id=${companyId}`, {
+          headers: { 'Authorization': `Bearer ${session.token}` }
+        });
+
+        const data = await res.json();
+
+        if (data.status === 'complete' && data.output) {
+          clearInterval(pollInterval);
+          document.getElementById('generatingState').classList.remove('visible');
+          showOutput(data.output);
+        } else if (data.status === 'error') {
+          clearInterval(pollInterval);
+          document.getElementById('generatingState').classList.remove('visible');
+          document.getElementById('generatePanel').style.display = 'block';
+          document.getElementById('generateBtn').textContent = 'Retry Generation →';
+          alert('Generation failed. Please try again.');
+        }
+        // status === 'generating' — keep polling
+
+      } catch (err) {
+        // Network blip — keep polling
+        console.log('Poll error, retrying...', err.message);
+      }
+    }, 3000);
+  }
+
+  function showOutput(content) {
+    document.getElementById('generatePanel').style.display = 'none';
+    document.getElementById('generatingState').classList.remove('visible');
+    document.getElementById('outputContent').textContent = content;
+    document.getElementById('outputPanel').classList.add('visible');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function copyOutput() {
+    const content = document.getElementById('outputContent').textContent;
+    navigator.clipboard.writeText(content).then(() => {
+      const btn = document.querySelector('.btn-copy');
+      btn.textContent = 'Copied ✓';
+      setTimeout(() => { btn.textContent = 'Copy Text'; }, 2000);
+    });
+  }
+
+  function goNext() {
+    if (stageNumber >= 8) {
+      window.location.href = 'report.html';
+    } else {
+      window.location.href = `stage.html?stage=${stageNumber + 1}`;
+    }
+  }
+
+  function confirmRerun() {
+    const confirmed = confirm('Re-run this stage? The existing output will be replaced with a fresh analysis. This cannot be undone.');
+    if (confirmed) rerunStage();
+  }
+
+  async function rerunStage() {
+    // Reset stage status in Supabase then re-run
+    document.getElementById('outputPanel').classList.remove('visible');
+    document.getElementById('generatingState').classList.add('visible');
+
+    try {
+      // Reset status to not_started so run-stage saves properly
+      const resetRes = await fetch('/.netlify/functions/reset-stage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.token}`
+        },
+        body: JSON.stringify({ stage_number: stageNumber, company_id: companyId })
+      });
+
+      // Now re-run
+      await runStage();
+
+    } catch (err) {
+      document.getElementById('generatingState').classList.remove('visible');
+      document.getElementById('outputPanel').classList.add('visible');
+      alert('Re-run failed. Please try again.');
+    }
+  }
+
+  initStage();
+</script>
+</body>
+</html>
