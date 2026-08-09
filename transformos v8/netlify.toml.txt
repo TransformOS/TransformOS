@@ -1,8 +1,0 @@
-[build]
-  functions = "netlify/functions"
-
-[functions."run-stage-bg"]
-  timeout = 900
-
-[[plugins]]
-  package = "@netlify/plugin-functions-install-core"
