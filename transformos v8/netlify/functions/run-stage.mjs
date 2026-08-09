@@ -1,8 +1,9 @@
-const { createClient } = require('@supabase/supabase-js');
-const Anthropic = require('@anthropic-ai/sdk');
+import { createClient } from '@supabase/supabase-js';
+import Anthropic from '@anthropic-ai/sdk';
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SECRET_KEY);
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+// Credentials are injected by the Netlify AI Gateway at runtime — do not set an API key here.
+const anthropic = new Anthropic({ baseURL: process.env.ANTHROPIC_BASE_URL });
 
 const STAGE_PROMPTS = {
   1: `You are a senior management consultant. Produce a Business Diagnostic report using this exact structure. Be direct, evidence-based, commercially rigorous. No fluff.
@@ -121,23 +122,26 @@ SECTION 8: FINANCIAL KPI DASHBOARD — 15 KPIs with current value, Y1 target, Y3
 SECTION 9: VALUATION IMPLICATIONS — current EV range, Y3 value in base case, value drivers, exit multiple range`
 };
 
-exports.handler = async (event) => {
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-  };
+const headers = {
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+};
 
-  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
-  if (event.httpMethod !== 'POST') return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
+const json = (statusCode, payload) =>
+  new Response(payload === '' ? '' : JSON.stringify(payload), { status: statusCode, headers });
 
-  const token = (event.headers.authorization || '').replace('Bearer ', '');
+export default async (req) => {
+  if (req.method === 'OPTIONS') return json(200, '');
+  if (req.method !== 'POST') return json(405, { error: 'Method not allowed' });
+
+  const token = (req.headers.get('authorization') || '').replace('Bearer ', '');
   const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-  if (authError || !user) return { statusCode: 401, headers, body: JSON.stringify({ error: 'Unauthorised' }) };
+  if (authError || !user) return json(401, { error: 'Unauthorised' });
 
   let body;
-  try { body = JSON.parse(event.body); }
-  catch { return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
+  try { body = await req.json(); }
+  catch { return json(400, { error: 'Invalid JSON' }); }
 
   const { stage_number, company_id } = body;
 
@@ -146,7 +150,7 @@ exports.handler = async (event) => {
       .from('companies').select('*')
       .eq('id', company_id).eq('user_id', user.id).single();
 
-    if (!company) return { statusCode: 404, headers, body: JSON.stringify({ error: 'Company not found' }) };
+    if (!company) return json(404, { error: 'Company not found' });
 
     const { data: priorStages } = await supabase
       .from('transformation_stages').select('stage_number, stage_name, output_content')
@@ -195,10 +199,10 @@ DOCUMENTS: ${documents?.length > 0 ? documents.map(d => d.file_name).join(', ') 
         .eq('company_id', company_id).eq('stage_number', stage_number + 1);
     }
 
-    return { statusCode: 200, headers, body: JSON.stringify({ success: true, output }) };
+    return json(200, { success: true, output });
 
   } catch (error) {
     console.error('Run stage error:', error.message);
-    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Stage generation failed. Please try again.' }) };
+    return json(500, { error: 'Stage generation failed. Please try again.' });
   }
 };

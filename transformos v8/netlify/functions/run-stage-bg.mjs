@@ -1,14 +1,15 @@
 // ── BACKGROUND FUNCTION — no timeout limit
 // Must be named with -background suffix OR exported as background
-// Netlify detects this via the filename: run-stage-bg.js
+// Netlify detects this via the filename: run-stage-bg.mjs
 // We use a workaround: set status to 'generating' immediately,
 // then do the work, then save. Client polls check-stage-status.
 
-const { createClient } = require('@supabase/supabase-js');
-const Anthropic = require('@anthropic-ai/sdk');
+import { createClient } from '@supabase/supabase-js';
+import Anthropic from '@anthropic-ai/sdk';
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SECRET_KEY);
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+// Credentials are injected by the Netlify AI Gateway at runtime — do not set an API key here.
+const anthropic = new Anthropic({ baseURL: process.env.ANTHROPIC_BASE_URL });
 
 const STAGE_PROMPTS = {
   1: `You are a senior management consultant with 20+ years experience. Produce a comprehensive Business Diagnostic report. Be direct, evidence-based, commercially rigorous. No fluff. No consultant-speak.
@@ -140,23 +141,26 @@ SECTION 8: FINANCIAL KPI DASHBOARD — 15 KPIs: current value, Y1 target, Y3 tar
 SECTION 9: VALUATION IMPLICATIONS — current EV range, Y3 value base case, value drivers, exit multiple range`
 };
 
-exports.handler = async (event) => {
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-  };
+const headers = {
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+};
 
-  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
-  if (event.httpMethod !== 'POST') return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
+const json = (statusCode, payload) =>
+  new Response(payload === '' ? '' : JSON.stringify(payload), { status: statusCode, headers });
 
-  const token = (event.headers.authorization || '').replace('Bearer ', '');
+export default async (req) => {
+  if (req.method === 'OPTIONS') return json(200, '');
+  if (req.method !== 'POST') return json(405, { error: 'Method not allowed' });
+
+  const token = (req.headers.get('authorization') || '').replace('Bearer ', '');
   const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-  if (authError || !user) return { statusCode: 401, headers, body: JSON.stringify({ error: 'Unauthorised' }) };
+  if (authError || !user) return json(401, { error: 'Unauthorised' });
 
   let body;
-  try { body = JSON.parse(event.body); }
-  catch { return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
+  try { body = await req.json(); }
+  catch { return json(400, { error: 'Invalid JSON' }); }
 
   const { stage_number, company_id } = body;
 
@@ -165,7 +169,7 @@ exports.handler = async (event) => {
       .from('companies').select('*')
       .eq('id', company_id).eq('user_id', user.id).single();
 
-    if (!company) return { statusCode: 404, headers, body: JSON.stringify({ error: 'Company not found' }) };
+    if (!company) return json(404, { error: 'Company not found' });
 
     // SET STATUS TO 'generating' IMMEDIATELY so client knows it started
     await supabase.from('transformation_stages')
@@ -220,13 +224,13 @@ DOCUMENTS UPLOADED: ${documents?.length > 0 ? documents.map(d => `${d.file_name}
         .eq('company_id', company_id).eq('stage_number', stage_number + 1);
     }
 
-    return { statusCode: 200, headers, body: JSON.stringify({ success: true }) };
+    return json(200, { success: true });
 
   } catch (error) {
     console.error('Background stage error:', error.message);
     await supabase.from('transformation_stages')
       .update({ status: 'error' })
       .eq('company_id', company_id).eq('stage_number', stage_number);
-    return { statusCode: 500, headers, body: JSON.stringify({ error: error.message }) };
+    return json(500, { error: error.message });
   }
 };
