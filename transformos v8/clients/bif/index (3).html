@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TransformOS — Business in Focus Limited</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0D1B2A; --navy2:#142236; --navy3:#1C2F45;
+  --gold:#C9922A; --gold2:#E8B454; --gold3:#F5D48A;
+  --cream:#F2EDE4; --mist:#B8C4D0; --slate:#6B7F92;
+  --white:#FFFFFF;
+  --border:rgba(201,146,42,.28); --bdim:rgba(184,196,208,.14);
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --mono:'DM Mono',ui-monospace,monospace;
+  --sidebar:290px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--navy);color:var(--mist);font-family:var(--sans);font-weight:300;line-height:1.7;-webkit-font-smoothing:antialiased}
+.tname{color:var(--white)}.tos{color:var(--gold2)}
+
+
+
+/* ---------- ACCESS GATE ---------- */
+#gate{position:fixed;inset:0;background:var(--navy);z-index:9999;display:flex;align-items:center;justify-content:center;padding:2rem}
+#gate.hidden{display:none}
+.gate-box{max-width:420px;width:100%;text-align:left}
+.gate-logo{font-family:var(--serif);font-size:1.8rem;font-weight:600;margin-bottom:.4rem}
+.gate-sub{font-family:var(--mono);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold2);margin-bottom:2.2rem}
+.gate-msg{font-size:.9rem;color:var(--mist);margin-bottom:1.6rem;line-height:1.7}
+.gate-row{display:flex;gap:.6rem}
+#gateInput{flex:1;background:var(--navy2);border:1px solid var(--bdim);color:var(--cream);padding:.85rem 1rem;font-family:var(--mono);font-size:.85rem;letter-spacing:.1em;text-transform:uppercase}
+#gateInput:focus{outline:none;border-color:var(--gold)}
+.gate-btn{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;background:var(--gold2);color:var(--navy);border:none;padding:.85rem 1.6rem;cursor:pointer;font-weight:500}
+.gate-btn:hover{background:var(--gold3)}
+.gate-err{color:#E07A5F;font-size:.78rem;margin-top:.9rem;min-height:1.1rem}
+
+/* ---------- CLIENT BRAND ---------- */
+.client-bar{display:flex;align-items:center;gap:1.1rem;padding:0 1.8rem 1.4rem;margin-bottom:.2rem}
+.client-logo{width:46px;height:46px;flex-shrink:0;object-fit:contain;border:1px solid var(--bdim)}
+.client-logo-fallback{width:46px;height:46px;flex-shrink:0;background:#0E3B2E;display:flex;align-items:center;justify-content:center;font-family:var(--sans);font-weight:500;font-size:.62rem;color:#fff;letter-spacing:.04em;text-align:center;line-height:1.15}
+.client-name{font-size:.82rem;color:var(--white);line-height:1.3}
+.client-role{font-family:var(--mono);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);margin-top:.25rem}
+
+/* ---------- INTERACTIVE CHART CARDS ---------- */
+.viz-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:2px;background:var(--bdim);margin:2.2rem 0}
+.viz{background:var(--navy2);padding:1.6rem 1.5rem;cursor:pointer;transition:background .22s;position:relative}
+.viz:hover{background:var(--navy3)}
+.viz:focus-visible{outline:1px solid var(--gold)}
+.viz-lab{font-family:var(--mono);font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;color:var(--slate);margin-bottom:1rem}
+.viz-fig{display:flex;align-items:center;gap:1.1rem}
+.viz-num{font-family:var(--serif);font-size:2.1rem;font-weight:300;color:var(--gold2);line-height:1}
+.viz-num.alert{color:#E07A5F}
+.viz-sub{font-size:.74rem;color:var(--mist);line-height:1.45;margin-top:.8rem}
+.viz-more{font-family:var(--mono);font-size:.55rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);margin-top:1rem;opacity:.65}
+.viz:hover .viz-more{opacity:1}
+.viz svg{display:block}
+
+.viz-detail{display:none;background:var(--navy3);border-left:2px solid var(--gold);padding:1.6rem 1.8rem;margin:0 0 2px}
+.viz-detail.on{display:block;animation:fade .3s ease}
+.viz-detail h4{font-family:var(--serif);font-size:1.15rem;color:var(--white);font-weight:500;margin-bottom:.7rem}
+.viz-detail p{font-size:.87rem;margin-bottom:.8rem;max-width:760px}
+.viz-detail .tbl{margin:1rem 0 .4rem}
+.vd-close{float:right;background:none;border:none;color:var(--slate);cursor:pointer;font-size:1.1rem;line-height:1}
+.vd-close:hover{color:var(--gold2)}
+
+/* ---------- SIDEBAR ---------- */
+.sidebar{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:var(--navy2);border-right:1px solid var(--bdim);overflow-y:auto;z-index:100;padding:2rem 0}
+.sb-brand{padding:0 1.8rem 1.6rem;border-bottom:1px solid var(--bdim);margin-bottom:1.4rem}
+.sb-logo{font-family:var(--serif);font-size:1.5rem;font-weight:600;letter-spacing:.02em}
+.sb-client{font-family:var(--mono);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold2);margin-top:.7rem}
+.sb-meta{font-size:.72rem;color:var(--slate);margin-top:.3rem}
+.sb-sec{font-family:var(--mono);font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--slate);padding:1.2rem 1.8rem .5rem}
+.sb-link{display:flex;gap:.85rem;align-items:baseline;padding:.62rem 1.8rem;color:var(--mist);text-decoration:none;font-size:.83rem;border-left:2px solid transparent;transition:all .18s;cursor:pointer}
+.sb-link:hover{color:var(--white);background:rgba(201,146,42,.05)}
+.sb-link.active{color:var(--gold2);border-left-color:var(--gold2);background:rgba(201,146,42,.07)}
+.sb-num{font-family:var(--mono);font-size:.66rem;color:var(--gold);flex-shrink:0;min-width:1.1rem}
+.sb-actions{padding:1.4rem 1.8rem 0;margin-top:1rem;border-top:1px solid var(--bdim);display:flex;flex-direction:column;gap:.6rem}
+.sb-btn{font-family:var(--mono);font-size:.64rem;letter-spacing:.13em;text-transform:uppercase;padding:.62rem .9rem;border:1px solid var(--border);color:var(--gold2);background:none;cursor:pointer;text-align:left;transition:all .2s}
+.sb-btn:hover{background:var(--gold2);color:var(--navy);border-color:var(--gold2)}
+
+/* ---------- MAIN ---------- */
+.main{margin-left:var(--sidebar);padding:3.5rem 4rem 8rem;max-width:1180px}
+.doc-head{border-bottom:1px solid var(--border);padding-bottom:2rem;margin-bottom:3rem}
+.eyebrow{font-family:var(--mono);font-size:.64rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold2);margin-bottom:1.1rem}
+h1{font-family:var(--serif);font-size:clamp(2.1rem,3.6vw,3.1rem);font-weight:300;line-height:1.14;color:var(--white)}
+h1 em{font-style:italic;color:var(--gold2)}
+.sub{font-size:1rem;color:var(--mist);margin-top:1.2rem;max-width:720px;line-height:1.8}
+.confid{font-family:var(--mono);font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--slate);margin-top:1.4rem}
+
+section.blk{display:none;animation:fade .4s ease}
+section.blk.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+h2{font-family:var(--serif);font-size:1.85rem;font-weight:400;color:var(--white);margin:3rem 0 1.1rem;line-height:1.25}
+h2:first-of-type{margin-top:0}
+h3{font-family:var(--serif);font-size:1.25rem;font-weight:600;color:var(--white);margin:2.2rem 0 .8rem}
+p{margin-bottom:1.15rem;max-width:820px}
+.lead{font-size:1.06rem;color:var(--cream);line-height:1.85;border-left:2px solid var(--gold);padding-left:1.4rem;margin:1.8rem 0 2rem;max-width:800px}
+
+/* metrics */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:2px;background:var(--bdim);margin:2rem 0}
+.metric{background:var(--navy2);padding:1.5rem 1.4rem}
+.m-val{font-family:var(--serif);font-size:2rem;font-weight:300;color:var(--gold2);line-height:1}
+.m-lab{font-family:var(--mono);font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--slate);margin-top:.7rem}
+.m-note{font-size:.76rem;color:var(--mist);margin-top:.5rem;line-height:1.5}
+.m-val.red{color:#E07A5F}
+
+/* tables */
+.tbl{width:100%;border-collapse:collapse;margin:1.6rem 0;font-size:.86rem}
+.tbl th{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold2);text-align:left;padding:.75rem .9rem;border-bottom:1px solid var(--border);font-weight:500}
+.tbl td{padding:.75rem .9rem;border-bottom:1px solid var(--bdim);vertical-align:top;color:var(--mist)}
+.tbl tr:hover td{background:rgba(201,146,42,.035)}
+.tbl td strong{color:var(--white);font-weight:500}
+.num{text-align:right;font-family:var(--mono);font-size:.8rem}
+
+/* pills */
+.pill{display:inline-block;font-family:var(--mono);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;padding:.22rem .6rem;border:1px solid;white-space:nowrap}
+.p-crit{color:#E07A5F;border-color:rgba(224,122,95,.45)}
+.p-high{color:var(--gold2);border-color:var(--border)}
+.p-med{color:var(--mist);border-color:var(--bdim)}
+.p-ok{color:#7FB069;border-color:rgba(127,176,105,.4)}
+
+/* evidence disclosure */
+.ev{border:1px solid var(--bdim);margin:1.3rem 0;max-width:860px}
+.ev summary{cursor:pointer;padding:.85rem 1.2rem;font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold2);list-style:none;display:flex;justify-content:space-between;align-items:center;transition:background .2s}
+.ev summary:hover{background:rgba(201,146,42,.05)}
+.ev summary::-webkit-details-marker{display:none}
+.ev summary::after{content:'+';font-size:1rem;color:var(--gold)}
+.ev[open] summary::after{content:'\2212'}
+.ev-body{padding:.4rem 1.2rem 1.2rem;font-size:.85rem;border-top:1px solid var(--bdim)}
+.ev-body p{margin:.9rem 0 0}
+.ev-body ul{margin:.8rem 0 0 1.1rem}
+.ev-body li{margin-bottom:.45rem;font-size:.85rem}
+
+/* chart */
+.chart-wrap{border:1px solid var(--bdim);padding:1.6rem;margin:2rem 0;background:var(--navy2)}
+.chart-title{font-family:var(--mono);font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold2);margin-bottom:1.4rem}
+.bar-row{display:grid;grid-template-columns:170px 1fr 90px;gap:1rem;align-items:center;margin-bottom:.85rem;font-size:.8rem}
+.bar-track{height:20px;background:rgba(184,196,208,.08);position:relative}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.bar-fill.dim{background:rgba(184,196,208,.28)}
+.bar-val{font-family:var(--mono);font-size:.76rem;color:var(--mist);text-align:right}
+
+/* phases */
+.phases{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:2px;background:var(--bdim);margin:2rem 0}
+.phase{background:var(--navy2);padding:1.6rem 1.4rem}
+.ph-n{font-family:var(--mono);font-size:.62rem;color:var(--gold);letter-spacing:.15em}
+.ph-t{font-family:var(--serif);font-size:1.3rem;color:var(--white);margin:.5rem 0 .2rem}
+.ph-p{font-family:var(--mono);font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);margin-bottom:.9rem}
+.phase ul{margin-left:1rem;font-size:.8rem}
+.phase li{margin-bottom:.4rem}
+
+/* ---------- ASK PANEL ---------- */
+.ask{position:fixed;bottom:0;right:0;width:calc(100% - var(--sidebar));background:var(--navy2);border-top:1px solid var(--border);padding:1rem 4rem;z-index:90;display:flex;gap:.9rem;align-items:center}
+.ask input{flex:1;background:var(--navy);border:1px solid var(--bdim);color:var(--cream);padding:.8rem 1rem;font-family:var(--sans);font-size:.88rem;font-weight:300}
+.ask input:focus{outline:none;border-color:var(--gold)}
+.ask button{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;background:var(--gold2);color:var(--navy);border:none;padding:.85rem 1.6rem;cursor:pointer;font-weight:500}
+.ask button:hover{background:var(--gold3)}
+.ask button:disabled{opacity:.45;cursor:not-allowed}
+.ask-hint{font-family:var(--mono);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);white-space:nowrap}
+
+.answer{position:fixed;bottom:76px;right:2rem;width:min(620px,calc(100% - var(--sidebar) - 4rem));max-height:56vh;overflow-y:auto;background:var(--navy3);border:1px solid var(--border);padding:1.6rem 1.8rem;z-index:95;display:none;box-shadow:0 -8px 40px rgba(0,0,0,.5)}
+.answer.on{display:block}
+.answer-q{font-family:var(--mono);font-size:.62rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold2);margin-bottom:.9rem;padding-bottom:.9rem;border-bottom:1px solid var(--bdim)}
+.answer-body{font-size:.9rem;line-height:1.75;color:var(--cream);white-space:pre-wrap}
+.answer-close{position:absolute;top:1rem;right:1.2rem;background:none;border:none;color:var(--slate);font-size:1.2rem;cursor:pointer;padding:0}
+.answer-close:hover{color:var(--gold2)}
+.suggest{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+.sug{font-size:.74rem;padding:.4rem .8rem;border:1px solid var(--bdim);color:var(--mist);cursor:pointer;transition:all .18s;background:none;font-family:var(--sans)}
+.sug:hover{border-color:var(--gold);color:var(--gold2)}
+
+/* ---------- PRESENT MODE ---------- */
+body.present .sidebar,body.present .ask,body.present .answer{display:none}
+body.present .main{margin-left:0;max-width:none;padding:5vh 8vw;min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+body.present .doc-head{display:none}
+body.present h2{font-size:3rem}
+body.present p,body.present .tbl td{font-size:1.15rem}
+body.present .lead{font-size:1.5rem}
+body.present .m-val{font-size:3.2rem}
+body.present .ev{display:none}
+.present-bar{display:none;position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);gap:1rem;align-items:center;background:var(--navy2);border:1px solid var(--border);padding:.6rem 1.2rem;z-index:200}
+body.present .present-bar{display:flex}
+.present-bar button{background:none;border:1px solid var(--bdim);color:var(--gold2);font-family:var(--mono);font-size:.66rem;padding:.4rem .9rem;cursor:pointer;letter-spacing:.1em;text-transform:uppercase}
+.present-bar button:hover{border-color:var(--gold)}
+.pb-count{font-family:var(--mono);font-size:.68rem;color:var(--slate)}
+
+/* ---------- PRINT ---------- */
+@media print{
+  @page{margin:16mm}
+  body{background:#fff;color:#1a1a1a}
+  .sidebar,.ask,.answer,.present-bar,.sb-actions,#gate{display:none!important}
+  .main{margin:0;padding:0;max-width:none}
+  section.blk{display:block!important;page-break-after:always}
+  section.blk:last-child{page-break-after:auto}
+  h1,h2,h3{color:#0D1B2A}
+  h2{page-break-after:avoid;border-bottom:1px solid #C9922A;padding-bottom:.3rem}
+  .lead{border-left-color:#C9922A;color:#333}
+  .metric{background:#f6f4f0;border:1px solid #ddd}
+  .m-val{color:#8a6418}
+  .m-lab,.eyebrow,.chart-title{color:#666}
+  .tbl td{color:#333;border-bottom:1px solid #ddd}
+  .tbl th{color:#8a6418;border-bottom:1px solid #C9922A}
+  .tbl,.metrics,.phases,.chart-wrap{page-break-inside:avoid}
+  .ev{border:1px solid #ddd}
+  .ev summary{color:#8a6418}
+  .ev[open] .ev-body,.ev .ev-body{display:block!important}
+  .viz-detail{display:block!important;background:#f6f4f0;border-left:2px solid #C9922A}
+  .viz{background:#f9f8f6;cursor:default}
+  .viz-num{color:#8a6418}
+  .viz-more{display:none}
+  .client-logo-fallback{background:#0E3B2E}
+  .ev-body{color:#333}
+  .phase{background:#f6f4f0}
+  .chart-wrap{background:#f9f8f6}
+  p,.tbl td{color:#333}
+  a{color:#8a6418;text-decoration:none}
+}
+
+@media(max-width:1000px){
+  .sidebar{transform:translateX(-100%);transition:transform .3s}
+  .sidebar.open{transform:none}
+  .main{margin-left:0;padding:2rem 1.4rem 8rem}
+  .ask{width:100%;padding:.8rem 1.4rem}
+  .answer{right:1rem;width:calc(100% - 2rem)}
+  .menu-btn{display:block!important}
+}
+.menu-btn{display:none;position:fixed;top:1rem;left:1rem;z-index:150;background:var(--gold2);color:var(--navy);border:none;padding:.6rem .9rem;font-family:var(--mono);font-size:.66rem;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="gate-box">
+    <div class="gate-logo"><span class="tname">Transform</span><span class="tos">OS</span></div>
+    <div class="gate-sub">Confidential client portal</div>
+    <p class="gate-msg">This portal contains a confidential transformation analysis prepared for Business in Focus Limited. Please enter your access code.</p>
+    <div class="gate-row">
+      <input id="gateInput" placeholder="Access code" autocomplete="off"
+             onkeydown="if(event.key==='Enter')checkGate()">
+      <button class="gate-btn" onclick="checkGate()">Enter</button>
+    </div>
+    <div class="gate-err" id="gateErr"></div>
+  </div>
+</div>
+
+<button class="menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')">MENU</button>
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo"><span class="tname">Transform</span><span class="tos">OS</span></div>
+    <div class="sb-meta" style="margin-top:.6rem">Full Enterprise Transformation · April 2026</div>
+  </div>
+  <div class="client-bar">
+    <img src="data:image/png;base64,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LAKAMoZq3AogAiIwCyh4cvHiB/784JEXfWNUe/u73/UuZudBpOaw6LftAjN4J0rACTOQCjzvN7/7E9Ex4D3RRkdkFOTswQGAJlI6FAFEZUjddd/9l37n0k2bN7W2tJ562qkfn3fe+85625q167/77W8bpRkgMIF3olBFJiqDTquZAEQqYA8minbu3Pnd7373Zz/96dixY8eOG3vIwYecdfZZM6ZNP2jM+HPf977777sfEBSACFQqiQOquaaamppvve32o4465rMfn3fM0XPDoOCsAwDvPQUholiAnp7eC7/65aeWLDVhmIkXrZ5ZvNgzJ0l6xeVX3Prbm4cPHz550qSO4Z2nnfbGk0882Sj18Y+ed/ttt3d17/zDHX+47ebbJh40YfSIkVOmTD3hhBNf+5rXdLS0vPXNZ1x3w/W/v+2WYmu7IKZJIs73GyAGTpgQBtH11/73m04/47WvOu5Nbzpjy5ZNGXsitZv12zOwCCJ40CpQKlRknMP9K4035HMw+t2tlkhRYcPGrSYIwRSUChm0IvBZkufWeau17u3tvee+e8FL0tMdFwrvete7wtaWg8Yd5Fm6+vqmipggLESRs65cLjvmttY2BOjt61u1evVRR899xzveahTddc/d11173YYNG3/3u98vWbr0Rz/60fBC89QpBzOIMFgAjUqboFQqaRMAQGYtIl511VWnnnbqwRMnHjZ7JiHmAALEzmZZzsJKqcWLn7r3rj8FzS0ewdsMFE2YfsjHP/yRyPtnlz37ox/+cMnSpcWmphtv+s3D8x8e1t4ZFKK29vYzzzpzzKjRCHThl760bvXqFStX3nTTb77xjW+87e1vLxKNHTMGEG2es82j1lakAfcfDViZkGjTqlUXX3zx4Uf8elhrS1trMwB4QKkt8/rtBKQFHYRRb0957bqNpENwfwtbdP82DABAhMEDdz8QxjGA0mGYdydYKAWhCYJQBHKAuFCcO3dutVIhpY4/8fgwCpVSURTl5fKyFcvnTJ/e3tZ65lln7ujuyrLsH970piNmH8YA5TRZumTJya997fve9/4mxMOPOnrztu1LljwTxoXho0YJAxBt7drhBZQJDAApUoF2Ze+EPQADxMXi2vXrvnnJJd+95JI4DK1zIUBUiIGUNkGItKlanTVrNgsxYW+1HBaLa9asaWltO+P0N01sadtS6a2k6Y033sTe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" alt="Business in Focus" class="client-logo">
+    <div>
+      <div class="client-name">Business in Focus Limited</div>
+      <div class="client-role">Client</div>
+    </div>
+  </div>
+
+  <div class="sb-sec">Overview</div>
+  <a class="sb-link active" data-t="s0"><span class="sb-num">—</span><span>Executive Summary</span></a>
+
+  <div class="sb-sec">The Eight Stages</div>
+  <a class="sb-link" data-t="s1"><span class="sb-num">01</span><span>Business Diagnostic</span></a>
+  <a class="sb-link" data-t="s2"><span class="sb-num">02</span><span>Road to 2030</span></a>
+  <a class="sb-link" data-t="s3"><span class="sb-num">03</span><span>Operational Excellence</span></a>
+  <a class="sb-link" data-t="s4"><span class="sb-num">04</span><span>Strategic Opportunities</span></a>
+  <a class="sb-link" data-t="s5"><span class="sb-num">05</span><span>Models Master</span></a>
+  <a class="sb-link" data-t="s6"><span class="sb-num">06</span><span>Roadmap for Growth</span></a>
+  <a class="sb-link" data-t="s7"><span class="sb-num">07</span><span>Business Case</span></a>
+  <a class="sb-link" data-t="s8"><span class="sb-num">08</span><span>Financial Model</span></a>
+
+  <div class="sb-actions">
+    <button class="sb-btn" onclick="window.print()">Export full report</button>
+    <button class="sb-btn" onclick="boardPack()">Board pack</button>
+    <button class="sb-btn" onclick="startPresent()">Presentation mode</button>
+  </div>
+</aside>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<main class="main">
+
+<div class="doc-head">
+  <div class="eyebrow">Enterprise Transformation · Confidential</div>
+  <h1>Business in Focus Limited</h1>
+  <p class="sub">A £13.1m social enterprise with world-class delivery capability and a 35-year asset base that is almost entirely unexploited commercially — running on a financial and governance infrastructure that has not kept pace with its scale.</p>
+  <div class="confid">Prepared April 2026 · Data from audited accounts y/e 31 March 2025 · MHA (Swansea)</div>
+</div>
+
+<!-- ─────── S0 EXEC SUMMARY ─────── -->
+<section class="blk on" id="s0">
+  <h2>Executive Summary</h2>
+
+  <div class="viz-grid">
+
+    <div class="viz" tabindex="0" onclick="vd('v1')">
+      <div class="viz-lab">Revenue FY24/25</div>
+      <div class="viz-fig">
+        <div class="viz-num">£13.1m</div>
+        <svg width="84" height="42" viewBox="0 0 84 42">
+          <polyline points="4,34 26,28 48,20 78,6" fill="none" stroke="var(--gold2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="78" cy="6" r="3.5" fill="var(--gold2)"/>
+          <polyline points="4,34 26,28 48,20 78,6 78,40 4,40" fill="rgba(232,180,84,.12)" stroke="none"/>
+        </svg>
+      </div>
+      <div class="viz-sub">Up 22% from £10.65m &mdash; but the growth is contract expansion, not commercial resilience.</div>
+      <div class="viz-more">Explore &rarr;</div>
+    </div>
+
+    <div class="viz" tabindex="0" onclick="vd('v2')">
+      <div class="viz-lab">Government dependency</div>
+      <div class="viz-fig">
+        <div class="viz-num alert">81.4%</div>
+        <svg width="52" height="52" viewBox="0 0 42 42">
+          <circle cx="21" cy="21" r="16" fill="none" stroke="rgba(184,196,208,.16)" stroke-width="7"/>
+          <circle cx="21" cy="21" r="16" fill="none" stroke="#E07A5F" stroke-width="7"
+                  stroke-dasharray="81.85 100" stroke-dashoffset="0"
+                  transform="rotate(-90 21 21)" pathLength="100"/>
+        </svg>
+      </div>
+      <div class="viz-sub">Welsh and UK Government contract income. A single-buyer concentration of existential scale.</div>
+      <div class="viz-more">Explore &rarr;</div>
+    </div>
+
+    <div class="viz" tabindex="0" onclick="vd('v3')">
+      <div class="viz-lab">Cash headroom</div>
+      <div class="viz-fig">
+        <div class="viz-num alert">3 wks</div>
+        <svg width="84" height="42" viewBox="0 0 84 42">
+          <rect x="4" y="14" width="76" height="14" fill="rgba(184,196,208,.14)"/>
+          <rect x="4" y="14" width="4.9" height="14" fill="#E07A5F"/>
+          <line x1="8.9" y1="9" x2="8.9" y2="33" stroke="#E07A5F" stroke-width="1"/>
+          <text x="13" y="39" font-family="DM Mono, monospace" font-size="6" fill="#6B7F92">52 weeks</text>
+        </svg>
+      </div>
+      <div class="viz-sub">£360k cash against £555,694 of annual interest obligations.</div>
+      <div class="viz-more">Explore &rarr;</div>
+    </div>
+
+    <div class="viz" tabindex="0" onclick="vd('v4')">
+      <div class="viz-lab">TransformOS health score</div>
+      <div class="viz-fig">
+        <div class="viz-num">17<span style="font-size:1.05rem;color:var(--slate)">/30</span></div>
+        <svg width="52" height="52" viewBox="0 0 42 42">
+          <circle cx="21" cy="21" r="16" fill="none" stroke="rgba(184,196,208,.16)" stroke-width="7"/>
+          <circle cx="21" cy="21" r="16" fill="none" stroke="var(--gold2)" stroke-width="7"
+                  stroke-dasharray="56.7 100" transform="rotate(-90 21 21)" pathLength="100"/>
+        </svg>
+      </div>
+      <div class="viz-sub">Delivery is exceptional. The commercial backbone is fragile. The score reflects the gap.</div>
+      <div class="viz-more">Explore &rarr;</div>
+    </div>
+  </div>
+
+  <!-- DETAIL PANELS -->
+  <div class="viz-detail" id="v1">
+    <button class="vd-close" onclick="vd('v1')">&times;</button>
+    <h4>Revenue &mdash; £13,101,489, up 22%</h4>
+    <p>Most boards would call this a good year. It is worth reading what actually grew.</p>
+    <table class="tbl">
+      <thead><tr><th>Stream</th><th class="num">FY24/25</th><th class="num">FY23/24</th><th class="num">Growth</th><th class="num">Share</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Business services</strong></td><td class="num">£8,053,247</td><td class="num">£6,457,374</td><td class="num">+25%</td><td class="num">61.5%</td></tr>
+        <tr><td><strong>Business Wales income</strong></td><td class="num">£2,602,593</td><td class="num">£2,500,942</td><td class="num">+4%</td><td class="num">19.9%</td></tr>
+        <tr><td><strong>Property income</strong></td><td class="num">£2,083,709</td><td class="num">£1,425,197</td><td class="num">+46%</td><td class="num">15.9%</td></tr>
+        <tr><td><strong>Group income</strong></td><td class="num">£361,940</td><td class="num">£268,190</td><td class="num">+35%</td><td class="num">2.8%</td></tr>
+        <tr><td><strong>Total</strong></td><td class="num"><strong>£13,101,489</strong></td><td class="num">£10,651,703</td><td class="num"><strong>+22%</strong></td><td class="num">100%</td></tr>
+      </tbody>
+    </table>
+    <p>The growth is substantially contract portfolio expansion &mdash; publicly funded, pass-through work that adds delivery obligation and headcount without proportionately adding margin or resilience. <strong style="color:var(--white)">The organisation got bigger. It did not get stronger.</strong></p>
+    <p style="color:var(--slate);font-size:.8rem">Source: audited accounts y/e 31 March 2025, MHA (Swansea), filed Companies House March 2026.</p>
+  </div>
+
+  <div class="viz-detail" id="v2">
+    <button class="vd-close" onclick="vd('v2')">&times;</button>
+    <h4>Single-buyer concentration &mdash; 81.4% of revenue</h4>
+    <p>Business services and Business Wales income together account for £10,655,840 of £13,101,489. Both are Welsh and UK Government derived.</p>
+    <p>Porter's Five Forces rates buyer power <span class="pill p-crit">Very High</span>. When a single buyer controls over 80% of revenue and can redesign the contract, change terms, or withdraw funding, no amount of competitive excellence resolves the structural problem.</p>
+    <p><strong style="color:var(--white)">This is not a competitive dynamic. It is a structural dependency.</strong></p>
+    <table class="tbl">
+      <thead><tr><th>Income type</th><th class="num">Value</th><th class="num">Share</th></tr></thead>
+      <tbody>
+        <tr><td>Government-derived</td><td class="num">£10,655,840</td><td class="num">81.4%</td></tr>
+        <tr><td>Property &amp; group (resilient)</td><td class="num">£2,445,649</td><td class="num">18.7%</td></tr>
+      </tbody>
+    </table>
+    <p>The 2029 target moves non-government revenue from 18.7% to 33%+. That is the single most important number in the transformation.</p>
+  </div>
+
+  <div class="viz-detail" id="v3">
+    <button class="vd-close" onclick="vd('v3')">&times;</button>
+    <h4>Cash position &mdash; approximately three weeks of headroom</h4>
+    <p>£360,000 cash at year end against £555,694 of annual interest obligations. On a straight-line basis that is roughly three weeks of cover before the organisation is dependent on contract receipts arriving exactly on schedule.</p>
+    <p>Compounding it: the property portfolio underpinning £7.1m of bank debt fell in value by £2.825m during the year. Asset cover has weakened at the same time as the cash buffer.</p>
+    <p><strong style="color:var(--white)">This constraint dictates the sequencing of the entire roadmap.</strong> Phase 1 is deliberately weighted toward actions that generate headroom at near-zero investment &mdash; property rents to market rate, Focus Futures paid cohorts &mdash; rather than the actions with the largest eventual return.</p>
+    <p style="color:var(--slate);font-size:.8rem">Three weeks is a TransformOS calculation from the filed cash and interest figures, not a figure disclosed in the accounts.</p>
+  </div>
+
+  <div class="viz-detail" id="v4">
+    <button class="vd-close" onclick="vd('v4')">&times;</button>
+    <h4>Health score 17/30</h4>
+    <p>A composite across the assessed dimensions. The score is low not because the organisation performs badly &mdash; it does not &mdash; but because operational excellence is carrying structural weakness that operational excellence cannot fix.</p>
+    <table class="tbl">
+      <thead><tr><th>Scoring strongly</th><th>Scoring poorly</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>98.29% occupancy across 14 sites<br>Staff turnover under 8%<br>IIP Double Gold<br>35 years of delivery credibility<br>Cyber Essentials Plus held</td>
+          <td>81.4% single-buyer dependency<br>Three weeks cash headroom<br>15-director board, no commercial NEDs<br>Three systems mid-transition<br>35-year dataset unexploited</td>
+        </tr>
+      </tbody>
+    </table>
+    <p><strong style="color:var(--white)">The critical constraint is strategic and commercial, not operational.</strong></p>
+    <details class="ev" style="margin-top:1.4rem">
+      <summary>How this score is calculated &mdash; and what it is not</summary>
+      <div class="ev-body">
+        <p><strong style="color:var(--gold2)">What it is.</strong> A TransformOS composite scored across the assessed dimensions of the business &mdash; commercial, operational, financial, governance, technology and people. Each is rated against what the organisation needs at its current scale, not against a sector average.</p>
+        <p><strong style="color:var(--gold2)">What it is not.</strong> It is not an audited figure, not a benchmark against a peer set, and not a credit or solvency rating. No external body has verified it. It carries professional judgement and a different assessor could reasonably score it differently.</p>
+        <p><strong style="color:var(--gold2)">Why it reads low for a business performing this well.</strong> The score weights structural resilience heavily. An organisation can be excellent at everything it does and still score poorly if the model it operates within is fragile. That is precisely the case here &mdash; and it is the finding, not a flaw in the scoring.</p>
+        <p><strong style="color:var(--gold2)">How to use it.</strong> As a baseline to move, not a verdict. Its value is in the re-run: scoring again in twelve months shows whether the transformation is changing the structure or only the revenue line.</p>
+      </div>
+    </details>
+  </div>
+
+  <p class="lead">The critical constraint is not operational. Delivery is strong, occupancy is 98.29%, and staff culture is exceptional — IIP Double Gold, under 8% turnover. The critical constraint is strategic and commercial: an absence of diversified revenue, inadequate financial infrastructure, and a governance model built for stakeholder management rather than commercial speed.</p>
+
+  <p>Business in Focus has 35 years of delivery excellence behind it. The organisation grew 22% last year and operates 14 enterprise hubs across South Wales at near-full occupancy. On every operational measure, it performs.</p>
+
+  <p>The exposure sits elsewhere. Over 80% of revenue derives from Welsh and UK Government contract income, creating a structural dependency that represents an existential risk. With approximately £360,000 in cash at year end against £555,694 in annual interest obligations, the organisation has roughly three weeks of headroom. A property portfolio underpinning £7.1m of bank debt fell in value by £2.825m during the year.</p>
+
+  <p><strong style="color:var(--white)">The transformation imperative is to monetise what already exists before the next contract cycle forces the conversation on much less favourable terms.</strong></p>
+
+  <details class="ev">
+    <summary>Evidence &amp; sources</summary>
+    <div class="ev-body">
+      <ul>
+        <li>Revenue, cash position and financial data — audited accounts year ended 31 March 2025, MHA (Swansea), filed Companies House March 2026</li>
+        <li>Headcount 176, turnover below 8%, IIP Double Gold — BiF Strategic Report 2024/25</li>
+        <li>Occupancy 98.29% across 14 sites — BiF Strategic Report 2024/25</li>
+        <li>Property valuation movement — audited accounts, note to the financial statements</li>
+      </ul>
+      <p style="color:var(--slate);font-size:.8rem">Health score is a TransformOS composite across eleven dimensions. It is an assessment, not an audited figure.</p>
+    </div>
+  </details>
+</section>
+
+<!-- ─────── S1 DIAGNOSTIC ─────── -->
+<section class="blk" id="s1">
+  <div class="eyebrow">Stage 01</div>
+  <h2>Business Diagnostic</h2>
+  <p class="lead">Business in Focus is an operationally capable social enterprise running a £13.1m organisation on financial and governance infrastructure built for a much smaller entity.</p>
+
+  <h3>Revenue composition</h3>
+  <div class="chart-wrap">
+    <div class="chart-title">Revenue by stream — FY2024/25</div>
+    <div class="bar-row"><span>Business services</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="bar-val">£8.05m · 61.5%</span></div>
+    <div class="bar-row"><span>Business Wales income</span><div class="bar-track"><div class="bar-fill" style="width:32.3%"></div></div><span class="bar-val">£2.60m · 19.9%</span></div>
+    <div class="bar-row"><span>Property income</span><div class="bar-track"><div class="bar-fill dim" style="width:25.9%"></div></div><span class="bar-val">£2.08m · 15.9%</span></div>
+    <div class="bar-row"><span>Group income</span><div class="bar-track"><div class="bar-fill dim" style="width:4.5%"></div></div><span class="bar-val">£0.36m · 2.8%</span></div>
+    <p style="font-size:.78rem;color:var(--slate);margin-top:1rem;max-width:none">Gold denotes government-derived income. Property is the only genuinely resilient stream — and the most underexploited.</p>
+  </div>
+
+  <details class="ev">
+    <summary>Why the 22% growth is not the good news it appears to be</summary>
+    <div class="ev-body">
+      <p>Revenue grew from £10.65m to £13.10m — but the growth is substantially driven by contract portfolio expansion in publicly funded, pass-through contracts. Business services income rose 25% and Business Wales income only 4%. Growth of this kind increases delivery obligation and headcount without proportionately increasing margin or commercial resilience.</p>
+      <p>Property income grew 46% — the fastest-growing stream, and the only one not government-derived.</p>
+    </div>
+  </details>
+
+  <h3>Target Operating Model — current state</h3>
+  <table class="tbl">
+    <thead><tr><th>Dimension</th><th>Current state</th><th>Gap</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Strategy &amp; Direction</strong></td><td>Clear 5-year mission strategy; mono-ecosystem dependency; no commercial diversification target</td><td><span class="pill p-high">High</span></td></tr>
+      <tr><td><strong>Operating Model</strong></td><td>Two business models (services + property) managed as one; no commercial product engine</td><td><span class="pill p-high">High</span></td></tr>
+      <tr><td><strong>Processes &amp; Capabilities</strong></td><td>Strong delivery processes; finance system mid-transition; commercial processes nascent</td><td><span class="pill p-med">Medium</span></td></tr>
+      <tr><td><strong>People &amp; Organisation</strong></td><td>IIP Double Gold; &lt;8% turnover; thin bench depth; 90% contract-funded workforce</td><td><span class="pill p-med">Medium</span></td></tr>
+      <tr><td><strong>Technology &amp; Data</strong></td><td>Three systems in simultaneous transition; 35-year SME dataset unexploited</td><td><span class="pill p-high">High</span></td></tr>
+      <tr><td><strong>Governance &amp; Controls</strong></td><td>15-director stakeholder board; no commercial NEDs; slow strategic decisions</td><td><span class="pill p-high">High</span></td></tr>
+      <tr><td><strong>Culture &amp; Behaviours</strong></td><td>Mission-strong, delivery-excellent; commercial ambition underdeveloped</td><td><span class="pill p-ok">Low</span></td></tr>
+      <tr><td><strong>Customer Experience</strong></td><td>98.29% occupancy; strong advisory delivery; no digital continuity post-contract</td><td><span class="pill p-ok">Low</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3>The entrepreneurial opportunity lens</h3>
+  <p>Four latent commercial assets are being left on the table. These are not future possibilities — they are present realities.</p>
+  <table class="tbl">
+    <thead><tr><th>Asset</th><th>Why it matters</th></tr></thead>
+    <tbody>
+      <tr><td><strong>35-year SME dataset</strong></td><td>No organisation in Wales holds 35 years of longitudinal SME performance data for a defined geography. Not Welsh Government, not the Development Bank, not any bank.</td></tr>
+      <tr><td><strong>14 sites at 98.29%</strong></td><td>A proven property management model that is replicable, and potentially franchisable or licensable to other geographies.</td></tr>
+      <tr><td><strong>Welsh Government brand</strong></td><td>Every new contract in Wales will want BiF involved. That is a pipeline asset, not just a revenue line.</td></tr>
+      <tr><td><strong>Grant Thornton relationship</strong></td><td>The door to UK national contract delivery. BiF has Welsh credibility; GT has national reach. Structured correctly this is worth multiples of its current contribution.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ─────── S2 ROAD TO 2030 ─────── -->
+<section class="blk" id="s2">
+  <div class="eyebrow">Stage 02</div>
+  <h2>Road to 2030</h2>
+  <p class="lead">Grow from £13.1m to £18m by March 2029 — while shifting non-government revenue from 18.7% to 33%+ of the total. This is not incremental improvement. It is a structural transformation of the commercial model.</p>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Revenue trajectory — current model vs transformation</div>
+    <div class="bar-row"><span>FY24/25 actual</span><div class="bar-track"><div class="bar-fill dim" style="width:72.8%"></div></div><span class="bar-val">£13.1m</span></div>
+    <div class="bar-row"><span>FY26/27 target</span><div class="bar-track"><div class="bar-fill" style="width:80.5%"></div></div><span class="bar-val">£14.5m</span></div>
+    <div class="bar-row"><span>FY27/28 target</span><div class="bar-track"><div class="bar-fill" style="width:89.4%"></div></div><span class="bar-val">£16.1m</span></div>
+    <div class="bar-row"><span>FY28/29 target</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="bar-val">£18.0m</span></div>
+    <p style="font-size:.78rem;color:var(--slate);margin-top:1rem;max-width:none">Interim year figures are illustrative of the trajectory implied by the initiative-level targets in Stage 06. Only the £13.1m baseline and the £18m Month-36 target are directly evidenced.</p>
+  </div>
+
+  <details class="ev">
+    <summary>Why £18m might not happen</summary>
+    <div class="ev-body">
+      <p>The trajectory assumes three things that are not yet true.</p>
+      <p><strong style="color:var(--gold2)">The commercial capability does not exist.</strong> Lever 2 carries £3.5m of the £4.9m uplift, and Defence in Focus alone needs roughly 400 SME sales at a £5,000 average. Business in Focus has not sold a commercial product to an SME in thirty-five years. This is not a resourcing gap that money alone closes &mdash; it is a capability the organisation has never built.</p>
+      <p><strong style="color:var(--gold2)">The cash position constrains the investment.</strong> With approximately three weeks of headroom, the organisation cannot fund a commercial build from operating cash. Every initiative in Phase 1 is therefore chosen for low investment rather than highest return. If the funding source identified in the 90-day action does not materialise, Levers 2 and 3 do not start.</p>
+      <p><strong style="color:var(--gold2)">The governance model slows every decision.</strong> A fifteen-director stakeholder board with no commercial NEDs is structured for stakeholder representation, not commercial speed. Several initiatives have windows measured in months. Governance reform is sequenced as a Phase 1 prerequisite for exactly this reason.</p>
+      <p>Interim year figures shown above are illustrative of the trajectory implied by initiative-level targets. Only the £13.1m baseline and the £18m Month-36 target are directly evidenced. Treat the shape as directional, not as a forecast.</p>
+    </div>
+  </details>
+
+  <h3>Where the £4.9m comes from</h3>
+  <table class="tbl">
+    <thead><tr><th>Lever</th><th>Focus</th><th class="num">Target by M36</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Lever 1 — Core</strong></td><td>Commercialise existing assets: property rents to market, EPC formalisation, Focus Futures paid cohorts, Northern Valleys bids</td><td class="num">£1.5m</td></tr>
+      <tr><td><strong>Lever 2 — Expansion</strong></td><td>Defence in Focus, AI Adoption as a Service, first moves beyond Wales</td><td class="num">£3.5m</td></tr>
+      <tr><td><strong>Lever 3 — Innovation</strong></td><td>Welsh SME Intelligence Platform, Focus Diagnostic SaaS</td><td class="num">£1.0m</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:.82rem;color:var(--slate)">Lever targets sum above the net £4.9m uplift; the roadmap assumes attrition and overlap across initiatives.</p>
+</section>
+
+<!-- ─────── S3 OPERATIONAL EXCELLENCE ─────── -->
+<section class="blk" id="s3">
+  <div class="eyebrow">Stage 03</div>
+  <h2>Operational Excellence</h2>
+  <p class="lead">Fourteen recommendations, a 90-day sprint plan, and a KPI dashboard. Delivery is already strong — this stage is about the commercial and financial infrastructure around it.</p>
+
+  <h3>The immediate three</h3>
+  <table class="tbl">
+    <thead><tr><th>#</th><th>Action</th><th>Owner</th><th>Timeline</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td><strong>Separate the two business models.</strong> Create distinct P&amp;Ls for Contract Services and Property/Estates. This is the precondition for sound investment decisions about each, and for eventually building a third commercial products engine.</td><td>Executive Director</td><td>60 days</td></tr>
+      <tr><td class="num">2</td><td><strong>Commission the first non-Welsh ITT bid.</strong> Pick one live tender from an English Combined Authority or UK Government department. Submit. Win or lose, this is the action that breaks the psychological constraint.</td><td>Head of BD</td><td>Oct 2026</td></tr>
+      <tr><td class="num">3</td><td><strong>Resolve the resource gap for commercial transformation.</strong> Identify the funding source — social investment loan, Development Bank of Wales, or reallocation from property disposal. Without this the strategy is an aspiration, not a plan.</td><td>ED + Head of Finance</td><td>90 days</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ─────── S4 STRATEGIC OPPORTUNITIES ─────── -->
+<section class="blk" id="s4">
+  <div class="eyebrow">Stage 04</div>
+  <h2>Strategic Opportunities</h2>
+  <p class="lead">Eleven opportunities identified. One conviction bet: Defence in Focus — Wales's primary SME defence supply chain gateway.</p>
+
+  <p>The timing is the argument. The £50m Wales Defence Growth Deal was signed February 2026. The MoD has published a target to increase SME spending 50% by May 2028. Wales already has 16,000+ workers in aerospace and defence and over £1bn in annual MoD industry spending. BiF holds Cyber Essentials Plus and an existing Grant Thornton defence supply chain relationship.</p>
+
+  <p><strong style="color:var(--white)">This window is open now. It will not remain open indefinitely.</strong></p>
+
+  <details class="ev">
+    <summary>Evidence base — Defence in Focus</summary>
+    <div class="ev-body">
+      <ul>
+        <li>MoD 50% SME spending increase target by May 2028 — DPRTE 2026 reporting, March 2026</li>
+        <li>£50m Wales Defence Growth Deal — signed February 2026, Cardiff Castle</li>
+        <li>Wales £1bn+ annual MoD industry spending; 16,000+ aerospace and defence workers — February 2026 reporting</li>
+        <li>Cyber Essentials Plus and JOSCAR as supplier baseline requirements — MoD supply chain guidance</li>
+        <li>BiF Cyber Essentials Plus status and Grant Thornton partnership — BiF Strategic Report 2024/25</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<!-- ─────── S5 MODELS MASTER ─────── -->
+<section class="blk" id="s5">
+  <div class="eyebrow">Stage 05</div>
+  <h2>Models Master</h2>
+  <p class="lead">Six frameworks applied. Their convergence is the most reliable signal — five independently confirm the same finding.</p>
+
+  <h3>Porter's Five Forces</h3>
+  <table class="tbl">
+    <thead><tr><th>Force</th><th>Rating</th><th>Assessment</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Buyer Power</strong></td><td><span class="pill p-crit">Very High</span></td><td>Welsh Government controls 80%+ of revenue via contract commissioning. This is not a competitive dynamic — it is a structural dependency.</td></tr>
+      <tr><td><strong>New Entrants</strong></td><td><span class="pill p-high">High</span></td><td>AI-native platforms could automate advisory at scale. Low capital required to enter the advisory market.</td></tr>
+      <tr><td><strong>Substitutes</strong></td><td><span class="pill p-high">High &amp; rising</span></td><td>AI tools replacing 1-to-1 advisory; online learning replacing workshops; hybrid working reducing hub demand.</td></tr>
+      <tr><td><strong>Supplier Power</strong></td><td><span class="pill p-ok">Low</span></td><td>Staff loyal at &lt;8% turnover; IIP Double Gold. No supplier concentration risk.</td></tr>
+    </tbody>
+  </table>
+
+  <details class="ev">
+    <summary>Blue Ocean ERRC — the unexpected finding</summary>
+    <div class="ev-body">
+      <p><strong style="color:var(--gold2)">Eliminate:</strong> One-and-done advisory relationships that end when contract KPIs are met. Output-only reporting that does not prove economic impact.</p>
+      <p><strong style="color:var(--gold2)">Reduce:</strong> The Welsh-geography mental constraint. Board reporting burden on the executive team.</p>
+      <p><strong style="color:var(--gold2)">Raise:</strong> Depth and duration of SME relationships. Commercial ambition in pricing — property rents to market rate.</p>
+      <p><strong style="color:var(--gold2)">Create:</strong> Proprietary Welsh SME intelligence product. Defence supply chain gateway. UK and international delivery capability.</p>
+      <p>The Reduce row produces the most unexpected insight. The Wales-only constraint is self-imposed — not a statement about abandoning the mission, but a recognition that the mission is best served by a financially resilient, geographically ambitious organisation.</p>
+    </div>
+  </details>
+
+  <h3>The five converging themes</h3>
+  <table class="tbl">
+    <tbody>
+      <tr><td><strong>1 · Structural dependency</strong></td><td>80%+ single-buyer concentration confirmed by BMC, Five Forces and TOM+</td></tr>
+      <tr><td><strong>2 · The untapped asset problem</strong></td><td>Asset-rich, commercially passive. 35-year dataset and 14 sites unexploited.</td></tr>
+      <tr><td><strong>3 · The geographic constraint is self-imposed</strong></td><td>Ansoff's market development quadrant is entirely empty. No structural reason for Wales-only operation.</td></tr>
+      <tr><td><strong>4 · Governance is a brake on every ambition</strong></td><td>Governance scores 2/5 and appears as a blocker in four separate frameworks.</td></tr>
+      <tr><td><strong>5 · The change readiness gap</strong></td><td>Resources weak, action plan partial. The roadmap must front-load capability building.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ─────── S6 ROADMAP ─────── -->
+<section class="blk" id="s6">
+  <div class="eyebrow">Stage 06</div>
+  <h2>Roadmap for Growth</h2>
+  <p class="lead">Three levers. Fourteen initiatives. Thirty-six months. Three levers only, ruthlessly chosen — any business selecting more is distributing attention so thinly that none gain momentum.</p>
+
+  <div class="phases">
+    <div class="phase">
+      <div class="ph-n">Phase 01</div>
+      <div class="ph-t">Stabilise &amp; Launch</div>
+      <div class="ph-p">Apr – Sep 2026</div>
+      <ul>
+        <li>Cash flow tracker and financial controls</li>
+        <li>Finance system go-live</li>
+        <li>Property rents to market rate</li>
+        <li>EPC formalisation as JV</li>
+        <li>Defence in Focus launch</li>
+        <li>Board governance redesign</li>
+      </ul>
+    </div>
+    <div class="phase">
+      <div class="ph-n">Phase 02</div>
+      <div class="ph-t">Build &amp; Prove</div>
+      <div class="ph-p">Months 7 – 18</div>
+      <ul>
+        <li>Defence in Focus to £500k</li>
+        <li>AI Adoption scaled to 100 paid SMEs</li>
+        <li>First UK regional contract won</li>
+        <li>Welsh SME Intelligence Platform design</li>
+        <li>Focus Diagnostic SaaS licence signed</li>
+      </ul>
+    </div>
+    <div class="phase">
+      <div class="ph-n">Phase 03</div>
+      <div class="ph-t">Scale &amp; Multiply</div>
+      <div class="ph-p">Months 19 – 36</div>
+      <ul>
+        <li>Defence in Focus to £2m</li>
+        <li>Intelligence Platform to £500k</li>
+        <li>International development first bid</li>
+        <li>Non-government revenue at 33%+</li>
+        <li>Total revenue £18m</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Initiative register</h3>
+  <table class="tbl">
+    <thead><tr><th>#</th><th>Initiative</th><th>Lever</th><th class="num">Rev target 36m</th><th class="num">Investment</th></tr></thead>
+    <tbody>
+      <tr><td class="num">I3</td><td>Property rents to market rate</td><td>Core</td><td class="num">+£200k pa</td><td class="num">£3–8k</td></tr>
+      <tr><td class="num">I5</td><td>Northern Valleys programme bids</td><td>Core</td><td class="num">£500k–£2m</td><td class="num">£5–10k</td></tr>
+      <tr><td class="num">I6</td><td>Focus Futures paid cohort launch</td><td>Core</td><td class="num">£200–500k pa</td><td class="num">£0</td></tr>
+      <tr><td class="num">I7</td><td><strong>Defence in Focus — structured service</strong></td><td>Expansion</td><td class="num"><strong>£2m</strong></td><td class="num">£10–20k</td></tr>
+      <tr><td class="num">I8</td><td><strong>AI Adoption as a Service</strong></td><td>Expansion</td><td class="num"><strong>£1m</strong></td><td class="num">£5–15k</td></tr>
+      <tr><td class="num">I9</td><td>First UK regional ITT bid</td><td>Expansion</td><td class="num">£500k–£5m</td><td class="num">£5–10k</td></tr>
+      <tr><td class="num">I10</td><td>Board governance redesign</td><td>Governance</td><td class="num">Enables speed</td><td class="num">£5–10k</td></tr>
+      <tr><td class="num">I12</td><td>Welsh SME Intelligence Platform</td><td>Innovation</td><td class="num">£500k by M24</td><td class="num">£50–100k</td></tr>
+    </tbody>
+  </table>
+
+  <details class="ev">
+    <summary>The four challenges — where this plan could fail</summary>
+    <div class="ev-body">
+      <p><strong style="color:var(--gold2)">1 · The capability check.</strong> Defence in Focus needs ~400 SMEs at £5,000 average over three years. BiF has never sold a commercial product to an SME. The sales capability does not yet exist. This is the single most important execution risk.</p>
+      <p><strong style="color:var(--gold2)">2 · The execution difficulty check.</strong> The plan assumes the Head of BD manages Northern Valleys bids, the Defence in Focus launch, the first UK ITT and Focus Futures commercialisation simultaneously. That is three people's jobs. Resolution: hire a commercially experienced bid writer and product seller by Month 2, £45–60k.</p>
+      <p><strong style="color:var(--gold2)">3 · The focus check.</strong> In Phase 1, execute Defence in Focus and AI Adoption only. If resource pressure forces a further cut, Defence in Focus wins every time — the timing is unique and will not recur.</p>
+      <p><strong style="color:var(--gold2)">4 · The revenue link check.</strong> Focus Diagnostic SaaS is the least certain. Treat as watch-list until the GDPR audit and a commercial conversation with a tech partner are complete. If neither produces evidence of demand by Month 12, remove it from the plan.</p>
+    </div>
+  </details>
+</section>
+
+<!-- ─────── S7 BUSINESS CASE ─────── -->
+<section class="blk" id="s7">
+  <div class="eyebrow">Stage 07</div>
+  <h2>Business Case — Defence in Focus</h2>
+  <p class="lead">The financial case for the conviction bet.</p>
+
+  <div class="metrics">
+    <div class="metric"><div class="m-val">£387k</div><div class="m-lab">Net present value</div></div>
+    <div class="metric"><div class="m-val">4.2x</div><div class="m-lab">Return on investment</div></div>
+    <div class="metric"><div class="m-val">Month 17</div><div class="m-lab">Payback</div></div>
+    <div class="metric"><div class="m-val">£10–20k</div><div class="m-lab">Investment required</div></div>
+  </div>
+
+  <p>Defence in Focus positions Business in Focus as the trusted Welsh SME navigator into the MoD supply chain. It does not compete with commercial consultancies on commercial terms — it wins because it is the organisation Welsh Government backs and Welsh SMEs already trust.</p>
+
+  <p><strong style="color:var(--white)">Lead with the trust. Charge for the outcomes.</strong></p>
+
+  <details class="ev">
+    <summary>What would make this NPV wrong</summary>
+    <div class="ev-body">
+      <p>A £387k NPV on a £10&ndash;20k investment is a 4.2x return. Returns of that order usually mean the risk sits somewhere other than the capital.</p>
+      <p><strong style="color:var(--gold2)">The investment figure excludes the people cost.</strong> £10&ndash;20k covers product structuring, branding and portal registration. It does not carry the commercial hire the roadmap identifies as necessary at £45&ndash;60k per annum. Include that and the return compresses substantially in Years 1 and 2.</p>
+      <p><strong style="color:var(--gold2)">Volume is the sensitive variable, not price.</strong> The case depends on reaching roughly 400 SMEs over three years. At half that volume the payback moves well beyond Month 17 and the case becomes marginal. Pricing has far less leverage on the outcome than conversion does.</p>
+      <p><strong style="color:var(--gold2)">The market timing is an assumption, not a contract.</strong> The £50m Wales Defence Growth Deal and the MoD SME spending target create the window. Neither guarantees that Welsh SMEs will pay an intermediary to help them through it. No demand testing has been carried out.</p>
+      <p><strong style="color:var(--gold2)">Competitor response is not modelled.</strong> If the opportunity is real, defence consultancies and Grant Thornton itself can enter the same space. BiF's advantage is trust and Welsh Government backing, not exclusivity.</p>
+      <p>The case remains the strongest of the eleven opportunities assessed. But it is a conviction bet on a capability that does not yet exist, in a window that is open now and will close.</p>
+    </div>
+  </details>
+</section>
+
+<!-- ─────── S8 FINANCIAL MODEL ─────── -->
+<section class="blk" id="s8">
+  <div class="eyebrow">Stage 08</div>
+  <h2>Financial Model</h2>
+  <p class="lead">Full cash flow forecast and financial projections underpinning the roadmap.</p>
+  <p>The financial model carries the 36-month cash flow, the phasing of initiative investment against revenue recognition, and sensitivity analysis on the three levers.</p>
+  <p style="color:var(--slate);font-size:.88rem">Detailed model held separately — <span style="color:var(--gold2)">BiF_TransformOS_07_Cash_Flow_Forecast.xlsx</span></p>
+
+  <h3>The headline constraint the model has to solve</h3>
+  <p>£360,000 cash against £555,694 of annual interest obligations. Every initiative in the roadmap is sequenced around that constraint — which is why Phase 1 is deliberately weighted toward actions that generate headroom at near-zero investment, rather than actions that generate the largest eventual return.</p>
+</section>
+
+</main>
+
+<!-- ═══════════ ANSWER PANEL ═══════════ -->
+<div class="answer" id="answer">
+  <button class="answer-close" onclick="document.getElementById('answer').classList.remove('on')">×</button>
+  <div class="answer-q" id="answerQ"></div>
+  <div class="answer-body" id="answerBody"></div>
+</div>
+
+<!-- ═══════════ ASK BAR ═══════════ -->
+<div class="ask">
+  <span class="ask-hint">Ask TransformOS</span>
+  <input id="askInput" placeholder="Ask anything about this analysis — e.g. what happens if we lose the Business Wales contract?" onkeydown="if(event.key==='Enter')ask()">
+  <button id="askBtn" onclick="ask()">Ask</button>
+</div>
+
+<!-- ═══════════ PRESENT BAR ═══════════ -->
+<div class="present-bar">
+  <button onclick="pStep(-1)">← Prev</button>
+  <span class="pb-count" id="pbCount"></span>
+  <button onclick="pStep(1)">Next →</button>
+  <button onclick="endPresent()">Exit</button>
+</div>
+
+<script>
+/* ═══════════ CONFIG — edit these two lines ═══════════ */
+const ACCESS_CODE = 'BIF-2026';
+// Your Netlify function that proxies the Anthropic API.
+// Set this to the correct path; the fallback list below is tried if it fails.
+const ASK_ENDPOINT = '/.netlify/functions/claude';
+const ASK_FALLBACKS = ['/.netlify/functions/ask','/.netlify/functions/anthropic',
+                       '/.netlify/functions/generate','/.netlify/functions/chat',
+                       '/.netlify/functions/api'];
+/* ═════════════════════════════════════════════════════ */
+
+/* ---------- ACCESS GATE ---------- */
+function checkGate(){
+  const v=document.getElementById('gateInput').value.trim().toUpperCase();
+  if(v===ACCESS_CODE){
+    sessionStorage.setItem('bif_ok','1');
+    document.getElementById('gate').classList.add('hidden');
+  }else{
+    document.getElementById('gateErr').textContent='Access code not recognised.';
+  }
+}
+if(sessionStorage.getItem('bif_ok')==='1'){document.getElementById('gate').classList.add('hidden');}
+else{setTimeout(()=>document.getElementById('gateInput').focus(),100);}
+
+/* ---------- NAVIGATION ---------- */
+const links=[...document.querySelectorAll('.sb-link')];
+const blocks=[...document.querySelectorAll('.blk')];
+links.forEach(l=>l.addEventListener('click',()=>{
+  links.forEach(x=>x.classList.remove('active'));
+  l.classList.add('active');
+  blocks.forEach(b=>b.classList.toggle('on',b.id===l.dataset.t));
+  window.scrollTo({top:0,behavior:'smooth'});
+  document.querySelector('.sidebar').classList.remove('open');
+}));
+
+/* ---------- PRESENTATION MODE ---------- */
+let pIdx=0;
+function startPresent(){document.body.classList.add('present');pIdx=blocks.findIndex(b=>b.classList.contains('on'));if(pIdx<0)pIdx=0;pShow();}
+function endPresent(){document.body.classList.remove('present');}
+function pStep(d){pIdx=Math.max(0,Math.min(blocks.length-1,pIdx+d));pShow();}
+function pShow(){
+  blocks.forEach((b,i)=>b.classList.toggle('on',i===pIdx));
+  links.forEach((l,i)=>l.classList.toggle('active',i===pIdx));
+  document.getElementById('pbCount').textContent=(pIdx+1)+' / '+blocks.length;
+  window.scrollTo(0,0);
+}
+document.addEventListener('keydown',e=>{
+  if(!document.body.classList.contains('present'))return;
+  if(e.key==='ArrowRight'||e.key===' ')pStep(1);
+  if(e.key==='ArrowLeft')pStep(-1);
+  if(e.key==='Escape')endPresent();
+});
+
+/* ---------- BOARD PACK ---------- */
+function boardPack(){
+  const keep=['s0','s6','s7'];
+  blocks.forEach(b=>b.dataset.prev=b.classList.contains('on')?'1':'');
+  document.querySelectorAll('.blk').forEach(b=>{
+    b.style.display=keep.includes(b.id)?'block':'none';
+  });
+  window.print();
+  setTimeout(()=>{document.querySelectorAll('.blk').forEach(b=>b.style.display='')},600);
+}
+
+/* ---------- VIZ DETAIL TOGGLE ---------- */
+function vd(id){
+  const el=document.getElementById(id);
+  const wasOpen=el.classList.contains('on');
+  document.querySelectorAll('.viz-detail').forEach(d=>d.classList.remove('on'));
+  if(!wasOpen){el.classList.add('on');el.scrollIntoView({behavior:'smooth',block:'nearest'});}
+}
+document.querySelectorAll('.viz').forEach(v=>v.addEventListener('keydown',e=>{
+  if(e.key==='Enter'||e.key===' '){e.preventDefault();v.click();}
+}));
+
+/* ---------- ASK TRANSFORMOS ---------- */
+const CONTEXT=`You are TransformOS, an enterprise transformation operating system, answering questions from the leadership team of Business in Focus Limited about their own transformation analysis. Answer only from the evidence below. If something is not covered, say so plainly rather than inventing figures.
+
+KEY FACTS
+- Business in Focus Limited, social enterprise, company limited by guarantee, registered 30 October 1990, 35 years operating.
+- HQ Enterprise Centre, Aberkenfig, Bridgend. CEO Philip Jones. 176 average headcount FY24/25 (up from 155). 14 enterprise hubs across South Wales.
+- Revenue FY24/25 £13,101,489, up 22% from £10,651,703.
+- Revenue split: Business services £8,053,247 (61.5%), Business Wales income £2,602,593 (19.9%), Property income £2,083,709 (15.9%), Group income £361,940 (2.8%).
+- Over 80% of revenue is Welsh and UK Government contract income — the central structural risk.
+- Cash at year end approximately £360,000. Annual interest obligations £555,694. Roughly three weeks of cash headroom.
+- Property portfolio underpins £7.1m of bank debt and fell in value by £2.825m during the year.
+- Occupancy 98.29%. Staff turnover under 8%. IIP Double Gold. Cyber Essentials Plus held.
+- Health score 17/30. Delivery excellent, commercial backbone fragile.
+- TOM gaps rated High: Strategy & Direction, Operating Model, Technology & Data, Governance & Controls. Medium: Processes, People. Low: Culture, Customer Experience.
+- Governance: 15-director stakeholder board, no commercial NEDs, slow strategic decisions.
+- Porter's: Buyer power VERY HIGH (single buyer 80%+), new entrants HIGH, substitutes HIGH and rising, supplier power LOW.
+- Target: £13.1m to £18m by March 2029, non-government revenue from 18.7% to 33%+.
+- Three levers: Core £1.5m (property rents to market +£200k pa, EPC formalisation, Focus Futures paid cohorts at £195/person, Northern Valleys bids), Expansion £3.5m (Defence in Focus £2m, AI Adoption as a Service £1m, UK regional expansion), Innovation £1m (Welsh SME Intelligence Platform £500k by M24, Focus Diagnostic SaaS).
+- Defence in Focus business case: NPV £387k, 4.2x return, payback Month 17, investment £10-20k. Context: £50m Wales Defence Growth Deal signed Feb 2026; MoD target to raise SME spending 50% by May 2028; Wales £1bn+ annual MoD industry spend; 16,000+ aerospace and defence workers.
+- Four latent assets: 35-year SME dataset (unique in Wales), 14 sites at 98.29% occupancy (replicable/franchisable), Welsh Government brand (pipeline asset), Grant Thornton relationship (route to UK national contracts).
+- Execution risks: BiF has never sold a commercial product to an SME; Head of BD is overloaded across four initiatives; recommendation to hire a commercial bid writer/product seller by Month 2 at £45-60k; Focus Diagnostic SaaS is watch-list only.
+- Five converging themes: structural dependency; untapped assets; self-imposed geographic constraint; governance as a brake; change readiness gap.
+
+STYLE: Direct and commercially sharp. No consultant waffle. Lead with the answer. Distinguish evidenced fact from professional judgement. Under 200 words unless the question demands more.`;
+
+async function ask(){
+  const q=document.getElementById('askInput').value.trim();
+  if(!q)return;
+  const btn=document.getElementById('askBtn');
+  const panel=document.getElementById('answer');
+  document.getElementById('answerQ').textContent=q;
+  document.getElementById('answerBody').textContent='Analysing…';
+  panel.classList.add('on');
+  btn.disabled=true;btn.textContent='…';
+  try{
+    const payload=JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:CONTEXT,messages:[{role:'user',content:q}]});
+    let r=null,lastErr='';
+    for(const url of [ASK_ENDPOINT,...ASK_FALLBACKS]){
+      try{
+        const t=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:payload});
+        if(t.ok){r=t;break;}
+        lastErr=url+' → HTTP '+t.status;
+      }catch(err){lastErr=url+' → '+err.message;}
+    }
+    if(!r)throw new Error(lastErr||'no endpoint responded');
+    const d=await r.json();
+    const txt=(d.content||[]).filter(i=>i.type==='text').map(i=>i.text).join('\n')||JSON.stringify(d).slice(0,400);
+    document.getElementById('answerBody').textContent=txt;
+  }catch(e){
+    document.getElementById('answerBody').textContent=
+      'Not connected yet.\n\nThe Ask panel needs a Netlify function that proxies the Anthropic API. Open this file and set ASK_ENDPOINT near the top of the script to the correct function path.\n\nLast attempt: '+e.message;
+  }
+  btn.disabled=false;btn.textContent='Ask';
+  document.getElementById('askInput').value='';
+}
+</script>
+</body>
+</html>
