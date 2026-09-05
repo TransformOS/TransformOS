@@ -111,15 +111,19 @@ SECTION 5: GO-TO-MARKET — for the top 2: target customer, value proposition, c
 SECTION 6: STRATEGIC PARTNERSHIPS — 3-5 with deal structure and approach
 SECTION 7: THE CONVICTION BET — the single opportunity most deserving of resource, and the honest case against it`,
 
-  5: `Apply the Models Master framework:
-SECTION 1: PORTER'S FIVE FORCES — each force: assessment, score 1-5, implication. Overall industry attractiveness.
-SECTION 2: MCKINSEY 7S — each element: current state, alignment gaps, recommendations. Alignment score 1-10.
-SECTION 3: BALANCED SCORECARD — 4 perspectives, 3-4 KPIs each with baseline, target, initiative.
-SECTION 4: BCG GROWTH-SHARE MATRIX — products/segments mapped, with investment recommendation.
-SECTION 5: VALUE CHAIN ANALYSIS — primary and support activities, effectiveness 1-5, where value is created and where it leaks.
-SECTION 6: PESTLE — each factor: observations, impact H/M/L, strategic response.
-SECTION 7: TRANSFORMOS TOM+ — all 11 dimensions scored 1-5: the 8 standard dimensions plus Commercial Performance, Financial Sustainability, Innovation & Future Readiness. Current, target, gap, priority.
-SECTION 8: STRATEGIC SYNTHESIS — 3 most important insights, clearest strategic direction, and where frameworks converge. Convergence across multiple frameworks is the most reliable signal.`,
+  5: `Write the Models Master synthesis.
+
+A set of strategic models has been run against this organisation and is supplied below. Your task is not to run them again — it is to read across them.
+
+SECTION 1: MODELS APPLIED — list each model run, with the single most important thing it revealed. One line each.
+SECTION 2: WHERE THE MODELS CONVERGE — the findings that appear independently in three or more models. Convergence across separately-derived frameworks is the most reliable signal available; treat it as such and say which models produced each.
+SECTION 3: WHERE THE MODELS DISAGREE — where one framework suggests something another contradicts, and which you judge to be right and why. Do not smooth this over; disagreement is informative.
+SECTION 4: WHAT ONLY BECOMES VISIBLE ACROSS MODELS — findings that no single framework produced, but which are obvious once several are read together.
+SECTION 5: THE CRITICAL CONSTRAINT — restated in light of all models run. If the models change the earlier view of the constraint, say so explicitly.
+SECTION 6: WHAT IS STILL UNTESTED — which models have not been run that would materially sharpen this picture, and what each would resolve.
+SECTION 7: STRATEGIC SYNTHESIS — the three most important insights and the single clearest strategic direction.
+
+If few models have been run, say plainly that the synthesis rests on a narrow base and name what should be run next.`,
 
   6: `Build a 36-month Roadmap for Growth:
 SECTION 1: GROWTH THESIS — growth story, revenue baseline, 36-month target, 3 primary drivers
@@ -334,7 +338,9 @@ export default async (req) => {
       .order('stage_number', { ascending: true });
 
     const { data: documents } = await supabase
-      .from('documents').select('file_name, document_type').eq('company_id', company_id);
+      .from('documents')
+      .select('file_name, document_type, extracted_text, extraction_status')
+      .eq('company_id', company_id);
 
     let context = `COMPANY: ${company.company_name || 'Not provided'}
 SECTOR: ${company.sector || 'Not specified'}
@@ -350,9 +356,53 @@ TECH STACK: ${company.tech_stack || 'Not specified'}
 ADDITIONAL CONTEXT: ${company.context || 'None provided'}`;
 
     if (documents?.length) {
+      const withText = documents.filter(d => d.extracted_text && d.extracted_text.trim());
+      const withoutText = documents.filter(d => !d.extracted_text || !d.extracted_text.trim());
+
       context += `\n\nDOCUMENTS SUPPLIED BY THE CLIENT (${documents.length}):\n`;
       context += documents.map(d => `- ${d.file_name} [${d.document_type}]`).join('\n');
-      context += `\n\nDocument contents are not machine-readable in this pass. Treat the presence and type of these documents as evidence of what the organisation holds, and note where a document would resolve an open question.`;
+
+      if (withText.length) {
+        // Budget the extracted contents so a large document set cannot
+        // crowd out the prior stage outputs later in the context.
+        const BUDGET = 260000;
+        const per = Math.floor(BUDGET / withText.length);
+
+        context += `\n\n═══ DOCUMENT CONTENTS — PRIMARY EVIDENCE ═══\n`;
+        context += `The following is the actual content of the documents above. Treat these figures as the primary evidence base. Where a figure here differs from what was stated in the intake profile, the document takes precedence — and say so in your analysis. Cite the document by name when a finding rests on it.\n`;
+
+        withText.forEach(d => {
+          const t = d.extracted_text.length > per
+            ? d.extracted_text.slice(0, per) + '\n...[document truncated]'
+            : d.extracted_text;
+          context += `\n───── ${d.file_name} [${d.document_type}] ─────\n${t}\n`;
+        });
+      }
+
+      if (withoutText.length) {
+        context += `\n\nNOT YET READ (${withoutText.length}): ${withoutText.map(d => d.file_name).join(', ')}\n`;
+        context += `Treat the presence and type of these as evidence of what the organisation holds, and note where reading one would resolve an open question.`;
+      }
+    }
+
+    if (stage_number === 5) {
+      const { data: models } = await supabase
+        .from('company_models')
+        .select('model_name, category, payload, narrative')
+        .eq('company_id', company_id).eq('status', 'complete')
+        .order('category', { ascending: true });
+
+      if (models?.length) {
+        const per = Math.floor(200000 / models.length);
+        context += `\n\n═══ MODELS RUN (${models.length}) ═══\n`;
+        models.forEach(m => {
+          const head = m.payload?.headline ? `HEADLINE: ${m.payload.headline}\n` : '';
+          const body = (m.narrative || '') + '\n' + JSON.stringify(m.payload || {});
+          context += `\n───── ${m.model_name} [${m.category}] ─────\n${head}${body.slice(0, per)}\n`;
+        });
+      } else {
+        context += `\n\nNO MODELS HAVE BEEN RUN YET. Say plainly that the synthesis has no model base to read across, and name the models that should be run first for this organisation.`;
+      }
     }
 
     if (extra_context && extra_context.trim()) {
