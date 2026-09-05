@@ -138,15 +138,19 @@ let STATE = { company:null, stages:[], documents:[], current:1, polling:null };
 
 const PROGRESS = [
   'Reading your intake profile and evidence base…',
+  'Researching your public record and online presence…',
+  'Reviewing public sentiment, press and commentary…',
+  'Analysing your market and named competitors…',
+  'Checking sector movements, funding and regulation…',
   'Establishing the commercial and financial baseline…',
   'Running the framework set in full…',
   'Scoring across the operating model dimensions…',
-  'Testing findings against the available evidence…',
+  'Testing findings against the public record…',
   'Identifying the critical constraint…',
   'Ranking recommendations by impact…',
   'Separating evidenced fact from professional judgement…',
   'Drafting the analysis…',
-  'Still working — thorough due diligence takes time…'
+  'Still working — proper due diligence takes time. You can safely close this page…'
 ];
 
 const el = id => document.getElementById(id);
@@ -241,7 +245,7 @@ function renderStage(){
     html += '<div class="panel"><div class="plabel">Anything else for this stage?</div>'+
       '<textarea id="extra" placeholder="Optional. Context, corrections, recent changes, specific questions you want this stage to address…"></textarea>'+
       '<div style="margin-top:1.1rem"><button class="btn" id="genBtn" onclick="generate()">Generate '+s.stage_name+'</button></div>'+
-      '<p style="font-size:.8rem;color:var(--slate);margin-top:1rem;line-height:1.6">This stage runs extensive due diligence across your evidence base and applies every framework in full. Expect it to take five to ten minutes. You can close this page and return &mdash; the work continues in the background.</p>'+
+      '<p style="font-size:.8rem;color:var(--slate);margin-top:1rem;line-height:1.6">This stage runs full external due diligence &mdash; researching your public record, market, named competitors and sector movements &mdash; alongside the evidence you have supplied, then applies every framework in full. <strong style="color:var(--mist);font-weight:400">Expect it to take ten to twenty minutes.</strong> Close this page and come back later; the work continues in the background and will be waiting for you.</p>'+
       '<div class="status" id="genStatus"></div></div>';
 
     if(s.status==='failed' && s.error_message){
@@ -270,7 +274,7 @@ async function generate(){
   const extra = el('extra') ? el('extra').value : '';
   btn.disabled = true;
   status.className = 'status';
-  status.innerHTML = '<span class="spin"></span>Beginning due diligence — typically five to ten minutes.';
+  status.innerHTML = '<span class="spin"></span>Beginning due diligence — typically ten to twenty minutes. You can close this page.';
 
   try{
     await fetch(API+'/run-stage-background',{
