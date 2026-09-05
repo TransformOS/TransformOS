@@ -374,13 +374,23 @@ ADDITIONAL CONTEXT: ${company.context || 'None provided'}`;
     const userBase = `${context}\n\n═══════════════\nTASK — STAGE ${stage_number}:\n`;
 
     async function callModel(instruction, priorHalf) {
+      // The context block is identical across both passes of a stage, so
+      // it is marked cacheable. A cache hit costs a fraction of a fresh
+      // read; a miss costs nothing extra. Cache lifetime is short, so
+      // the saving lands when the second pass follows quickly.
       const req = {
         model: config.model,
         max_tokens: config.max_tokens,
         system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: userBase + instruction + (priorHalf
-          ? `\n\n═══ WHAT YOU HAVE ALREADY WRITTEN FOR THIS STAGE ═══\nContinue seamlessly from this. Do not repeat it, do not re-introduce the document, do not summarise it. Pick up exactly where it stops.\n\n${priorHalf}`
-          : '') }]
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'text', text: userBase, cache_control: { type: 'ephemeral' } },
+            { type: 'text', text: instruction + (priorHalf
+              ? `\n\n═══ WHAT YOU HAVE ALREADY WRITTEN FOR THIS STAGE ═══\nContinue seamlessly from this. Do not repeat it, do not re-introduce the document, do not summarise it. Pick up exactly where it stops.\n\n${priorHalf}`
+              : '') }
+          ]
+        }]
       };
       if (config.research > 0 && !priorHalf) {
         req.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: config.research }];
