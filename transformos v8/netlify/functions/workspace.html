@@ -409,20 +409,40 @@ async function loadPortalPanel(){
 
 async function buildSummary(){
   const b = el('sumBtn');
-  b.disabled = true; b.textContent = 'Building overview — 1-2 minutes…';
+  b.disabled = true; b.textContent = 'Building overview — a few minutes…';
   try{
-    const r = await fetch(API+'/build-summary',{ method:'POST', headers:{'Content-Type':'application/json'},
+    await fetch(API+'/build-summary-background',{ method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ company_id: STATE.company.id }) });
-    const raw = await r.text();
-    let d;
-    try { d = JSON.parse(raw); }
-    catch { throw new Error('Function returned '+r.status+' — '+raw.replace(/<[^>]+>/g,' ').trim().slice(0,140)); }
-    if(!r.ok) throw new Error(d.error||'failed');
-    await load(false); renderNav(); renderStage();
+    pollSummary();
   }catch(e){
     b.disabled = false;
-    b.textContent = 'Failed: '+e.message;
+    b.textContent = 'Failed to start: '+e.message;
   }
+}
+
+function pollSummary(){
+  let ticks = 0;
+  const timer = setInterval(async ()=>{
+    ticks++;
+    const d = await load(true);
+    const b = el('sumBtn');
+    if(!d){ clearInterval(timer); return; }
+    const ps = STATE.company.portal_summary;
+    const built = STATE.company.summary_built_at;
+
+    if(built && ps && !ps.status){
+      clearInterval(timer);
+      await load(false); renderNav(); renderStage();
+      return;
+    }
+    if(ps && ps.status === 'failed'){
+      clearInterval(timer);
+      if(b){ b.disabled = false; b.textContent = 'Failed: ' + (ps.error || 'unknown'); }
+      return;
+    }
+    if(b) b.textContent = 'Building overview… ' + (ticks*5) + 's';
+    if(ticks > 150) clearInterval(timer);
+  }, 5000);
 }
 
 async function publish(state){
