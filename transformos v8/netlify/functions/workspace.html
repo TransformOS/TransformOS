@@ -277,7 +277,20 @@ async function load(light){
   const r = await fetch(API+'/get-workspace?company_id='+id+(light?'&light=1':''));
   const d = await r.json();
   if(!r.ok){ el('main').innerHTML = '<h1>Could not load workspace</h1><p class="lede">'+(d.error||'')+'</p>'; return null; }
-  STATE.company = d.company; STATE.stages = d.stages; STATE.documents = d.documents;
+  STATE.company = d.company;
+  STATE.documents = d.documents;
+
+  // A light load omits output_content to keep polling cheap. Merging
+  // rather than replacing keeps any content already held, otherwise
+  // every poll would wipe the stage text out of the page.
+  if(light && STATE.stages.length){
+    STATE.stages = d.stages.map(ns=>{
+      const old = STATE.stages.find(o=>o.stage_number===ns.stage_number);
+      return (old && old.output_content) ? {...ns, output_content: old.output_content} : ns;
+    });
+  } else {
+    STATE.stages = d.stages;
+  }
   return d;
 }
 
