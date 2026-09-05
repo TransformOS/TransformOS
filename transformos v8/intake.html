@@ -582,6 +582,14 @@
     letter-spacing: 0.08em;
   }
 
+  /* ── VALIDATION ── */
+  .field.invalid input, .field.invalid select, .field.invalid textarea { border-color: var(--red); box-shadow: 0 0 0 3px rgba(192,57,43,0.08); }
+  .field-error { font-size: 0.76rem; color: var(--red); margin-top: 2px; }
+  .error-summary { background:#fdf3f2; border:1.5px solid var(--red); border-radius:10px; padding:20px 24px; margin-bottom:28px; }
+  .error-summary h4 { font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--red); margin-bottom:10px; }
+  .error-summary ul { margin-left:18px; }
+  .error-summary li { font-size:0.85rem; color:#8a2d22; margin-bottom:5px; cursor:pointer; text-decoration:underline; }
+
   /* ── ANIMATIONS ── */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(20px); }
@@ -656,6 +664,8 @@
       <div class="progress-step" id="ps4"></div>
       <div class="progress-step" id="ps5"></div>
     </div>
+
+    <div id="errorSummary"></div>
 
     <form id="intakeForm" name="transformos-intake">
       <input type="hidden" name="access_code" id="hidden_access_code">
@@ -993,11 +1003,12 @@
 
       <div id="uploadProgress" style="max-width:520px;margin:32px auto 0;text-align:left"></div>
 
-      <div style="margin-top:32px">
-        <a id="continueLink" href="workspace.html" style="display:none;background:var(--teal);color:var(--ink);padding:16px 36px;font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.2rem;letter-spacing:0.1em;text-decoration:none;border-radius:6px">
-          Open Your Workspace &rarr;
-        </a>
-        <p style="margin-top:16px;font-size:0.8rem;color:var(--ghost);font-family:'DM Mono',monospace;letter-spacing:0.08em" id="refNote"></p>
+      <div style="margin-top:36px;padding-top:28px;border-top:1.5px solid var(--mist);max-width:520px;margin-left:auto;margin-right:auto;text-align:left">
+        <p style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--teal);margin-bottom:14px">What happens next</p>
+        <p style="font-size:0.9rem;color:#555;line-height:1.8;margin-bottom:12px">Your analysis now goes into production. We run the full engagement across every stage &mdash; diagnostic, external due diligence, strategic opportunities, operating model, roadmap, business case and financial model.</p>
+        <p style="font-size:0.9rem;color:#555;line-height:1.8;margin-bottom:12px">When it is complete you will receive a private portal with an access code, where you can read the analysis, explore the findings and ask questions of it directly.</p>
+        <p style="font-size:0.9rem;color:#555;line-height:1.8">There is nothing further for you to do. If we need anything else to sharpen the work, we will be in touch.</p>
+        <p style="margin-top:22px;font-size:0.8rem;color:var(--ghost);font-family:'DM Mono',monospace;letter-spacing:0.08em" id="refNote"></p>
       </div>
     </div>
 
@@ -1121,6 +1132,69 @@
     }
   })();
 
+  // ── VALIDATION
+  function clearErrors(){
+    document.querySelectorAll('.field.invalid').forEach(f=>f.classList.remove('invalid'));
+    document.querySelectorAll('.field-error').forEach(e=>e.remove());
+    document.getElementById('errorSummary').innerHTML = '';
+  }
+
+  function flag(input, message, list){
+    const field = input.closest('.field') || input.parentElement;
+    field.classList.add('invalid');
+    const note = document.createElement('div');
+    note.className = 'field-error';
+    note.textContent = message;
+    field.appendChild(note);
+    if(!input.id) input.id = 'f_' + Math.random().toString(36).slice(2,8);
+    list.push({ id: input.id, message });
+  }
+
+  function validate(form){
+    clearErrors();
+    const errors = [];
+
+    [['company_name','Company name is required'],
+     ['user_name','Your name is required'],
+     ['role','Job title is required']].forEach(([name,msg])=>{
+      const f = form[name];
+      if(f && !f.value.trim()) flag(f, msg, errors);
+    });
+
+    const email = form.email;
+    if(email){
+      if(!email.value.trim()) flag(email,'Email address is required',errors);
+      else if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim()))
+        flag(email,'That does not look like a valid email address',errors);
+    }
+
+    const web = form.website;
+    if(web && web.value.trim()){
+      let v = web.value.trim();
+      if(!/^https?:\/\//i.test(v)){ v = 'https://' + v; web.value = v; }
+      try { new URL(v); }
+      catch { flag(web,'That web address is not valid — try www.yourcompany.co.uk',errors); }
+    }
+
+    if(!document.getElementById('consent1').checked){
+      const box = document.getElementById('consent1');
+      box.closest('.consent-row').classList.add('invalid');
+      if(!box.id) box.id = 'consent1';
+      errors.push({ id:'consent1', message:'You need to confirm authority and consent before submitting' });
+    }
+
+    if(errors.length){
+      const sum = document.getElementById('errorSummary');
+      sum.innerHTML = '<div class="error-summary"><h4>' + errors.length +
+        (errors.length===1?' item needs':' items need') + ' your attention</h4><ul>' +
+        errors.map(e=>'<li onclick="document.getElementById(\''+e.id+'\').focus();document.getElementById(\''+e.id+'\').scrollIntoView({behavior:\'smooth\',block:\'center\'})">'+e.message+'</li>').join('') +
+        '</ul></div>';
+      sum.scrollIntoView({behavior:'smooth',block:'center'});
+      return false;
+    }
+    return true;
+  }
+
   // ── FORM SUBMIT
   document.getElementById('intakeForm').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -1128,6 +1202,8 @@
     const btn = document.querySelector('.btn-submit');
     const originalText = btn.textContent;
     const form = e.target;
+
+    if(!validate(form)) return;
 
     btn.textContent = 'Saving your profile…';
     btn.style.opacity = '0.7';
@@ -1231,10 +1307,8 @@
   });
 
   function finish(companyId) {
-    const link = document.getElementById('continueLink');
-    link.style.display = 'inline-block';
     document.getElementById('refNote').textContent =
-      'Your reference: ' + companyId.slice(0, 8).toUpperCase() + ' — keep this to return to your workspace.';
+      'Your reference: ' + companyId.slice(0, 8).toUpperCase();
   }
 </script>
 </body>
