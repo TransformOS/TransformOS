@@ -18,14 +18,14 @@ const anthropic = new Anthropic({
    Cost difference across a full run is roughly £2.
    Quality difference on the judgement-heavy stages is not marginal. */
 const STAGE_CONFIG = {
-  1: { model: 'claude-opus-5',    max_tokens: 16000 },
-  2: { model: 'claude-opus-5',    max_tokens: 12000 },
-  3: { model: 'claude-sonnet-5',  max_tokens: 12000 },
-  4: { model: 'claude-opus-5',    max_tokens: 14000 },
-  5: { model: 'claude-sonnet-5',  max_tokens: 14000 },
-  6: { model: 'claude-opus-5',    max_tokens: 14000 },
-  7: { model: 'claude-opus-5',    max_tokens: 14000 },
-  8: { model: 'claude-opus-5',    max_tokens: 16000 }
+  1: { model: 'claude-opus-5',    max_tokens: 16000, research: 10 },
+  2: { model: 'claude-opus-5',    max_tokens: 12000, research: 4  },
+  3: { model: 'claude-sonnet-5',  max_tokens: 12000, research: 0  },
+  4: { model: 'claude-opus-5',    max_tokens: 14000, research: 10 },
+  5: { model: 'claude-sonnet-5',  max_tokens: 14000, research: 5  },
+  6: { model: 'claude-opus-5',    max_tokens: 14000, research: 0  },
+  7: { model: 'claude-opus-5',    max_tokens: 14000, research: 3  },
+  8: { model: 'claude-opus-5',    max_tokens: 16000, research: 0  }
 };
 
 const SYSTEM_PROMPT = `You are TransformOS, an enterprise transformation operating system built on thirty years of building, growing and transforming businesses.
@@ -38,6 +38,11 @@ STANDARDS — not optional:
 - Volunteer where the analysis could be wrong and where a plan could fail. This is the most credible thing in any document.
 - British English throughout.
 - Use markdown headings and tables so the output renders directly.
+
+EXTERNAL DUE DILIGENCE:
+Where web search is available to you, use it properly before forming conclusions. Research the organisation itself — its website, its published accounts and filings, its leadership, its recent announcements. Research what is being said about it publicly: reviews, press coverage, customer and employee commentary, sector commentary. Research the market it operates in: size, direction of travel, named competitors and how they position, regulatory and funding movements, and anything happening now that changes the picture.
+
+Bring what you find into the analysis rather than reporting it separately. Cite the source in the text where a finding rests on it. Where public information contradicts what the organisation has told you, say so plainly — that gap is often the most valuable finding in the document. Where you searched and found nothing, say that too; absence of public presence is itself a finding.
 
 You are producing one stage of an eight-stage engagement. Prior stages are supplied as established findings — build on them and stay consistent. Do not contradict earlier findings without flagging that you are doing so and why.`;
 
@@ -55,7 +60,8 @@ SECTION 9: CRITICAL CONSTRAINT — the single most important thing holding this 
 SECTION 10: TOP 10 PRIORITY RECOMMENDATIONS — ranked by impact. Each: action, why it matters, owner, timeline, expected impact.
 SECTION 11: TOM CURRENT STATE BASELINE — score each (High/Med/Low gap): Strategy & Direction, Operating Model, Processes & Capabilities, People & Organisation, Technology & Data, Governance & Controls, Culture & Behaviours, Customer Experience. Top 3 TOM priorities.
 SECTION 12: VALUATION MULTIPLIER SNAPSHOT — score /10: Financial Quality, Commercial Strength, Scale & Growth, People & Organisation, Brand & Reputation. Total /50. Rating: Premium/Strong/Market Rate/Discounted/Distressed. Top 3 improvements.
-SECTION 13: EVIDENCE & CONFIDENCE — what is directly evidenced, what is professional estimate, what could not be assessed.`,
+SECTION 13: EXTERNAL DUE DILIGENCE — researched, not assumed. Cover: what the organisation says about itself publicly and how that matches the intake; public reputation and sentiment (reviews, press, employee and customer commentary); named competitor comparison with how each positions and prices; market size and direction of travel; regulatory, funding or sector movements that change the picture. Cite sources. Flag any gap between the public record and what you were told.
+SECTION 14: EVIDENCE & CONFIDENCE — what is directly evidenced, what is professional estimate, what could not be assessed, and what a document you were not given would have resolved.`,
 
   2: `Build a Road to 2030 vision document:
 SECTION 1: STRATEGIC BASELINE — where we are, the gap, the burning platform
@@ -79,6 +85,7 @@ SECTION 7: OPERATIONAL KPI DASHBOARD — 10 KPIs with baseline, target, frequenc
 Every recommendation must be executable by the management team without consultants.`,
 
   4: `Identify and evaluate Strategic Opportunities:
+SECTION 0: MARKET RESEARCH — search before you assess. Current market size and growth, named competitors and their positioning, live funding streams, grants, contracts or policy movements the organisation could act on, and what is changing in the sector right now. Cite sources and dates. Timing arguments must rest on something you found, not something you assumed.
 SECTION 1: OPPORTUNITY LANDSCAPE — top 3-5 market opportunities and the timing argument
 SECTION 2: OPPORTUNITY DEEP-DIVES — top 5. Each: description, market size, strategic fit, revenue Y1/Y3, investment, risks, verdict (Pursue Now/Plan/Monitor/Avoid)
 SECTION 3: ANSOFF MATRIX — mapped across all 4 quadrants with risk and priority
@@ -201,12 +208,24 @@ ADDITIONAL CONTEXT: ${company.context || 'None provided'}`;
       });
     }
 
-    const message = await anthropic.messages.create({
+    const request = {
       model: config.model,
       max_tokens: config.max_tokens,
       system: SYSTEM_PROMPT,
       messages: [{ role: 'user', content: `${context}\n\n═══════════════\nTASK — STAGE ${stage_number}:\n${STAGE_PROMPTS[stage_number]}` }]
-    });
+    };
+
+    // Server-side web search. Anthropic runs the searches and returns
+    // the results inline, so no tool-use loop is needed here.
+    if (config.research > 0) {
+      request.tools = [{
+        type: 'web_search_20250305',
+        name: 'web_search',
+        max_uses: config.research
+      }];
+    }
+
+    const message = await anthropic.messages.create(request);
 
     const output = (message.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
     if (!output.trim()) throw new Error('Empty response from model');
