@@ -243,6 +243,9 @@ textarea:focus{outline:none;border-color:var(--gold)}
 .sec-i{font-family:var(--mono);font-size:1rem;color:var(--gold);transition:transform .2s}
 .sec[open] .sec-i{transform:rotate(45deg)}
 .sec-body{padding:.2rem 1.2rem 1.3rem;border-top:1px solid var(--bdim)}
+.expand-all{font-family:var(--mono);font-size:.58rem;letter-spacing:.13em;text-transform:uppercase;background:none;border:1px solid var(--bdim);color:var(--gold2);padding:.45rem .9rem;cursor:pointer;margin-bottom:1rem}
+.expand-all:hover{border-color:var(--gold)}
+@media print{.sec .sec-body{display:block!important}.sec{border:none}.expand-all{display:none}}
 </style>
 </head>
 <body>
@@ -536,7 +539,7 @@ function renderStage(){
     }
   } else {
     html += '<div style="margin-bottom:1.5rem"><button class="btn btn-ghost" onclick="regen()">Regenerate this stage</button></div>';
-    html += '<div class="output">'+md(s.output_content||'')+'</div>';
+    html += '<div class="output">'+groupSections(md(s.output_content||''),'stage'+s.stage_number)+'</div>';
     html += '<div class="meta">Generated '+(s.completed_at? new Date(s.completed_at).toLocaleString('en-GB') : '')+
             (s.model_used? ' · '+s.model_used : '')+'</div>';
     html += '<div class="ask"><div class="plabel">Ask about this stage</div>'+
@@ -753,6 +756,30 @@ function mvLadder(p){
     (s.note?'<div class="mv-sd">'+mvEsc(s.note)+'</div>':'')+'</div>').join('')+'</div>';
 }
 
+function groupSections(html, id){
+  const parts = html.split(/(?=<h[23]>)/);
+  if(parts.length < 3) return html;
+  let out = '<button class="expand-all" onclick="toggleAll(\''+id+'\',this)">Expand all</button>';
+  let i = 0;
+  if(!/^<h[23]>/.test(parts[0])){ out += parts[0]; i = 1; }
+  for(; i < parts.length; i++){
+    const m = parts[i].match(/^<h([23])>(.*?)<\/h\1>/);
+    if(!m){ out += parts[i]; continue; }
+    const title = m[2].replace(/<[^>]+>/g,'').trim();
+    out += '<details class="sec"><summary><span class="sec-t">'+title+'</span><span class="sec-i">+</span></summary>'+
+           '<div class="sec-body">'+parts[i].slice(m[0].length)+'</div></details>';
+  }
+  return '<div id="grp-'+id+'">'+out+'</div>';
+}
+
+function toggleAll(id, btn){
+  const wrap = document.getElementById('grp-'+id);
+  if(!wrap) return;
+  const open = btn.textContent.trim() === 'Expand all';
+  wrap.querySelectorAll('details.sec').forEach(d=>d.open = open);
+  btn.textContent = open ? 'Collapse all' : 'Expand all';
+}
+
 function renderModelVisual(m){
   const p = m.payload || {};
   const type = m.render_type;
@@ -855,7 +882,7 @@ function renderReport(){
     '<section class="rpt-stage" id="rpt'+s.stage_number+'">'+
     '<div class="rpt-head">Stage '+String(s.stage_number).padStart(2,'0')+'</div>'+
     '<div class="rpt-title">'+s.stage_name+'</div>'+
-    '<div class="output">'+md(s.output_content||'')+'</div>'+
+    '<div class="output">'+groupSections(md(s.output_content||''),'rpt'+s.stage_number)+'</div>'+
     '</section>'
   ).join('');
 
