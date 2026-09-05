@@ -162,6 +162,87 @@ textarea:focus{outline:none;border-color:var(--gold)}
   .output h1,.output h2,.output h3{color:#0D1B2A}
   .output th{color:#8a6418}
 }
+
+.mv{border:1px solid var(--bdim);background:var(--navy2);padding:1.6rem;margin:1.4rem 0}
+.mv-head{font-family:var(--mono);font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold2);margin-bottom:1.2rem}
+.mv-hl{font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--gold2);line-height:1.4;margin-bottom:1.4rem}
+
+/* boxes */
+.mv-box{background:var(--navy3);border:1px solid var(--bdim);padding:.9rem 1rem;min-height:96px;display:flex;flex-direction:column}
+.mv-bt{font-family:var(--mono);font-size:.55rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);margin-bottom:.6rem;line-height:1.3}
+.mv-bi{font-size:.78rem;line-height:1.5;color:var(--mist);margin-bottom:.3rem;padding-left:.7rem;position:relative}
+.mv-bi::before{content:'—';position:absolute;left:0;color:var(--gold);opacity:.55}
+.mv-bn{font-size:.72rem;color:var(--slate);margin-top:auto;padding-top:.6rem;font-style:italic;line-height:1.45}
+
+/* generic grid */
+.mv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:6px}
+
+/* business model canvas */
+.mv-bmc{display:grid;gap:6px;grid-template-columns:repeat(5,1fr);grid-template-rows:auto auto}
+.mv-bmc .c1{grid-column:1;grid-row:1/3}
+.mv-bmc .c2{grid-column:2;grid-row:1}
+.mv-bmc .c3{grid-column:2;grid-row:2}
+.mv-bmc .c4{grid-column:3;grid-row:1/3}
+.mv-bmc .c5{grid-column:4;grid-row:1}
+.mv-bmc .c6{grid-column:4;grid-row:2}
+.mv-bmc .c7{grid-column:5;grid-row:1/3}
+.mv-bmc .c8{grid-column:1/4;grid-row:3}
+.mv-bmc .c9{grid-column:4/6;grid-row:3}
+@media(max-width:900px){.mv-bmc{grid-template-columns:1fr}.mv-bmc>div{grid-column:1!important;grid-row:auto!important}}
+
+/* 2x2 matrix */
+.mv-mx{position:relative;padding:0 0 34px 34px}
+.mv-mxg{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;background:var(--bdim);aspect-ratio:1.35}
+.mv-q{background:var(--navy3);padding:.85rem;position:relative;overflow:hidden}
+.mv-ql{font-family:var(--mono);font-size:.53rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);opacity:.8}
+.mv-dot{position:absolute;transform:translate(-50%,50%)}
+.mv-dot i{display:block;width:9px;height:9px;background:var(--gold2);border-radius:50%;margin:0 auto 3px}
+.mv-dot span{font-size:.68rem;color:var(--cream);white-space:nowrap;background:rgba(13,27,42,.82);padding:1px 5px}
+.mv-ax{position:absolute;font-family:var(--mono);font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--slate)}
+.mv-ax.x{bottom:8px;left:34px;right:0;text-align:center}
+.mv-ax.y{left:0;top:0;bottom:34px;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center}
+
+/* forces */
+.mv-forces{display:grid;gap:6px}
+.mv-force{display:grid;grid-template-columns:180px 1fr 90px;gap:1rem;align-items:center;background:var(--navy3);padding:.75rem 1rem;border:1px solid var(--bdim)}
+.mv-fl{font-size:.85rem;color:var(--white)}
+.mv-fn{font-size:.76rem;color:var(--mist);line-height:1.5}
+.mv-fr{font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;text-align:right}
+.mv-centre{text-align:center;font-family:var(--serif);font-size:1.15rem;color:var(--gold2);padding:.8rem;border:1px solid var(--border);margin-bottom:6px}
+
+/* scored */
+.mv-sc{display:grid;gap:.55rem}
+.mv-srow{display:grid;grid-template-columns:200px 1fr 66px;gap:1rem;align-items:center;font-size:.8rem}
+.mv-strack{height:20px;background:rgba(184,196,208,.08);position:relative}
+.mv-sfill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));position:absolute;left:0;top:0}
+.mv-starget{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--gold3);opacity:.85}
+.mv-sv{font-family:var(--mono);font-size:.74rem;text-align:right;color:var(--mist)}
+.mv-note{font-size:.74rem;color:var(--slate);margin-top:.9rem;line-height:1.6}
+
+/* ladder */
+.mv-lad{display:grid;gap:2px;background:var(--bdim)}
+.mv-step{background:var(--navy3);padding:.9rem 1.1rem;display:grid;grid-template-columns:34px 1fr auto;gap:1rem;align-items:baseline}
+.mv-sn{font-family:var(--mono);font-size:.62rem;color:var(--gold)}
+.mv-sl{font-size:.88rem;color:var(--white)}
+.mv-sd{font-size:.76rem;color:var(--mist);line-height:1.55;grid-column:2}
+.mv-sval{font-family:var(--serif);font-size:1.1rem;color:var(--gold2)}
+
+/* table */
+.mv-tbl{width:100%;border-collapse:collapse;font-size:.82rem}
+.mv-tbl th{font-family:var(--mono);font-size:.55rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold2);text-align:left;padding:.65rem .8rem;border-bottom:1px solid var(--border)}
+.mv-tbl td{padding:.65rem .8rem;border-bottom:1px solid var(--bdim);color:var(--mist);vertical-align:top}
+
+.mv-conf{font-size:.74rem;color:var(--slate);margin-top:1.2rem;padding-top:.9rem;border-top:1px solid var(--bdim);line-height:1.6}
+@media print{.mv{break-inside:avoid}.mv-box{background:#f6f4f0;border:1px solid #ddd}.mv-bt{color:#8a6418}.mv-bi,.mv-fn,.mv-sd{color:#333}}
+
+.sec{border:1px solid var(--bdim);margin-bottom:.6rem;background:var(--navy2)}
+.sec>summary{cursor:pointer;padding:.9rem 1.2rem;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:1rem}
+.sec>summary::-webkit-details-marker{display:none}
+.sec>summary:hover{background:var(--navy3)}
+.sec-t{font-family:var(--serif);font-size:1.05rem;color:var(--white);font-weight:500}
+.sec-i{font-family:var(--mono);font-size:1rem;color:var(--gold);transition:transform .2s}
+.sec[open] .sec-i{transform:rotate(45deg)}
+.sec-body{padding:.2rem 1.2rem 1.3rem;border-top:1px solid var(--bdim)}
 </style>
 </head>
 <body>
@@ -508,12 +589,10 @@ function renderModels(){
   if(doneCount){
     html += '<div class="eyebrow" style="margin-top:2.5rem">Models run for this organisation</div>';
     html += MODELS.filter(m=>m.status==='complete').map(m=>
-      '<details class="panel" style="padding:0"><summary style="cursor:pointer;padding:1.1rem 1.5rem;list-style:none;display:flex;justify-content:space-between;align-items:center">'+
-      '<span><span style="font-family:var(--serif);font-size:1.1rem;color:var(--white)">'+m.model_name+'</span>'+
-      '<span class="mp-c">'+m.category+'</span></span><span style="color:var(--gold)">+</span></summary>'+
-      '<div style="padding:0 1.5rem 1.5rem">'+
-      (m.payload && m.payload.headline ? '<p style="font-family:var(--serif);font-size:1.15rem;color:var(--gold2);font-style:italic;margin-bottom:1rem">'+m.payload.headline+'</p>' : '')+
-      '<div class="output" style="border:none;margin:0;padding:0">'+md(m.narrative||'')+'</div></div></details>').join('');
+      renderModelVisual(m)+
+      (m.narrative ? '<details class="sec" style="margin:-1rem 0 1.8rem"><summary><span class="sec-t">Interpretation &mdash; '+m.model_name+'</span><span class="sec-i">+</span></summary>'+
+        '<div class="sec-body"><div class="output" style="border:none;margin:0;padding:0">'+md(m.narrative)+'</div></div></details>' : '')
+    ).join('');
   }
 
   html += renderStageFiveBlock();
@@ -554,6 +633,159 @@ function generate5(){
   STATE.current = 5;
   generate();
 }
+
+function mvEsc(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function mvBox(cell, cls){
+  const items = (cell.items||[]).map(i=>'<div class="mv-bi">'+mvEsc(i)+'</div>').join('');
+  return '<div class="mv-box '+(cls||'')+'"><div class="mv-bt">'+mvEsc(cell.label)+'</div>'+items+
+    (cell.note?'<div class="mv-bn">'+mvEsc(cell.note)+'</div>':'')+'</div>';
+}
+
+function mvGrid(p, key){
+  const cells = p.cells||[];
+  if(!cells.length) return '';
+  // Business Model Canvas and Lean Canvas use the canonical nine-box layout
+  if((key==='bmc'||key==='lean_canvas') && cells.length>=9){
+    return '<div class="mv-bmc">'+cells.slice(0,9).map((c,i)=>mvBox(c,'c'+(i+1))).join('')+'</div>';
+  }
+  return '<div class="mv-grid">'+cells.map(c=>mvBox(c)).join('')+'</div>';
+}
+
+function mvMatrix(p){
+  const ax = p.axes||{x:{},y:{}};
+  const items = p.items||[];
+  const quads = [
+    {x:0,y:1},{x:1,y:1},
+    {x:0,y:0},{x:1,y:0}
+  ];
+  // derive quadrant labels from items where given
+  const qLabels = ['','','',''];
+  items.forEach(it=>{
+    const qi = (it.y>=0.5?0:2) + (it.x>=0.5?1:0);
+    if(it.quadrant && !qLabels[qi]) qLabels[qi]=it.quadrant;
+  });
+
+  const dots = items.map(it=>{
+    const left = Math.max(3,Math.min(97,(it.x??0.5)*100));
+    const bottom = Math.max(3,Math.min(97,(it.y??0.5)*100));
+    return '<div class="mv-dot" style="left:'+left+'%;bottom:'+bottom+'%" title="'+mvEsc(it.note||'')+'">'+
+      '<i></i><span>'+mvEsc(it.label)+'</span></div>';
+  }).join('');
+
+  return '<div class="mv-mx">'+
+    '<div style="position:relative">'+
+    '<div class="mv-mxg">'+quads.map((q,i)=>'<div class="mv-q"><span class="mv-ql">'+mvEsc(qLabels[i]||'')+'</span></div>').join('')+'</div>'+
+    '<div style="position:absolute;inset:0;pointer-events:none">'+dots+'</div>'+
+    '</div>'+
+    '<div class="mv-ax x">'+mvEsc(ax.x?.label||'')+(ax.x?.low?' · '+mvEsc(ax.x.low)+' → '+mvEsc(ax.x.high||''):'')+'</div>'+
+    '<div class="mv-ax y">'+mvEsc(ax.y?.label||'')+(ax.y?.low?' · '+mvEsc(ax.y.low)+' → '+mvEsc(ax.y.high||''):'')+'</div>'+
+    '</div>';
+}
+
+function mvForces(p){
+  const cols = {'very high':'#E07A5F','high':'#E8B454','moderate':'#B8C4D0','low':'#7FB069'};
+  return (p.centre?'<div class="mv-centre">'+mvEsc(p.centre)+'</div>':'')+
+    '<div class="mv-forces">'+(p.forces||[]).map(f=>{
+      const c = cols[(f.rating||'').toLowerCase()] || 'var(--gold2)';
+      const w = ((f.score||3)/5)*100;
+      return '<div class="mv-force"><div><div class="mv-fl">'+mvEsc(f.label)+'</div>'+
+        '<div class="mv-strack" style="margin-top:.45rem;height:5px"><div class="mv-sfill" style="width:'+w+'%;background:'+c+'"></div></div></div>'+
+        '<div class="mv-fn">'+mvEsc(f.note)+'</div>'+
+        '<div class="mv-fr" style="color:'+c+'">'+mvEsc(f.rating||'')+'</div></div>';
+    }).join('')+'</div>';
+}
+
+function mvSpider(items){
+  const d = items.filter(i=>typeof i.score==='number');
+  if(d.length<5) return '';
+  const R=100,cx=125,cy=125,n=d.length,max=d[0].max||5;
+  const pt=(i,v)=>{const a=(Math.PI*2*i/n)-Math.PI/2;const r=R*(v/max);return [cx+r*Math.cos(a),cy+r*Math.sin(a)];};
+  let rings='';
+  for(let l=1;l<=max;l++) rings+='<polygon points="'+d.map((x,i)=>pt(i,l).join(',')).join(' ')+'" fill="none" stroke="rgba(184,196,208,.11)"/>';
+  const spokes=d.map((x,i)=>{const[a,b]=pt(i,max);return '<line x1="'+cx+'" y1="'+cy+'" x2="'+a+'" y2="'+b+'" stroke="rgba(184,196,208,.11)"/>';}).join('');
+  const labels=d.map((x,i)=>{const[a,b]=pt(i,max*1.16);
+    const anc=a<cx-8?'end':a>cx+8?'start':'middle';
+    return '<text x="'+a+'" y="'+(b+3)+'" text-anchor="'+anc+'" font-family="DM Mono,monospace" font-size="7" fill="#6B7F92">'+mvEsc(x.label).slice(0,20)+'</text>';}).join('');
+  const tgt=d.some(x=>typeof x.target==='number')
+    ? '<polygon points="'+d.map((x,i)=>pt(i,x.target||max).join(',')).join(' ')+'" fill="rgba(232,180,84,.06)" stroke="rgba(232,180,84,.4)" stroke-dasharray="4 3"/>' : '';
+  return '<svg width="290" height="255" viewBox="0 0 250 250" style="flex-shrink:0">'+rings+spokes+tgt+
+    '<polygon points="'+d.map((x,i)=>pt(i,x.score).join(',')).join(' ')+'" fill="rgba(201,146,42,.22)" stroke="#E8B454" stroke-width="2"/>'+labels+'</svg>';
+}
+
+function mvScored(p){
+  const items = p.items||[];
+  const bars = '<div class="mv-sc">'+items.map(i=>{
+    const max = i.max||5;
+    const w = typeof i.score==='number' ? (i.score/max)*100 : 0;
+    const t = typeof i.target==='number' ? (i.target/max)*100 : null;
+    return '<div><div class="mv-srow"><span style="color:var(--white)">'+mvEsc(i.label)+'</span>'+
+      '<div class="mv-strack"><div class="mv-sfill" style="width:'+w+'%"></div>'+
+      (t!==null?'<div class="mv-starget" style="left:'+t+'%"></div>':'')+'</div>'+
+      '<span class="mv-sv">'+(typeof i.score==='number'?i.score+'/'+max:'—')+'</span></div>'+
+      (i.note?'<div style="font-size:.74rem;color:var(--slate);margin:.25rem 0 .5rem;line-height:1.5">'+mvEsc(i.note)+'</div>':'')+
+      '</div>';
+  }).join('')+'</div>';
+  const spider = mvSpider(items);
+  return spider
+    ? '<div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap">'+spider+'<div style="flex:1;min-width:280px">'+bars+'</div></div>'
+    : bars;
+}
+
+function mvQuadrants(p){
+  const q = p.quadrants||[];
+  return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'+q.map(c=>mvBox(c)).join('')+'</div>';
+}
+
+function mvTable(p){
+  const h = p.headers||[];
+  const r = p.rows||[];
+  if(!h.length) return '';
+  return '<div style="overflow-x:auto"><table class="mv-tbl"><thead><tr>'+h.map(x=>'<th>'+mvEsc(x)+'</th>').join('')+
+    '</tr></thead><tbody>'+r.map(row=>'<tr>'+row.map(c=>'<td>'+mvEsc(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+}
+
+function mvLadder(p){
+  return '<div class="mv-lad">'+(p.steps||[]).map((s,i)=>
+    '<div class="mv-step"><span class="mv-sn">'+String(i+1).padStart(2,'0')+'</span>'+
+    '<span class="mv-sl">'+mvEsc(s.label)+'</span>'+
+    (s.value?'<span class="mv-sval">'+mvEsc(s.value)+'</span>':'<span></span>')+
+    (s.note?'<div class="mv-sd">'+mvEsc(s.note)+'</div>':'')+'</div>').join('')+'</div>';
+}
+
+function renderModelVisual(m){
+  const p = m.payload || {};
+  const type = m.render_type;
+  let body = '';
+  if(type==='grid')           body = mvGrid(p, m.model_key);
+  else if(type==='matrix')    body = mvMatrix(p);
+  else if(type==='forces')    body = mvForces(p);
+  else if(type==='scored')    body = mvScored(p);
+  else if(type==='quadrants') body = mvQuadrants(p);
+  else if(type==='table')     body = mvTable(p);
+  else if(type==='ladder')    body = mvLadder(p);
+
+  // Fallback: if the payload came back in a different shape to the one
+  // declared, render whatever structure it does contain rather than
+  // dropping to prose. Every model gets a visual.
+  if(!body){
+    if(Array.isArray(p.cells) && p.cells.length)          body = mvGrid(p, m.model_key);
+    else if(Array.isArray(p.quadrants) && p.quadrants.length) body = mvQuadrants(p);
+    else if(Array.isArray(p.items) && p.items.length && typeof p.items[0].score==='number') body = mvScored(p);
+    else if(Array.isArray(p.items) && p.items.length)     body = mvMatrix(p);
+    else if(Array.isArray(p.forces) && p.forces.length)   body = mvForces(p);
+    else if(Array.isArray(p.steps) && p.steps.length)     body = mvLadder(p);
+    else if(Array.isArray(p.headers) && p.headers.length) body = mvTable(p);
+  }
+  if(!body) body = '<div class="mv-note">This model returned no structured output. Re-run it to rebuild the visual.</div>';
+
+  return '<div class="mv"><div class="mv-head">'+mvEsc(m.model_name)+'</div>'+
+    (p.headline?'<div class="mv-hl">'+mvEsc(p.headline)+'</div>':'')+
+    body +
+    (p.confidence?'<div class="mv-conf">'+mvEsc(p.confidence)+'</div>':'')+
+    '</div>';
+}
+
 
 function selectAllModels(on){
   document.querySelectorAll('.mp-cb').forEach(c=>c.checked=on);
