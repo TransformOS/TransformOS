@@ -27,7 +27,7 @@ exports.handler = async (event) => {
   try {
     const { data: company, error } = await supabase
       .from('companies')
-      .select('id, company_name, sector, annual_revenue, employee_count, website, portal_live, created_at')
+      .select('id, company_name, sector, annual_revenue, employee_count, website, portal_live, portal_summary, created_at')
       .eq('portal_code', code)
       .single();
 
@@ -56,7 +56,8 @@ exports.handler = async (event) => {
         annual_revenue: company.annual_revenue,
         employee_count: company.employee_count,
         website: company.website,
-        prepared: company.created_at
+        prepared: company.created_at,
+        summary: company.portal_summary || null
       },
       stages
     });
