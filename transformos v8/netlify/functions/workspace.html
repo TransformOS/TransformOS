@@ -21,6 +21,41 @@
 body{background:var(--navy);color:var(--mist);font-family:var(--sans);font-weight:300;line-height:1.7;-webkit-font-smoothing:antialiased}
 .tname{color:var(--white)}.tos{color:var(--gold2)}
 
+
+#opgate{position:fixed;inset:0;background:var(--navy);z-index:9999;display:flex;align-items:center;justify-content:center;padding:2rem}
+#opgate.hidden{display:none}
+.og{max-width:400px;width:100%}
+.og-l{font-family:var(--serif);font-size:1.8rem;font-weight:600;margin-bottom:.3rem}
+.og-s{font-family:var(--mono);font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold2);margin-bottom:1.8rem}
+.og-r{display:flex;gap:.6rem}
+#opcode{flex:1;background:var(--navy2);border:1px solid var(--bdim);color:var(--cream);padding:.85rem 1rem;font-family:var(--mono);font-size:.88rem;letter-spacing:.14em;text-transform:uppercase}
+#opcode:focus{outline:none;border-color:var(--gold)}
+.og-e{color:#E07A5F;font-size:.8rem;margin-top:.9rem;min-height:1.2rem}
+
+/* REPORT */
+.sb-report{margin:0 1.8rem 1.2rem;display:block;text-decoration:none;border:1px solid var(--border);padding:.8rem 1rem;transition:all .2s;cursor:pointer}
+.sb-report:hover{background:rgba(201,146,42,.07)}
+.sb-report.active{background:var(--gold2);border-color:var(--gold2)}
+.sb-report.active .sr-t,.sb-report.active .sr-s{color:var(--navy)}
+.sr-t{font-family:var(--serif);font-size:1.05rem;color:var(--white);display:block;line-height:1.2}
+.sr-s{font-family:var(--mono);font-size:.54rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold2);display:block;margin-top:.25rem}
+.rpt-stage{border-top:1px solid var(--border);margin-top:3.5rem;padding-top:2.5rem}
+.rpt-stage:first-of-type{border-top:none;margin-top:0;padding-top:0}
+.rpt-head{font-family:var(--mono);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold2);margin-bottom:.6rem}
+.rpt-title{font-family:var(--serif);font-size:2rem;font-weight:300;color:var(--white);margin-bottom:1.8rem}
+.rpt-toc{border:1px solid var(--bdim);padding:1.6rem 1.8rem;margin-bottom:3rem;background:var(--navy2)}
+.rpt-toc a{display:flex;gap:.9rem;padding:.5rem 0;color:var(--mist);text-decoration:none;font-size:.88rem;border-bottom:1px solid var(--bdim)}
+.rpt-toc a:last-child{border-bottom:none}
+.rpt-toc a:hover{color:var(--gold2)}
+.rpt-toc .n{font-family:var(--mono);font-size:.66rem;color:var(--gold);min-width:1.4rem}
+.modes{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:2.5rem}
+body.present .sidebar,body.present .ask,body.present .modes,body.present .rpt-toc{display:none}
+body.present .main{margin-left:0;max-width:none;padding:5vh 7vw}
+body.present .rpt-stage{border-top:none;page-break-before:always}
+.pbar{display:none;position:fixed;bottom:1.4rem;left:50%;transform:translateX(-50%);gap:.8rem;background:var(--navy2);border:1px solid var(--border);padding:.55rem 1.1rem;z-index:200;align-items:center}
+body.present .pbar{display:flex}
+.pbar button{background:none;border:1px solid var(--bdim);color:var(--gold2);font-family:var(--mono);font-size:.62rem;padding:.35rem .8rem;cursor:pointer;letter-spacing:.1em;text-transform:uppercase}
+
 /* SIDEBAR */
 .sidebar{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:var(--navy2);border-right:1px solid var(--bdim);overflow-y:auto;z-index:100;padding:2rem 0}
 .sb-brand{padding:0 1.8rem 1.4rem;border-bottom:1px solid var(--bdim);margin-bottom:1.2rem}
@@ -102,7 +137,11 @@ textarea:focus{outline:none;border-color:var(--gold)}
   .menu-btn{display:block}
 }
 @media print{
-  .sidebar,.ask,.menu-btn,.btn,textarea,.plabel{display:none!important}
+  .sidebar,.ask,.menu-btn,.btn,textarea,.plabel,.modes,.pbar{display:none!important}
+  .rpt-stage{page-break-before:always}
+  .rpt-stage:first-of-type{page-break-before:auto}
+  .rpt-title,.output h1,.output h2{page-break-after:avoid}
+  table,.rpt-toc{page-break-inside:avoid}
   body{background:#fff;color:#222}
   .main{margin:0;padding:0}
   .output h1,.output h2,.output h3{color:#0D1B2A}
@@ -112,6 +151,18 @@ textarea:focus{outline:none;border-color:var(--gold)}
 </head>
 <body>
 
+<div id="opgate">
+  <div class="og">
+    <div class="og-l"><span class="tname">Transform</span><span class="tos">OS</span></div>
+    <div class="og-s">Operator console</div>
+    <div class="og-r">
+      <input id="opcode" placeholder="Operator code" autocomplete="off" onkeydown="if(event.key==='Enter')opCheck()">
+      <button class="btn" onclick="opCheck()">Enter</button>
+    </div>
+    <div class="og-e" id="operr"></div>
+  </div>
+</div>
+
 <button class="menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')">MENU</button>
 
 <aside class="sidebar">
@@ -120,11 +171,14 @@ textarea:focus{outline:none;border-color:var(--gold)}
     <div class="sb-co" id="coName">Loading…</div>
     <div class="sb-ref" id="coRef"></div>
   </div>
+  <div class="sb-sec">Consolidated</div>
+  <a class="sb-report" id="reportLink" onclick="go(0)">
+    <span class="sr-t">Full Transformation</span>
+    <span class="sr-s" id="reportState">—</span>
+  </a>
   <div class="sb-sec">The Eight Stages</div>
   <div id="stageNav"></div>
-  <div style="padding:1.2rem 1.8rem 0;margin-top:1rem;border-top:1px solid var(--bdim)">
-    <button class="btn btn-ghost" style="width:100%;text-align:left" onclick="window.print()">Export</button>
-  </div>
+
 </aside>
 
 <main class="main" id="main">
@@ -132,9 +186,42 @@ textarea:focus{outline:none;border-color:var(--gold)}
   <h1>Opening your workspace…</h1>
 </main>
 
+<div class="pbar">
+  <button onclick="pStep(-1)">&larr; Prev</button>
+  <span class="sr-s" id="pCount" style="color:var(--slate)"></span>
+  <button onclick="pStep(1)">Next &rarr;</button>
+  <button onclick="endPresent()">Exit</button>
+</div>
+
 <script>
+const OPERATOR_CODE = 'KRIS-OPS-2026';
+function opCheck(){
+  const v=document.getElementById('opcode').value.trim().toUpperCase();
+  if(v===OPERATOR_CODE){ sessionStorage.setItem('tos_op','1'); document.getElementById('opgate').classList.add('hidden'); }
+  else document.getElementById('operr').textContent='Not recognised.';
+}
+if(sessionStorage.getItem('tos_op')==='1') document.getElementById('opgate').classList.add('hidden');
+else setTimeout(()=>document.getElementById('opcode').focus(),80);
+
 const API = '/.netlify/functions';
 let STATE = { company:null, stages:[], documents:[], current:1, polling:null };
+
+const PROGRESS = [
+  'Reading your intake profile and evidence base…',
+  'Researching your public record and online presence…',
+  'Reviewing public sentiment, press and commentary…',
+  'Analysing your market and named competitors…',
+  'Checking sector movements, funding and regulation…',
+  'Establishing the commercial and financial baseline…',
+  'Running the framework set in full…',
+  'Scoring across the operating model dimensions…',
+  'Testing findings against the public record…',
+  'Identifying the critical constraint…',
+  'Ranking recommendations by impact…',
+  'Separating evidenced fact from professional judgement…',
+  'Drafting the analysis…',
+  'Still working — proper due diligence takes time. You can safely close this page…'
+];
 
 const el = id => document.getElementById(id);
 
@@ -198,6 +285,9 @@ async function load(light){
 function renderNav(){
   el('coName').textContent = STATE.company.company_name || 'Your organisation';
   el('coRef').textContent = 'Ref ' + STATE.company.id.slice(0,8).toUpperCase();
+  const done = STATE.stages.filter(s=>s.status==='complete').length;
+  el('reportState').textContent = done + ' of 8 stages complete';
+  el('reportLink').classList.toggle('active', STATE.current===0);
   el('stageNav').innerHTML = STATE.stages.map(s=>{
     const cls = s.status==='complete'?'st-complete':s.status==='in_progress'?'st-progress':s.status==='failed'?'st-failed':'st-none';
     const label = s.status==='complete'?'Complete':s.status==='in_progress'?'Generating':s.status==='failed'?'Failed':'Not started';
@@ -209,6 +299,7 @@ function renderNav(){
 
 /* ── stage view ── */
 function renderStage(){
+  if(STATE.current === 0) return renderReport();
   const s = STATE.stages.find(x=>x.stage_number===STATE.current);
   if(!s) return;
   const prior = STATE.stages.filter(x=>x.stage_number<s.stage_number && x.status==='complete').length;
@@ -228,6 +319,7 @@ function renderStage(){
     html += '<div class="panel"><div class="plabel">Anything else for this stage?</div>'+
       '<textarea id="extra" placeholder="Optional. Context, corrections, recent changes, specific questions you want this stage to address…"></textarea>'+
       '<div style="margin-top:1.1rem"><button class="btn" id="genBtn" onclick="generate()">Generate '+s.stage_name+'</button></div>'+
+      '<p style="font-size:.8rem;color:var(--slate);margin-top:1rem;line-height:1.6">This stage runs full external due diligence &mdash; researching your public record, market, named competitors and sector movements &mdash; alongside the evidence you have supplied, then applies every framework in full. <strong style="color:var(--mist);font-weight:400">Expect it to take three to five minutes.</strong> Close this page and come back later; the work continues in the background and will be waiting for you.</p>'+
       '<div class="status" id="genStatus"></div></div>';
 
     if(s.status==='failed' && s.error_message){
@@ -248,6 +340,157 @@ function renderStage(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
+function renderReport(){
+  const done = STATE.stages.filter(s=>s.status==='complete');
+  const co = STATE.company.company_name || 'Your organisation';
+
+  if(done.length === 0){
+    el('main').innerHTML = '<div class="eyebrow">Consolidated report</div><h1>Nothing to consolidate <em>yet.</em></h1><p class="lede">Once you have generated at least one stage it will appear here as part of a single continuous document.</p>';
+    return;
+  }
+
+  let html = '<div class="eyebrow">Full Transformation &middot; ' + done.length + ' of 8 stages</div>';
+  html += '<h1>' + co + '</h1>';
+  html += '<p class="lede">The complete engagement as one document. Every stage builds on the one before it, and every finding carries the evidence behind it.</p>';
+
+  html += '<div class="panel" id="portalPanel"><div class="plabel">Client portal</div><div id="portalBody">Loading…</div></div>';
+
+  html += '<div class="modes">'+
+    '<button class="btn" onclick="window.print()">Export full report</button>'+
+    '<button class="btn btn-ghost" onclick="boardPack()">Board pack</button>'+
+    '<button class="btn btn-ghost" onclick="startPresent()">Presentation mode</button>'+
+    '</div>';
+
+  html += '<div class="rpt-toc">' + done.map(s =>
+      '<a onclick="document.getElementById(\'rpt'+s.stage_number+'\').scrollIntoView({behavior:\'smooth\'})">'+
+      '<span class="n">'+String(s.stage_number).padStart(2,'0')+'</span><span>'+s.stage_name+'</span></a>'
+    ).join('') + '</div>';
+
+  html += done.map(s =>
+    '<section class="rpt-stage" id="rpt'+s.stage_number+'">'+
+    '<div class="rpt-head">Stage '+String(s.stage_number).padStart(2,'0')+'</div>'+
+    '<div class="rpt-title">'+s.stage_name+'</div>'+
+    '<div class="output">'+md(s.output_content||'')+'</div>'+
+    '</section>'
+  ).join('');
+
+  if(done.length < 8){
+    const missing = STATE.stages.filter(s=>s.status!=='complete').map(s=>s.stage_name).join(', ');
+    html += '<div class="panel" style="margin-top:3rem"><div class="plabel">Not yet generated</div><p style="font-size:.86rem">'+missing+'</p></div>';
+  }
+
+  html += '<div class="ask"><div class="plabel">Ask across the whole engagement</div>'+
+    '<div class="ask-row"><input id="q" placeholder="e.g. where do the eight stages disagree with each other?" onkeydown="if(event.key===\'Enter\')askAll()">'+
+    '<button class="btn" id="askBtn" onclick="askAll()">Ask</button></div>'+
+    '<div class="answer" id="answer"></div></div>';
+
+  el('main').innerHTML = html;
+  loadPortalPanel();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+async function loadPortalPanel(){
+  const box = el('portalBody'); if(!box) return;
+  const c = STATE.company;
+  const code = c.portal_code || '—';
+  const live = c.portal_live;
+  box.innerHTML =
+    '<p style="font-size:.88rem;margin-bottom:1rem">Access code <strong style="color:var(--gold2);font-family:var(--mono);letter-spacing:.1em">'+code+'</strong> &nbsp;·&nbsp; '+
+    (live ? '<span style="color:#7FB069">Live</span>' : '<span style="color:var(--slate)">Not yet published</span>')+'</p>'+
+    '<div style="display:flex;gap:.6rem;flex-wrap:wrap">'+
+    '<button class="btn btn-ghost" id="sumBtn" onclick="buildSummary()">'+(c.summary_built_at?'Rebuild client overview':'Build client overview')+'</button>'+
+    '<button class="btn" onclick="publish('+(live?'false':'true')+')">'+(live?'Unpublish portal':'Publish portal to client')+'</button>'+
+    (live?'<a class="btn btn-ghost" style="text-decoration:none;display:inline-block" href="/clients/portal.html?code='+code+'" target="_blank">Open client view</a>':'')+
+    '</div>'+
+    '<p style="font-size:.78rem;color:var(--slate);margin-top:1rem;line-height:1.6">'+
+    (c.summary_built_at ? 'Client overview built '+new Date(c.summary_built_at).toLocaleString('en-GB')+'. ' : 'Build the client overview first — it generates the portal homepage, the charts and the summary at the top of each stage. ')+
+    'Publishing makes the completed stages visible at transformos.co.uk/clients/ using this code. Nothing is visible to the client until you publish.</p>';
+}
+
+async function buildSummary(){
+  const b = el('sumBtn');
+  b.disabled = true; b.textContent = 'Building overview — 1-2 minutes…';
+  try{
+    const r = await fetch(API+'/build-summary',{ method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ company_id: STATE.company.id }) });
+    const raw = await r.text();
+    let d;
+    try { d = JSON.parse(raw); }
+    catch { throw new Error('Function returned '+r.status+' — '+raw.replace(/<[^>]+>/g,' ').trim().slice(0,140)); }
+    if(!r.ok) throw new Error(d.error||'failed');
+    await load(false); renderNav(); renderStage();
+  }catch(e){
+    b.disabled = false;
+    b.textContent = 'Failed: '+e.message;
+  }
+}
+
+async function publish(state){
+  await fetch(API+'/publish-portal',{ method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ company_id: STATE.company.id, live: state }) });
+  await load(false); renderNav(); renderStage();
+}
+
+function boardPack(){
+  const keep = ['1','2','6','7'];
+  document.querySelectorAll('.rpt-stage').forEach(sec=>{
+    const n = sec.id.replace('rpt','');
+    sec.style.display = keep.includes(n) ? '' : 'none';
+  });
+  window.print();
+  setTimeout(()=>document.querySelectorAll('.rpt-stage').forEach(sec=>sec.style.display=''),700);
+}
+
+let pIdx = 0;
+function startPresent(){
+  document.body.classList.add('present');
+  pIdx = 0; pShow();
+}
+function endPresent(){ document.body.classList.remove('present'); document.querySelectorAll('.rpt-stage').forEach(s=>s.style.display=''); }
+function pStep(d){
+  const secs = [...document.querySelectorAll('.rpt-stage')];
+  pIdx = Math.max(0, Math.min(secs.length-1, pIdx+d)); pShow();
+}
+function pShow(){
+  const secs = [...document.querySelectorAll('.rpt-stage')];
+  secs.forEach((s,i)=> s.style.display = i===pIdx ? '' : 'none');
+  el('pCount').textContent = (pIdx+1)+' / '+secs.length;
+  window.scrollTo(0,0);
+}
+document.addEventListener('keydown', e=>{
+  if(!document.body.classList.contains('present')) return;
+  if(e.key==='ArrowRight'||e.key===' ') pStep(1);
+  if(e.key==='ArrowLeft') pStep(-1);
+  if(e.key==='Escape') endPresent();
+});
+
+async function askAll(){
+  const q = el('q').value.trim(); if(!q) return;
+  const btn = el('askBtn'), ans = el('answer');
+  btn.disabled = true; btn.textContent = '…';
+  ans.classList.add('on'); ans.innerHTML = '<p><span class="spin"></span>Analysing across all stages…</p>';
+
+  const done = STATE.stages.filter(s=>s.status==='complete');
+  const per = Math.floor(340000 / Math.max(done.length,1));
+  let corpus = done.map(s => '───── STAGE '+s.stage_number+' — '+s.stage_name+' ─────\n'+(s.output_content||'').slice(0,per)).join('\n\n');
+
+  const ctx = 'You are TransformOS, answering a question from the leadership team of '+
+    (STATE.company.company_name||'this organisation')+' about their own transformation engagement. '+
+    'The full engagement is below. Answer only from it. If something is not covered, say so plainly rather than inventing figures. '+
+    'Where stages disagree or a later stage revises an earlier finding, say so explicitly. '+
+    'Be direct and commercially sharp. Distinguish evidenced fact from professional judgement. Under 250 words unless the question demands more. '+
+    'Short plain paragraphs, no markdown headings, bold only the phrases that matter most.\n\n' + corpus;
+
+  try{
+    const r = await fetch(API+'/ask',{ method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-5', max_tokens:1500, system: ctx, messages:[{role:'user',content:q}] }) });
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error||'request failed');
+    ans.innerHTML = md((d.content||[]).filter(i=>i.type==='text').map(i=>i.text).join('\n'));
+  }catch(e){ ans.innerHTML = '<p style="color:#E07A5F">Could not answer: '+e.message+'</p>'; }
+  btn.disabled = false; btn.textContent = 'Ask'; el('q').value='';
+}
+
 function go(n){ STATE.current = n; renderNav(); renderStage(); document.querySelector('.sidebar').classList.remove('open'); }
 
 /* ── generate ── */
@@ -256,7 +499,7 @@ async function generate(){
   const extra = el('extra') ? el('extra').value : '';
   btn.disabled = true;
   status.className = 'status';
-  status.innerHTML = '<span class="spin"></span>Starting — this takes a few minutes. You can leave this page open and come back.';
+  status.innerHTML = '<span class="spin"></span>Beginning due diligence — typically three to five minutes. You can close this page.';
 
   try{
     await fetch(API+'/run-stage-background',{
@@ -289,7 +532,9 @@ function poll(){
       if(status){ status.className='status err'; status.textContent = 'Generation failed: '+(s.error_message||'unknown error'); }
       const b = el('genBtn'); if(b) b.disabled = false;
     } else if(status){
-      status.innerHTML = '<span class="spin"></span>Working… '+(ticks*5)+'s elapsed. Longer stages can take several minutes.';
+      const mins = Math.floor(ticks*5/60), secs = (ticks*5)%60;
+      const elapsed = mins ? mins+'m '+String(secs).padStart(2,'0')+'s' : secs+'s';
+      status.innerHTML = '<span class="spin"></span>'+PROGRESS[Math.min(Math.floor(ticks/6), PROGRESS.length-1)]+' &nbsp;·&nbsp; '+elapsed;
     }
     if(ticks > 180){ clearInterval(STATE.polling); }
   }, 5000);
@@ -342,7 +587,7 @@ async function ask(){
   const d = await load(false);
   if(!d) return;
   const firstIncomplete = STATE.stages.find(s=>s.status!=='complete');
-  STATE.current = firstIncomplete ? firstIncomplete.stage_number : 1;
+  STATE.current = firstIncomplete ? firstIncomplete.stage_number : 0;
   renderNav(); renderStage();
   const running = STATE.stages.find(s=>s.status==='in_progress');
   if(running){ STATE.current = running.stage_number; renderNav(); renderStage(); poll(); }
