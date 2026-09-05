@@ -201,6 +201,18 @@ const SPEC = `Return ONLY valid JSON. No preamble, no markdown fences, no commen
     "target_revenue": 18000000,
     "target_label": "March 2029"
   },
+  "risks": [
+    { "title": "Short risk title", "detail": "Two or three sentences: what it is, why it matters, what it costs if ignored.", "severity": "critical | high | moderate", "horizon": "Now | 6 months | 12 months | 2-3 years", "stage": 1 }
+  ],
+  "opportunities": [
+    { "title": "Short opportunity title", "detail": "Two or three sentences: what it is, what it is worth, what it needs.", "value": "The prize, e.g. £2m by FY29 or 12 points of margin", "effort": "low | medium | high", "stage": 4 }
+  ],
+  "immediate": [
+    { "action": "What to do, stated as an instruction", "why": "One or two sentences on why this and why now.", "owner": "Role", "timeline": "e.g. 30 days", "cost": "e.g. Nil, or £5k-£15k", "stage": 1 }
+  ],
+  "decisions": [
+    { "question": "The decision, phrased as the question a board would actually debate", "context": "Two sentences of what makes this live now.", "options": ["Option A", "Option B"], "consequence": "One sentence on what turns on getting it right.", "stage": 2 }
+  ],
   "findings": [
     { "title": "Short finding title", "detail": "Two or three sentences.", "stage": 1 }
   ],
@@ -221,6 +233,10 @@ RULES
 - "trajectory": 4 to 6 points from the current year forward. "base" is the figure if nothing changes; "target" is the figure the plan aims for. Use the roadmap's own numbers. If the analysis gives no forward figures, omit "trajectory" entirely.
 - 1 to 3 charts. "bar" for comparisons, "donut" for one proportion of a whole (exactly two series entries: the part first, then the remainder).
 - "model": the numbers behind a simple scenario model. "streams" are the revenue lines with their real values and an estimated contribution margin between 0 and 1. "atRisk" is true for any stream dependent on a single buyer, contract or concentration risk identified in the analysis. Use real figures from the analysis; if revenue is not broken down, use one stream for total revenue. If the analysis contains no financial figures at all, omit "model" entirely.
+- "risks": 3 to 5, ranked with the most severe first. Only risks the analysis actually establishes. Be specific about consequence — a risk without a cost is not a risk.
+- "opportunities": 3 to 5, ranked by value against effort. Name the prize in figures wherever the analysis supports it.
+- "immediate": 3 to 5 actions executable within ninety days that require no new funding of consequence. These are the things a chief executive can start on Monday.
+- "decisions": 2 to 4 genuine decisions requiring judgement, phrased as the question rather than the answer. These are for the board, not the executive.
 - 4 to 6 findings, each tied to the stage it came from.
 - One entry in "stages" for every stage supplied, in order.
 - "tone" is "bad" for risk or exposure, "good" for strength, "neutral" otherwise.
