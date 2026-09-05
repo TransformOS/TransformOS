@@ -88,7 +88,15 @@ h1.doc em{font-style:italic;color:var(--gold2)}
 .hero-line{width:60px;height:2px;background:var(--gold);margin-bottom:1.6rem}
 .headline{font-family:var(--serif);font-size:clamp(1.5rem,2.6vw,2.1rem);font-weight:300;color:var(--gold2);font-style:italic;line-height:1.35;max-width:860px;margin-bottom:2rem}
 .mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:2px;background:var(--bdim);margin:2.4rem 0}
-.mcard{background:var(--navy2);padding:1.5rem 1.4rem}
+.mcard{background:var(--navy2);padding:1.5rem 1.4rem;position:relative;transition:background .2s}
+.mcard.clickable{cursor:pointer}
+.mcard.clickable:hover{background:var(--navy3)}
+.mcard .drill{font-family:var(--mono);font-size:.5rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);opacity:0;transition:opacity .2s;margin-top:.7rem;display:block}
+.mcard.clickable:hover .drill{opacity:1}
+.chart.clickable{cursor:pointer;transition:border-color .2s}
+.chart.clickable:hover{border-color:var(--border)}
+.chart .drill{font-family:var(--mono);font-size:.5rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);opacity:.5;margin-top:.9rem;display:block}
+.chart.clickable:hover .drill{opacity:1}
 .mval{font-family:var(--serif);font-size:2rem;font-weight:300;color:var(--gold2);line-height:1}
 .mval.bad{color:#E07A5F}.mval.good{color:#7FB069}
 .mlab{font-family:var(--mono);font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;color:var(--slate);margin-top:.65rem}
@@ -790,9 +798,13 @@ function render(){
   if(sum && sum.headline) html += '<div class="headline">'+esc(sum.headline)+'</div>';
 
   if(sum && Array.isArray(sum.metrics) && sum.metrics.length){
-    html += '<div class="mgrid">'+sum.metrics.map(m=>
-      '<div class="mcard"><div class="mval '+(m.tone==='bad'?'bad':m.tone==='good'?'good':'')+'">'+esc(m.value)+'</div>'+
-      '<div class="mlab">'+esc(m.label)+'</div>'+(m.note?'<div class="mnote">'+esc(m.note)+'</div>':'')+'</div>').join('')+'</div>';
+    html += '<div class="mgrid">'+sum.metrics.map(m=>{
+      const st = m.stage;
+      return '<div class="mcard'+(st?' clickable" onclick="go('+st+')':'"')+'>'+
+      '<div class="mval '+(m.tone==='bad'?'bad':m.tone==='good'?'good':'')+'">'+esc(m.value)+'</div>'+
+      '<div class="mlab">'+esc(m.label)+'</div>'+(m.note?'<div class="mnote">'+esc(m.note)+'</div>':'')+
+      (st?'<span class="drill">Stage '+String(st).padStart(2,'0')+' &rarr;</span>':'')+'</div>';
+    }).join('')+'</div>';
   }
 
   if(sum && sum.narrative){
@@ -801,10 +813,17 @@ function render(){
     html += '<p class="lede">Your complete transformation. '+DATA.stages.length+' stages, each building on the one before it.</p>';
   }
 
+  const clickWrap=(html,stage)=>{
+    if(!html) return '';
+    if(!stage) return html;
+    return html.replace('<div class="chart',
+      '<div onclick="go('+stage+')" class="chart clickable').replace('</div></div>',
+      '<span class="drill">Stage '+String(stage).padStart(2,'0')+' &rarr;</span></div></div>');
+  };
   const vis=[];
-  if(sum && Array.isArray(sum.charts)) sum.charts.forEach(c=>vis.push(drawChart(c)));
-  if(sum && sum.trajectory) vis.push(drawTrajectory(sum.trajectory));
-  if(sum && sum.scores) vis.push(drawSpider(sum.scores));
+  if(sum && Array.isArray(sum.charts)) sum.charts.forEach(c=>vis.push(clickWrap(drawChart(c), c.stage)));
+  if(sum && sum.trajectory) vis.push(clickWrap(drawTrajectory(sum.trajectory), sum.trajectory.stage));
+  if(sum && sum.scores) vis.push(clickWrap(drawSpider(sum.scores), sum.scores.stage));
   if(vis.filter(Boolean).length) html += '<div class="cgrid">'+vis.join('')+'</div>';
 
   if(sum && sum.model) html += drawModeller(sum.model);
