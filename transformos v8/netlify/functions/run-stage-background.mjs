@@ -252,14 +252,17 @@ async function buildSummary(company_id) {
 
   if (!stages || stages.length === 0) throw new Error('No completed stages to summarise');
 
-  const per = Math.floor(320000 / stages.length);
+  const per = Math.floor(120000 / stages.length);
   const corpus = stages.map(s =>
     `───── STAGE ${s.stage_number} — ${s.stage_name} ─────\n${(s.output_content || '').slice(0, per)}`
   ).join('\n\n');
 
+  // Sonnet rather than Opus: this is structured extraction from text
+  // that already exists, not judgement work. Roughly a third of the
+  // cost, and a much smaller request against available credit.
   const message = await callClaude({
-    model: 'claude-opus-5',
-    max_tokens: 16000,
+    model: 'claude-sonnet-5',
+    max_tokens: 8000,
     system: 'You produce structured JSON summaries of completed transformation engagements. You output JSON and nothing else.',
     messages: [{
       role: 'user',
