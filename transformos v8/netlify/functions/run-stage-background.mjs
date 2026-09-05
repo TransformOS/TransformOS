@@ -216,19 +216,50 @@ ADDITIONAL CONTEXT: ${company.context || 'None provided'}`;
     };
 
     // Server-side web search. Anthropic runs the searches and returns
-    // the results inline, so no tool-use loop is needed here.
+    // results inline. Long research turns can come back with
+    // stop_reason "pause_turn", which means the turn is unfinished and
+    // must be continued by feeding the response back in. Without this
+    // loop the stage returns search activity and no written output.
     if (config.research > 0) {
-      request.tools = [{
-        type: 'web_search_20250305',
-        name: 'web_search',
-        max_uses: config.research
-      }];
+      request.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: config.research }];
     }
 
-    const message = await anthropic.messages.create(request);
+    let message = await anthropic.messages.create(request);
+    let continuations = 0;
 
-    const output = (message.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
-    if (!output.trim()) throw new Error('Empty response from model');
+    while (message.stop_reason === 'pause_turn' && continuations < 5) {
+      continuations++;
+      request.messages = [
+        ...request.messages,
+        { role: 'assistant', content: message.content }
+      ];
+      message = await anthropic.messages.create(request);
+    }
+
+    let output = (message.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+
+    // If a research-heavy turn produced no prose, retry once without
+    // tools so the stage still delivers a written analysis.
+    if (!output.trim() && config.research > 0) {
+      const retry = { ...request };
+      delete retry.tools;
+      retry.messages = [request.messages[0]];
+      const second = await anthropic.messages.create(retry);
+      output = (second.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+      if (output.trim()) message = second;
+    }
+
+    if (!output.trim()) {
+      throw new Error(
+        'Model returned no text. stop_reason=' + (message.stop_reason || 'unknown') +
+        ', blocks=' + (message.content || []).map(b => b.type).join('|') +
+        ', output_tokens=' + (message.usage?.output_tokens ?? 'n/a')
+      );
+    }
+
+    if (message.stop_reason === 'max_tokens') {
+      output += '\n\n---\n\n*This stage reached its output limit and may be incomplete. Regenerate to produce a full version.*';
+    }
 
     await supabase.from('transformation_stages')
       .update({
