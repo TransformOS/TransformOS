@@ -125,6 +125,34 @@ h1.doc em{font-style:italic;color:var(--gold2)}
 .jump a{font-size:.74rem;padding:.32rem .7rem;border:1px solid var(--bdim);color:var(--mist);cursor:pointer;text-decoration:none;transition:all .18s}
 .jump a:hover{border-color:var(--gold);color:var(--gold2)}
 
+/* SPIDER + TRAJECTORY */
+.wide{grid-column:1/-1}
+.spider-wrap{display:flex;gap:1.8rem;align-items:center;flex-wrap:wrap}
+.legend{font-size:.76rem;display:flex;gap:1.2rem;margin-top:.9rem}
+.legend i{display:inline-block;width:10px;height:10px;margin-right:.4rem;vertical-align:middle}
+
+/* MODELLER */
+.mod{border:1px solid var(--border);background:var(--navy2);padding:1.8rem;margin:2.6rem 0}
+.mod-grid{display:grid;grid-template-columns:290px 1fr;gap:2.2rem;align-items:start}
+.ctrl{margin-bottom:1.3rem}
+.ctrl-l{font-family:var(--mono);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);display:flex;justify-content:space-between;margin-bottom:.45rem}
+.ctrl-v{color:var(--gold2)}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:3px;background:rgba(184,196,208,.2);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--gold2);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;background:var(--gold2);cursor:pointer;border:none}
+.presets{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.6rem}
+.pset{font-size:.76rem;padding:.45rem .85rem;border:1px solid var(--bdim);background:none;color:var(--mist);cursor:pointer;font-family:var(--sans)}
+.pset:hover{border-color:var(--gold);color:var(--gold2)}
+.pset.on{background:var(--gold2);color:var(--navy);border-color:var(--gold2);font-weight:500}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:2px;background:var(--bdim);margin-bottom:1.6rem}
+.kpi{background:var(--navy3);padding:1.1rem}
+.kv{font-family:var(--serif);font-size:1.6rem;font-weight:300;color:var(--gold2);line-height:1}
+.kv.bad{color:#E07A5F}.kv.good{color:#7FB069}
+.kl{font-family:var(--mono);font-size:.53rem;letter-spacing:.13em;text-transform:uppercase;color:var(--slate);margin-top:.5rem}
+.kd{font-family:var(--mono);font-size:.62rem;margin-top:.35rem;color:var(--slate)}
+.verdict{border-left:2px solid var(--gold);padding:1rem 1.2rem;background:var(--navy3);font-size:.9rem;line-height:1.7;color:var(--cream)}
+@media(max-width:900px){.mod-grid{grid-template-columns:1fr}}
+
 /* ASK */
 .ask{position:fixed;bottom:0;right:0;width:calc(100% - var(--sidebar));background:var(--navy2);border-top:1px solid var(--border);padding:.9rem 4rem;z-index:90;display:flex;gap:.85rem;align-items:center}
 .ask-lab{font-family:var(--mono);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);white-space:nowrap}
@@ -289,6 +317,138 @@ function drawChart(ch){
     (ch.note?'<div class="cnote">'+esc(ch.note)+'</div>':'')+'</div>';
 }
 
+function drawSpider(sc){
+  const dims=(sc.dimensions||[]).filter(d=>typeof d.current==='number');
+  if(dims.length<3) return '';
+  const R=105,cx=125,cy=125,n=dims.length;
+  const pt=(i,v)=>{const a=(Math.PI*2*i/n)-Math.PI/2;const r=R*(v/5);return [cx+r*Math.cos(a),cy+r*Math.sin(a)];};
+  const poly=v=>dims.map((d,i)=>pt(i,v(d)).join(',')).join(' ');
+  let rings='';
+  [1,2,3,4,5].forEach(l=>{ rings+='<polygon points="'+dims.map((d,i)=>pt(i,l).join(',')).join(' ')+'" fill="none" stroke="rgba(184,196,208,.12)" stroke-width="1"/>'; });
+  let spokes=dims.map((d,i)=>{const[x,y]=pt(i,5);return '<line x1="'+cx+'" y1="'+cy+'" x2="'+x+'" y2="'+y+'" stroke="rgba(184,196,208,.12)"/>';}).join('');
+  let labels=dims.map((d,i)=>{const[x,y]=pt(i,6.05);
+    const anchor=x<cx-8?'end':x>cx+8?'start':'middle';
+    return '<text x="'+x+'" y="'+(y+3)+'" text-anchor="'+anchor+'" font-family="DM Mono, monospace" font-size="7" fill="#6B7F92">'+esc(d.label).slice(0,22)+'</text>';}).join('');
+  return '<div class="chart wide"><div class="ctitle">Operating model — current against target</div>'+
+    '<div class="spider-wrap"><svg width="330" height="250" viewBox="0 0 250 250">'+rings+spokes+
+    '<polygon points="'+poly(d=>d.target||5)+'" fill="rgba(232,180,84,.07)" stroke="rgba(232,180,84,.45)" stroke-width="1.5" stroke-dasharray="4 3"/>'+
+    '<polygon points="'+poly(d=>d.current)+'" fill="rgba(201,146,42,.22)" stroke="#E8B454" stroke-width="2"/>'+
+    labels+'</svg>'+
+    '<div style="flex:1;min-width:220px">'+(sc.note?'<p style="font-size:.85rem;line-height:1.7">'+esc(sc.note)+'</p>':'')+
+    '<div class="legend"><span><i style="background:#E8B454"></i>Current</span><span><i style="background:rgba(232,180,84,.35)"></i>Target</span></div>'+
+    '<div style="margin-top:1.2rem">'+dims.map(d=>
+      '<div class="brow" style="grid-template-columns:1fr 100px 42px"><span style="font-size:.76rem">'+esc(d.label)+'</span>'+
+      '<div class="btrack"><div class="bfill hi" style="width:'+(d.current/5*100)+'%"></div></div>'+
+      '<span class="bval">'+d.current+'/5</span></div>').join('')+'</div></div></div></div>';
+}
+
+function drawTrajectory(tr){
+  const pts=(tr.points||[]).filter(p=>typeof p.base==='number');
+  if(pts.length<2) return '';
+  const W=560,H=210,pad=34;
+  const vals=pts.flatMap(p=>[p.base, typeof p.target==='number'?p.target:p.base]);
+  const max=Math.max(...vals)*1.08, min=Math.min(...vals)*0.9;
+  const X=i=>pad+(i*(W-pad*2)/(pts.length-1));
+  const Y=v=>H-pad-((v-min)/(max-min||1))*(H-pad*2);
+  const line=(k)=>pts.map((p,i)=>(i?'L':'M')+X(i)+' '+Y(typeof p[k]==='number'?p[k]:p.base)).join(' ');
+  const dots=(k,col)=>pts.map((p,i)=>'<circle cx="'+X(i)+'" cy="'+Y(typeof p[k]==='number'?p[k]:p.base)+'" r="3.5" fill="'+col+'"/>').join('');
+  const labels=pts.map((p,i)=>'<text x="'+X(i)+'" y="'+(H-12)+'" text-anchor="middle" font-family="DM Mono, monospace" font-size="8" fill="#6B7F92">'+esc(p.label)+'</text>').join('');
+  const last=pts[pts.length-1];
+  return '<div class="chart wide"><div class="ctitle">'+esc(tr.title||'Trajectory')+'</div>'+
+    '<svg width="100%" height="'+H+'" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet">'+
+    '<path d="'+line('base')+'" fill="none" stroke="rgba(184,196,208,.4)" stroke-width="2" stroke-dasharray="5 4"/>'+
+    '<path d="'+line('target')+'" fill="none" stroke="#E8B454" stroke-width="2.5"/>'+
+    dots('base','rgba(184,196,208,.5)')+dots('target','#E8B454')+labels+
+    '<text x="'+(X(pts.length-1)-4)+'" y="'+(Y(last.target||last.base)-11)+'" text-anchor="end" font-family="Cormorant Garamond, serif" font-size="15" fill="#E8B454">'+esc((tr.unit||'')+(last.target||last.base))+'</text>'+
+    '</svg><div class="legend"><span><i style="background:#E8B454"></i>With transformation</span><span><i style="background:rgba(184,196,208,.4)"></i>Current model</span></div>'+
+    (tr.note?'<div class="cnote">'+esc(tr.note)+'</div>':'')+'</div>';
+}
+
+/* ── SCENARIO MODELLER ── */
+let MODEL=null;
+function drawModeller(m){
+  if(!m || !Array.isArray(m.streams) || !m.streams.length) return '';
+  MODEL=m;
+  const cur=m.currency||'£';
+  return '<div class="mod"><div class="ctitle">Scenario modeller — test a decision before you make it</div>'+
+    '<div class="presets" id="presets">'+
+      '<button class="pset on" onclick="preset(this,\'base\')">Baseline</button>'+
+      '<button class="pset" onclick="preset(this,\'lose\')">Lose at-risk revenue</button>'+
+      '<button class="pset" onclick="preset(this,\'half\')">At-risk revenue halved</button>'+
+      '<button class="pset" onclick="preset(this,\'plan\')">Transformation delivers</button>'+
+    '</div>'+
+    '<div class="mod-grid"><div id="modControls">'+
+      m.streams.map((st,i)=>
+        '<div class="ctrl"><div class="ctrl-l"><span>'+esc(st.label)+(st.atRisk?' · at risk':'')+'</span><span class="ctrl-v" id="lv'+i+'">100%</span></div>'+
+        '<input type="range" id="sv'+i+'" min="0" max="100" value="100" oninput="recalc()"></div>').join('')+
+      '<div class="ctrl"><div class="ctrl-l"><span>New revenue added</span><span class="ctrl-v" id="lvNew">'+cur+'0</span></div>'+
+      '<input type="range" id="svNew" min="0" max="100" value="0" oninput="recalc()"></div>'+
+      '<div class="ctrl"><div class="ctrl-l"><span>Cost removed on lost revenue</span><span class="ctrl-v" id="lvCost">60%</span></div>'+
+      '<input type="range" id="svCost" min="0" max="100" value="60" oninput="recalc()"></div>'+
+    '</div><div><div class="kpis" id="modKpis"></div><div class="verdict" id="modVerdict"></div>'+
+    (m.note?'<p class="cnote">'+esc(m.note)+'</p>':'')+'</div></div></div>';
+}
+
+function fmtM(v,c){ return (v<0?'-':'')+c+Math.abs(v/1e6).toFixed(2)+'m'; }
+function fmtK(v,c){ return (v<0?'-':'')+c+Math.abs(Math.round(v/1000)).toLocaleString()+'k'; }
+
+function preset(btn,kind){
+  document.querySelectorAll('.pset').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  MODEL.streams.forEach((st,i)=>{
+    const el=document.getElementById('sv'+i);
+    if(kind==='lose') el.value = st.atRisk?0:100;
+    else if(kind==='half') el.value = st.atRisk?50:100;
+    else el.value=100;
+  });
+  document.getElementById('svNew').value = kind==='plan'?40:0;
+  document.getElementById('svCost').value = 60;
+  recalc();
+}
+
+function recalc(){
+  const m=MODEL, cur=m.currency||'£';
+  const baseTotal=m.streams.reduce((a,s)=>a+s.value,0);
+  const newMax=Math.max(baseTotal*0.4, 1);
+  const newPct=+document.getElementById('svNew').value/100;
+  const newRev=newMax*newPct;
+  const costFlex=+document.getElementById('svCost').value/100;
+
+  document.getElementById('lvNew').textContent=fmtM(newRev,cur);
+  document.getElementById('lvCost').textContent=document.getElementById('svCost').value+'%';
+
+  let rev=0, contrib=0, lost=0;
+  m.streams.forEach((s,i)=>{
+    const p=+document.getElementById('sv'+i).value/100;
+    document.getElementById('lv'+i).textContent=Math.round(p*100)+'%';
+    rev+=s.value*p; contrib+=s.value*p*(s.margin||0.15); lost+=s.value*(1-p);
+  });
+  rev+=newRev; contrib+=newRev*0.3;
+
+  const fixed=(m.fixed_costs||0)-((m.fixed_costs||0)*(lost/(baseTotal||1))*costFlex);
+  const surplus=contrib-fixed-(m.finance_costs||0);
+  const cash=m.cash||0;
+  const runway=surplus>=0?null:Math.max(0,cash/(Math.abs(surplus)/52));
+  const riskRev=m.streams.filter(s=>s.atRisk).reduce((a,s,i)=>a+s.value*(+document.getElementById('sv'+m.streams.indexOf(s)).value/100),0);
+  const conc=rev>0?riskRev/rev*100:0;
+  const hcRisk=m.headcount?Math.round(m.headcount*(lost/(baseTotal||1))*costFlex):null;
+
+  document.getElementById('modKpis').innerHTML=
+    '<div class="kpi"><div class="kv">'+fmtM(rev,cur)+'</div><div class="kl">Revenue</div><div class="kd">'+(rev>=baseTotal?'+':'')+fmtK(rev-baseTotal,cur)+'</div></div>'+
+    '<div class="kpi"><div class="kv '+(surplus<0?'bad':'good')+'">'+fmtK(surplus,cur)+'</div><div class="kl">Operating surplus</div></div>'+
+    (cash?'<div class="kpi"><div class="kv '+(runway!==null&&runway<8?'bad':'')+'">'+(runway===null?'Surplus':(runway>=52?'52+ wks':Math.round(runway)+' wks'))+'</div><div class="kl">Cash runway</div></div>':'')+
+    '<div class="kpi"><div class="kv '+(conc>60?'bad':conc<40?'good':'')+'">'+conc.toFixed(0)+'%</div><div class="kl">At-risk concentration</div></div>'+
+    (hcRisk!==null?'<div class="kpi"><div class="kv '+(hcRisk>m.headcount*0.2?'bad':'')+'">'+hcRisk+'</div><div class="kl">Roles exposed</div><div class="kd">of '+m.headcount+'</div></div>':'')+
+    (m.target_revenue?'<div class="kpi"><div class="kv">'+fmtM(Math.max(0,m.target_revenue-rev),cur)+'</div><div class="kl">Gap to target</div><div class="kd">'+esc(m.target_label||'')+'</div></div>':'');
+
+  let v;
+  if(surplus>=0 && rev>=baseTotal) v='The organisation holds its position'+(newRev>0?', and '+fmtM(newRev,cur)+' of new revenue reduces at-risk concentration to '+conc.toFixed(0)+'% — the structural measure that matters more than the revenue line.':'. This is the current model continuing unchanged.');
+  else if(runway!==null && runway<8) v='This scenario is not survivable on current terms. An operating deficit of '+fmtK(Math.abs(surplus),cur)+' against '+fmtK(cash,cur)+' of cash leaves roughly '+Math.round(runway)+' weeks of cover, and finance costs continue regardless.';
+  else if(surplus<0) v='The organisation moves into deficit of '+fmtK(Math.abs(surplus),cur)+'.'+(runway!==null?' Cash cover of roughly '+Math.round(runway)+' weeks buys time to act, not time to deliberate.':'')+(hcRisk?' '+hcRisk+' roles sit against the lost income.':'');
+  else v='The organisation stays in surplus at '+fmtK(surplus,cur)+', but revenue falls '+fmtK(Math.abs(rev-baseTotal),cur)+' below baseline. At-risk concentration of '+conc.toFixed(0)+'% remains the structural exposure.';
+  document.getElementById('modVerdict').textContent=v;
+}
+
 function jumpNav(html, n){
   const re=/<h([23])>(.*?)<\/h\1>/g; let m, items=[], i=0;
   while((m=re.exec(html))!==null){
@@ -356,9 +516,13 @@ function render(){
     html += '<p class="lede">Your complete transformation. '+DATA.stages.length+' stages, each building on the one before it.</p>';
   }
 
-  if(sum && Array.isArray(sum.charts) && sum.charts.length){
-    html += '<div class="cgrid">'+sum.charts.map(drawChart).join('')+'</div>';
-  }
+  const vis=[];
+  if(sum && Array.isArray(sum.charts)) sum.charts.forEach(c=>vis.push(drawChart(c)));
+  if(sum && sum.trajectory) vis.push(drawTrajectory(sum.trajectory));
+  if(sum && sum.scores) vis.push(drawSpider(sum.scores));
+  if(vis.filter(Boolean).length) html += '<div class="cgrid">'+vis.join('')+'</div>';
+
+  if(sum && sum.model) html += drawModeller(sum.model);
 
   if(sum && Array.isArray(sum.findings) && sum.findings.length){
     html += '<div class="eyebrow" style="margin-top:3rem">What we found</div>';
@@ -394,6 +558,7 @@ function render(){
   }).join('');
 
   el('main').innerHTML=html;
+  if(MODEL) recalc();
 }
 
 function go(n){
