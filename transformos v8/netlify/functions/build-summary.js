@@ -4,10 +4,25 @@
 // front end can draw from it rather than parsing prose.
 
 const { createClient } = require('@supabase/supabase-js');
-const Anthropic = require('@anthropic-ai/sdk');
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SECRET_KEY);
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+// Plain fetch rather than the SDK — matches ask.js, which is known to
+// work on this site, and avoids any dependency or CommonJS interop issue.
+async function callClaude(payload) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || ('Anthropic API error ' + res.status));
+  return data;
+}
 
 const headers = {
   'Content-Type': 'application/json',
@@ -93,6 +108,8 @@ exports.handler = async (event) => {
       .from('companies').select('*').eq('id', company_id).single();
     if (!company) return reply(404, { error: 'Company not found' });
 
+    if (!process.env.ANTHROPIC_API_KEY) return reply(500, { error: 'ANTHROPIC_API_KEY is not set' });
+
     const { data: stages } = await supabase
       .from('transformation_stages')
       .select('stage_number, stage_name, output_content')
@@ -106,7 +123,7 @@ exports.handler = async (event) => {
       `───── STAGE ${s.stage_number} — ${s.stage_name} ─────\n${(s.output_content || '').slice(0, per)}`
     ).join('\n\n');
 
-    const message = await anthropic.messages.create({
+    const message = await callClaude({
       model: 'claude-opus-5',
       max_tokens: 16000,
       system: 'You produce structured JSON summaries of completed transformation engagements. You output JSON and nothing else.',
