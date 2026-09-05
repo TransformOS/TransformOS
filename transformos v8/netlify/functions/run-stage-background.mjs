@@ -167,16 +167,18 @@ const SPEC = `Return ONLY valid JSON. No preamble, no markdown fences, no commen
   "headline": "One sentence, under 20 words, stating the single most important finding. Direct and commercially sharp.",
   "narrative": "Two to three short paragraphs a chief executive would read first. What the analysis found, what it means, what happens next. Plain prose, no headings.",
   "metrics": [
-    { "label": "Short label, 2-4 words", "value": "The figure as displayed, e.g. £13.1m or 81%", "note": "One short line of context", "tone": "good | bad | neutral" }
+    { "label": "Short label, 2-4 words", "value": "The figure as displayed, e.g. £13.1m or 81%", "note": "One short line of context", "tone": "good | bad | neutral", "stage": 1 }
   ],
   "scores": {
     "note": "One line on what the scoring shows",
+    "stage": 1,
     "dimensions": [ { "label": "Dimension name", "current": 3, "target": 5 } ]
   },
   "trajectory": {
     "title": "Chart title",
     "unit": "£m",
     "note": "One line on what changes and why",
+    "stage": 2,
     "points": [ { "label": "FY25", "base": 13.1, "target": 13.1 } ]
   },
   "charts": [
@@ -184,6 +186,7 @@ const SPEC = `Return ONLY valid JSON. No preamble, no markdown fences, no commen
       "title": "Chart title",
       "type": "bar | donut",
       "note": "One line explaining what the chart shows",
+      "stage": 1,
       "series": [ { "label": "Series label", "value": 0, "display": "£8.05m", "highlight": true } ]
     }
   ],
@@ -213,6 +216,7 @@ const SPEC = `Return ONLY valid JSON. No preamble, no markdown fences, no commen
 
 RULES
 - 4 to 6 metrics. Only figures that actually appear in the analysis. Never invent a number.
+- Every metric, chart, the scores block and the trajectory must carry a "stage" number: the stage where a reader will find the detail behind it. This makes the dashboard navigable.
 - "scores": 6 to 11 dimensions taken from the operating model assessment in the analysis. "current" and "target" are 1-5. If the analysis has no such scoring, omit "scores" entirely.
 - "trajectory": 4 to 6 points from the current year forward. "base" is the figure if nothing changes; "target" is the figure the plan aims for. Use the roadmap's own numbers. If the analysis gives no forward figures, omit "trajectory" entirely.
 - 1 to 3 charts. "bar" for comparisons, "donut" for one proportion of a whole (exactly two series entries: the part first, then the remainder).
