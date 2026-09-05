@@ -22,6 +22,18 @@ const anthropic = new Anthropic({
 // thinking blocks returned: the model used its whole budget reasoning
 // and had nothing left to write with. The synthesis-heavy stages
 // therefore need substantially more headroom than the early ones.
+// Stages listed here generate in two passes and are joined. This
+// removes the output ceiling rather than raising it: each pass has a
+// full token budget, and the second pass receives the first as context
+// so the document stays continuous.
+const SPLIT_AT = {
+  1: 'SECTION 8',
+  4: 'SECTION 4',
+  6: 'SECTION 5',
+  7: 'SECTION 5',
+  8: 'SECTION 6'
+};
+
 const STAGE_CONFIG = {
   1: { model: 'claude-opus-5',    max_tokens: 24000, research: 8 },
   2: { model: 'claude-opus-5',    max_tokens: 20000, research: 4 },
@@ -213,45 +225,76 @@ ADDITIONAL CONTEXT: ${company.context || 'None provided'}`;
       });
     }
 
-    const request = {
-      model: config.model,
-      max_tokens: config.max_tokens,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: `${context}\n\n═══════════════\nTASK — STAGE ${stage_number}:\n${STAGE_PROMPTS[stage_number]}` }]
-    };
+    const basePrompt = STAGE_PROMPTS[stage_number];
+    const userBase = `${context}\n\n═══════════════\nTASK — STAGE ${stage_number}:\n`;
 
-    // Server-side web search. Anthropic runs the searches and returns
-    // results inline. Long research turns can come back with
-    // stop_reason "pause_turn", which means the turn is unfinished and
-    // must be continued by feeding the response back in. Without this
-    // loop the stage returns search activity and no written output.
-    if (config.research > 0) {
-      request.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: config.research }];
+    async function callModel(instruction, priorHalf) {
+      const req = {
+        model: config.model,
+        max_tokens: config.max_tokens,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: userBase + instruction + (priorHalf
+          ? `\n\n═══ WHAT YOU HAVE ALREADY WRITTEN FOR THIS STAGE ═══\nContinue seamlessly from this. Do not repeat it, do not re-introduce the document, do not summarise it. Pick up exactly where it stops.\n\n${priorHalf}`
+          : '') }]
+      };
+      if (config.research > 0 && !priorHalf) {
+        req.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: config.research }];
+      }
+
+      let msg = await anthropic.messages.create(req);
+      let turns = 0;
+      while (msg.stop_reason === 'pause_turn' && turns < 5) {
+        turns++;
+        req.messages = [...req.messages, { role: 'assistant', content: msg.content }];
+        msg = await anthropic.messages.create(req);
+      }
+      const text = (msg.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+      return { text, msg };
     }
 
-    let message = await anthropic.messages.create(request);
-    let continuations = 0;
+    let output = '';
+    let message;
+    let totalIn = 0, totalOut = 0;
 
-    while (message.stop_reason === 'pause_turn' && continuations < 5) {
-      continuations++;
-      request.messages = [
-        ...request.messages,
-        { role: 'assistant', content: message.content }
-      ];
-      message = await anthropic.messages.create(request);
-    }
+    const splitMarker = SPLIT_AT[stage_number];
 
-    let output = (message.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+    if (splitMarker) {
+      // ── PASS 1
+      const firstInstruction = basePrompt +
+        `\n\nIMPORTANT — THIS IS PART ONE OF TWO. Write everything up to but NOT including ${splitMarker}. Complete every section in that range in full depth. Do not summarise, do not skip ahead, and do not write a closing statement — the document continues in part two.`;
+      const first = await callModel(firstInstruction, null);
+      message = first.msg;
+      totalIn += first.msg.usage?.input_tokens || 0;
+      totalOut += first.msg.usage?.output_tokens || 0;
 
-    // If a research-heavy turn produced no prose, retry once without
-    // tools so the stage still delivers a written analysis.
-    if (!output.trim() && config.research > 0) {
-      const retry = { ...request };
-      delete retry.tools;
-      retry.messages = [request.messages[0]];
-      const second = await anthropic.messages.create(retry);
-      output = (second.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
-      if (output.trim()) message = second;
+      if (!first.text.trim()) {
+        throw new Error('Part one returned no text. stop_reason=' + (first.msg.stop_reason || 'unknown') +
+          ', blocks=' + (first.msg.content || []).map(b => b.type).join('|'));
+      }
+
+      // ── PASS 2
+      const tail = first.text.slice(-16000);
+      const secondInstruction = basePrompt +
+        `\n\nIMPORTANT — THIS IS PART TWO OF TWO. Part one covered everything before ${splitMarker}. Write ${splitMarker} onwards, completing every remaining section in full depth. Do not repeat earlier sections and do not re-introduce the document.`;
+      const second = await callModel(secondInstruction, tail);
+      totalIn += second.msg.usage?.input_tokens || 0;
+      totalOut += second.msg.usage?.output_tokens || 0;
+
+      output = first.text.trim() + '\n\n' + second.text.trim();
+      if (second.msg.stop_reason === 'max_tokens') message = second.msg;
+
+    } else {
+      const only = await callModel(basePrompt, null);
+      message = only.msg;
+      output = only.text;
+      totalIn = only.msg.usage?.input_tokens || 0;
+      totalOut = only.msg.usage?.output_tokens || 0;
+
+      if (!output.trim() && config.research > 0) {
+        const retry = await callModel(basePrompt + '\n\nWrite the analysis now, in full.', null);
+        output = retry.text;
+        message = retry.msg;
+      }
     }
 
     if (!output.trim()) {
@@ -271,8 +314,8 @@ ADDITIONAL CONTEXT: ${company.context || 'None provided'}`;
         status: 'complete',
         output_content: output,
         model_used: config.model,
-        input_tokens: message.usage?.input_tokens,
-        output_tokens: message.usage?.output_tokens,
+        input_tokens: totalIn,
+        output_tokens: totalOut,
         completed_at: new Date().toISOString()
       })
       .eq('company_id', company_id).eq('stage_number', stage_number);
@@ -281,8 +324,8 @@ ADDITIONAL CONTEXT: ${company.context || 'None provided'}`;
       company_id,
       event_type: 'stage',
       model_used: config.model,
-      input_tokens: message.usage?.input_tokens,
-      output_tokens: message.usage?.output_tokens
+      input_tokens: totalIn,
+      output_tokens: totalOut
     });
 
     return new Response(JSON.stringify({ success: true }), { status: 200 });
