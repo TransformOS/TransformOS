@@ -32,6 +32,21 @@ body{background:var(--navy);color:var(--mist);font-family:var(--sans);font-weigh
 #opcode:focus{outline:none;border-color:var(--gold)}
 .og-e{color:#E07A5F;font-size:.8rem;margin-top:.9rem;min-height:1.2rem}
 
+/* MODELS PICKER */
+.mp-cats{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.4rem}
+.mp-cat{font-family:var(--mono);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;padding:.42rem .8rem;border:1px solid var(--bdim);background:none;color:var(--mist);cursor:pointer}
+.mp-cat:hover{border-color:var(--gold)}
+.mp-cat.on{background:var(--gold2);color:var(--navy);border-color:var(--gold2);font-weight:500}
+.mp-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:2px;background:var(--bdim);max-height:460px;overflow-y:auto;margin-bottom:1.3rem}
+.mp-item{background:var(--navy2);padding:.85rem 1rem;display:flex;gap:.75rem;align-items:flex-start;cursor:pointer;transition:background .15s}
+.mp-item:hover{background:var(--navy3)}
+.mp-item input{margin-top:.25rem;accent-color:var(--gold2);flex-shrink:0;width:15px;height:15px}
+.mp-n{font-size:.85rem;color:var(--white);line-height:1.3;display:block}
+.mp-c{font-family:var(--mono);font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);margin-top:.2rem;display:block}
+.mp-s{font-family:var(--mono);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;margin-top:.2rem;display:block}
+.mp-done{color:#7FB069}.mp-run{color:var(--gold2)}.mp-fail{color:#E07A5F}
+.mp-bar{display:flex;gap:.7rem;align-items:center;flex-wrap:wrap}
+
 /* REPORT */
 .sb-report{margin:0 1.8rem 1.2rem;display:block;text-decoration:none;border:1px solid var(--border);padding:.8rem 1rem;transition:all .2s;cursor:pointer}
 .sb-report:hover{background:rgba(201,146,42,.07)}
@@ -176,6 +191,10 @@ textarea:focus{outline:none;border-color:var(--gold)}
     <span class="sr-t">Full Transformation</span>
     <span class="sr-s" id="reportState">—</span>
   </a>
+  <a class="sb-report" id="modelsLink" onclick="go(-2)" style="margin-top:-.5rem">
+    <span class="sr-t">Models Master</span>
+    <span class="sr-s" id="modelsState">Library of 60 models</span>
+  </a>
   <div class="sb-sec">The Eight Stages</div>
   <div id="stageNav"></div>
 
@@ -204,6 +223,84 @@ if(sessionStorage.getItem('tos_op')==='1') document.getElementById('opgate').cla
 else setTimeout(()=>document.getElementById('opcode').focus(),80);
 
 const API = '/.netlify/functions';
+const CATALOGUE = [
+  // ── Business model & value
+  { key:'bmc',            name:'Business Model Canvas',            cat:'Business Model',   type:'grid' },
+  { key:'lean_canvas',    name:'Lean Canvas',                      cat:'Business Model',   type:'grid' },
+  { key:'vpc',            name:'Value Proposition Canvas',         cat:'Business Model',   type:'grid' },
+  { key:'jtbd',           name:'Jobs To Be Done',                  cat:'Business Model',   type:'table' },
+  { key:'revenue_model',  name:'Revenue Model Analysis',           cat:'Business Model',   type:'table' },
+  { key:'unit_economics', name:'Unit Economics',                   cat:'Business Model',   type:'scored' },
+  { key:'platform',       name:'Platform vs Pipeline Assessment',  cat:'Business Model',   type:'table' },
+
+  // ── Strategy & market
+  { key:'ansoff',         name:'Ansoff Matrix',                    cat:'Strategy',         type:'matrix' },
+  { key:'porters5',       name:"Porter's Five Forces",             cat:'Strategy',         type:'forces' },
+  { key:'generic_strat',  name:"Porter's Generic Strategies",      cat:'Strategy',         type:'matrix' },
+  { key:'bcg',            name:'BCG Growth-Share Matrix',          cat:'Strategy',         type:'matrix' },
+  { key:'ge_mckinsey',    name:'GE-McKinsey Nine-Box',             cat:'Strategy',         type:'matrix' },
+  { key:'blue_ocean',     name:'Blue Ocean ERRC Grid',             cat:'Strategy',         type:'quadrants' },
+  { key:'three_horizons', name:'Three Horizons',                   cat:'Strategy',         type:'ladder' },
+  { key:'vrio',           name:'VRIO Analysis',                    cat:'Strategy',         type:'table' },
+  { key:'core_comp',      name:'Core Competence Analysis',         cat:'Strategy',         type:'table' },
+  { key:'value_chain',    name:'Value Chain Analysis',             cat:'Strategy',         type:'ladder' },
+  { key:'moat',           name:'Economic Moat Assessment',         cat:'Strategy',         type:'scored' },
+  { key:'scenarios',      name:'Scenario Planning',                cat:'Strategy',         type:'matrix' },
+  { key:'game_theory',    name:'Competitive Response Analysis',    cat:'Strategy',         type:'table',     brief:'For each major move available: likely competitor response, timing, and the organisation\'s counter.' },
+
+  // ── Environment
+  { key:'pestle',         name:'PESTLE Analysis',                  cat:'Environment',      type:'scored' },
+  { key:'swot',           name:'SWOT Analysis',                    cat:'Environment',      type:'quadrants' },
+  { key:'tows',           name:'TOWS Matrix',                      cat:'Environment',      type:'quadrants' },
+  { key:'stakeholder',    name:'Stakeholder Power-Interest Grid',  cat:'Environment',      type:'matrix' },
+  { key:'market_sizing',  name:'TAM SAM SOM',                      cat:'Environment',      type:'ladder' },
+  { key:'competitor',     name:'Competitor Comparison',            cat:'Environment',      type:'table' },
+  { key:'disruption',     name:'Disruption Risk Assessment',       cat:'Environment',      type:'scored' },
+
+  // ── Operating model & organisation
+  { key:'tom_plus',       name:'TransformOS TOM+',                 cat:'Operating Model',  type:'scored' },
+  { key:'mck7s',          name:'McKinsey 7S',                      cat:'Operating Model',  type:'scored' },
+  { key:'capability',     name:'Capability Maturity Assessment',   cat:'Operating Model',  type:'scored' },
+  { key:'process_map',    name:'Core Process Assessment',          cat:'Operating Model',  type:'ladder' },
+  { key:'raci',           name:'RACI Matrix',                      cat:'Operating Model',  type:'table' },
+  { key:'span_layers',    name:'Span and Layers Analysis',         cat:'Operating Model',  type:'table' },
+  { key:'org_design',     name:'Organisation Design Options',      cat:'Operating Model',  type:'table',     brief:'Functional, divisional, matrix and hybrid options assessed against this organisation\'s strategy.' },
+  { key:'tech_stack',     name:'Technology Stack Assessment',      cat:'Operating Model',  type:'scored' },
+  { key:'automation',     name:'Automation Opportunity Map',       cat:'Operating Model',  type:'matrix' },
+  { key:'data_maturity',  name:'Data Maturity Assessment',         cat:'Operating Model',  type:'scored' },
+
+  // ── Financial
+  { key:'valuation',      name:'Valuation Multiplier Assessment',  cat:'Financial',        type:'scored' },
+  { key:'dupont',         name:'DuPont Analysis',                  cat:'Financial',        type:'ladder' },
+  { key:'break_even',     name:'Break-Even Analysis',              cat:'Financial',        type:'table' },
+  { key:'cash_conversion',name:'Cash Conversion Cycle',            cat:'Financial',        type:'ladder' },
+  { key:'cost_structure', name:'Cost Structure Analysis',          cat:'Financial',        type:'table' },
+  { key:'scenario_fin',   name:'Financial Sensitivity Analysis',   cat:'Financial',        type:'table' },
+  { key:'funding_options',name:'Funding Options Assessment',       cat:'Financial',        type:'table' },
+
+  // ── Growth & customer
+  { key:'growth_loops',   name:'Growth Loops',                     cat:'Growth',           type:'ladder' },
+  { key:'funnel',         name:'Customer Funnel Analysis',         cat:'Growth',           type:'ladder' },
+  { key:'journey',        name:'Customer Journey Map',             cat:'Growth',           type:'ladder' },
+  { key:'segmentation',   name:'Customer Segmentation',            cat:'Growth',           type:'table' },
+  { key:'pricing',        name:'Pricing Strategy Assessment',      cat:'Growth',           type:'table' },
+  { key:'kraljic',        name:'Kraljic Purchasing Matrix',        cat:'Growth',           type:'matrix' },
+
+  // ── Change & delivery
+  { key:'lippitt',        name:'Lippitt-Knoster Change Model',     cat:'Change',           type:'scored' },
+  { key:'kotter',         name:"Kotter's Eight Steps",             cat:'Change',           type:'ladder' },
+  { key:'adkar',          name:'ADKAR Readiness',                  cat:'Change',           type:'scored' },
+  { key:'force_field',    name:'Force Field Analysis',             cat:'Change',           type:'quadrants' },
+  { key:'greiner',        name:'Greiner Growth Model',             cat:'Change',           type:'ladder' },
+  { key:'risk_register',  name:'Risk Register',                    cat:'Change',           type:'table' },
+  { key:'moscow',         name:'MoSCoW Prioritisation',            cat:'Change',           type:'quadrants', brief:'Must have, Should have, Could have, Won\'t have — applied to the initiatives on the table.' },
+  { key:'impact_effort',  name:'Impact-Effort Matrix',             cat:'Change',           type:'matrix' },
+  { key:'balanced_sc',    name:'Balanced Scorecard',               cat:'Change',           type:'table' },
+  { key:'okrs',           name:'OKR Framework',                    cat:'Change',           type:'ladder' }
+];
+
+let MODELS = [];
+let MP_CAT = 'All';
 let STATE = { company:null, stages:[], documents:[], current:1, polling:null };
 
 const PROGRESS = [
@@ -277,7 +374,20 @@ async function load(light){
   const r = await fetch(API+'/get-workspace?company_id='+id+(light?'&light=1':''));
   const d = await r.json();
   if(!r.ok){ el('main').innerHTML = '<h1>Could not load workspace</h1><p class="lede">'+(d.error||'')+'</p>'; return null; }
-  STATE.company = d.company; STATE.stages = d.stages; STATE.documents = d.documents;
+  STATE.company = d.company;
+  STATE.documents = d.documents;
+
+  // A light load omits output_content to keep polling cheap. Merging
+  // rather than replacing keeps any content already held, otherwise
+  // every poll would wipe the stage text out of the page.
+  if(light && STATE.stages.length){
+    STATE.stages = d.stages.map(ns=>{
+      const old = STATE.stages.find(o=>o.stage_number===ns.stage_number);
+      return (old && old.output_content) ? {...ns, output_content: old.output_content} : ns;
+    });
+  } else {
+    STATE.stages = d.stages;
+  }
   return d;
 }
 
@@ -288,6 +398,9 @@ function renderNav(){
   const done = STATE.stages.filter(s=>s.status==='complete').length;
   el('reportState').textContent = done + ' of 8 stages complete';
   el('reportLink').classList.toggle('active', STATE.current===0);
+  const ml = el('modelsLink'); if(ml) ml.classList.toggle('active', STATE.current===-2 || STATE.current===5);
+  const modelsDone = MODELS.filter(m=>m.status==='complete').length;
+  const ms = el('modelsState'); if(ms) ms.textContent = modelsDone ? modelsDone+' models run · 60 available' : 'Library of 60 models';
   el('stageNav').innerHTML = STATE.stages.map(s=>{
     const cls = s.status==='complete'?'st-complete':s.status==='in_progress'?'st-progress':s.status==='failed'?'st-failed':'st-none';
     const label = s.status==='complete'?'Complete':s.status==='in_progress'?'Generating':s.status==='failed'?'Failed':'Not started';
@@ -299,6 +412,7 @@ function renderNav(){
 
 /* ── stage view ── */
 function renderStage(){
+  if(STATE.current === -2 || STATE.current === 5) return renderModels();
   if(STATE.current === 0) return renderReport();
   const s = STATE.stages.find(x=>x.stage_number===STATE.current);
   if(!s) return;
@@ -309,10 +423,24 @@ function renderStage(){
   if(s.status !== 'complete'){
     html += '<p class="lede">This stage draws on everything supplied so far — your intake profile, your uploaded documents, and the '+prior+' completed stage'+(prior===1?'':'s')+' before it. Add anything else that would sharpen the analysis, then generate.</p>';
 
+    const readCount = STATE.documents.filter(d=>d.extraction_status==='complete').length;
     html += '<div class="panel"><div class="plabel">Evidence available to this stage</div>';
     html += '<div class="docs">'+ (STATE.documents.length
-      ? STATE.documents.map(d=>'<div class="doc">'+d.file_name+' <span>'+(d.document_type||'')+'</span></div>').join('')
+      ? STATE.documents.map(d=>{
+          const st=d.extraction_status;
+          const tick = st==='complete' ? '<span style="color:#7FB069">&#10003; read</span>'
+                     : st==='extracting' ? '<span style="color:var(--gold2)">reading…</span>'
+                     : st==='failed' ? '<span style="color:#E07A5F" title="'+(d.extraction_error||'')+'">not read</span>'
+                     : '<span style="color:var(--slate)">not read</span>';
+          return '<div class="doc">'+d.file_name+' '+tick+'</div>';
+        }).join('')
       : '<div class="doc" style="color:var(--slate)">No documents uploaded</div>') +'</div>';
+    if(STATE.documents.length){
+      html += '<div style="margin-top:1.2rem;display:flex;gap:.7rem;align-items:center;flex-wrap:wrap">'+
+        '<button class="btn btn-ghost" id="exBtn" onclick="extractDocs()">'+
+        (readCount===STATE.documents.length ? 'Re-read documents' : 'Read documents ('+readCount+' of '+STATE.documents.length+' done)')+'</button>'+
+        '<span style="font-size:.78rem;color:var(--slate)">Reading pulls the actual figures out of each file so the analysis works from the numbers, not the filenames.</span></div>';
+    }
     if(prior>0) html += '<p style="font-size:.82rem;color:var(--slate);margin-top:1rem">Plus '+prior+' completed stage output'+(prior===1?'':'s')+'.</p>';
     html += '</div>';
 
@@ -338,6 +466,131 @@ function renderStage(){
 
   el('main').innerHTML = html;
   window.scrollTo({top:0,behavior:'smooth'});
+}
+
+async function loadModels(){
+  try{
+    const r = await fetch(API+'/get-models?company_id='+STATE.company.id);
+    const d = await r.json();
+    MODELS = d.models || [];
+  }catch(e){ MODELS = []; }
+}
+
+function renderModels(){
+  const cats = ['All', ...new Set(CATALOGUE.map(m=>m.cat))];
+  const run = Object.fromEntries(MODELS.map(m=>[m.model_key,m]));
+  const doneCount = MODELS.filter(m=>m.status==='complete').length;
+
+  let html = '<div class="eyebrow">Models Master</div><h1>Apply any framework, <em>whenever you like.</em></h1>'+
+    '<p class="lede">Sixty strategic models, each run against the full evidence base — intake, documents and every completed stage. Models accumulate: run a few now, come back and add more later. Each is stored with its own interpretation and rendered as the framework itself in the client portal.</p>';
+
+  html += '<div class="panel"><div class="plabel">Choose models to run</div>';
+  html += '<div class="mp-cats">'+cats.map(c=>
+    '<button class="mp-cat'+(c===MP_CAT?' on':'')+'" onclick="MP_CAT=\''+c.replace(/'/g,"\\'")+'\';renderModels()">'+c+'</button>').join('')+'</div>';
+
+  const list = CATALOGUE.filter(m=>MP_CAT==='All'||m.cat===MP_CAT);
+  html += '<div class="mp-list">'+list.map(m=>{
+    const r = run[m.key];
+    const st = r ? (r.status==='complete'?'<span class="mp-s mp-done">&#10003; run '+(r.completed_at?new Date(r.completed_at).toLocaleDateString('en-GB'):'')+'</span>'
+                 : r.status==='running'?'<span class="mp-s mp-run">running…</span>'
+                 : r.status==='failed'?'<span class="mp-s mp-fail">failed</span>':'') : '';
+    return '<label class="mp-item"><input type="checkbox" class="mp-cb" value="'+m.key+'">'+
+      '<span><span class="mp-n">'+m.name+'</span><span class="mp-c">'+m.cat+' · '+m.type+'</span>'+st+'</span></label>';
+  }).join('')+'</div>';
+
+  html += '<div class="mp-bar">'+
+    '<button class="btn" id="runModelsBtn" onclick="runModels()">Run selected models</button>'+
+    '<button class="btn btn-ghost" onclick="selectAllModels(true)">Select all shown</button>'+
+    '<button class="btn btn-ghost" onclick="selectAllModels(false)">Clear</button>'+
+    '<span style="font-size:.78rem;color:var(--slate)">Roughly a minute per model.</span></div>'+
+    '<div class="status" id="modelStatus"></div></div>';
+
+  if(doneCount){
+    html += '<div class="eyebrow" style="margin-top:2.5rem">Models run for this organisation</div>';
+    html += MODELS.filter(m=>m.status==='complete').map(m=>
+      '<details class="panel" style="padding:0"><summary style="cursor:pointer;padding:1.1rem 1.5rem;list-style:none;display:flex;justify-content:space-between;align-items:center">'+
+      '<span><span style="font-family:var(--serif);font-size:1.1rem;color:var(--white)">'+m.model_name+'</span>'+
+      '<span class="mp-c">'+m.category+'</span></span><span style="color:var(--gold)">+</span></summary>'+
+      '<div style="padding:0 1.5rem 1.5rem">'+
+      (m.payload && m.payload.headline ? '<p style="font-family:var(--serif);font-size:1.15rem;color:var(--gold2);font-style:italic;margin-bottom:1rem">'+m.payload.headline+'</p>' : '')+
+      '<div class="output" style="border:none;margin:0;padding:0">'+md(m.narrative||'')+'</div></div></details>').join('');
+  }
+
+  html += renderStageFiveBlock();
+
+  el('main').innerHTML = html;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// Stage 5 is the Models Master stage. Rather than a fixed framework set,
+// it runs whichever models were selected and then writes the synthesis
+// across them — which is the part a single stage prompt cannot do.
+function renderStageFiveBlock(){
+  const s5 = STATE.stages.find(x=>x.stage_number===5);
+  if(!s5) return '';
+  const doneCount = MODELS.filter(m=>m.status==='complete').length;
+
+  let h = '<div class="eyebrow" style="margin-top:2.8rem">Stage 05 · Models Master synthesis</div>';
+
+  if(s5.status === 'complete'){
+    h += '<div class="panel"><div class="plabel">Synthesis written '+
+      (s5.completed_at? new Date(s5.completed_at).toLocaleString('en-GB') : '')+'</div>'+
+      '<p style="font-size:.86rem;margin-bottom:1rem">The written synthesis across the models run so far. Rewrite it after adding more models.</p>'+
+      '<button class="btn btn-ghost" onclick="regen()">Rewrite synthesis</button></div>'+
+      '<div class="output">'+md(s5.output_content||'')+'</div>';
+  } else {
+    h += '<div class="panel"><div class="plabel">Write the synthesis</div>'+
+      '<p style="font-size:.86rem;margin-bottom:1rem">'+
+      (doneCount ? 'Draws together the '+doneCount+' model'+(doneCount===1?'':'s')+' run so far — where they converge, where they disagree, and what that means. Convergence across independent frameworks is the most reliable signal in the analysis.'
+                 : 'Run some models first. The synthesis reads across whatever has been run.')+'</p>'+
+      '<textarea id="extra" placeholder="Optional. Anything this synthesis should specifically address…"></textarea>'+
+      '<div style="margin-top:1.1rem"><button class="btn" id="genBtn" onclick="generate5()"'+(doneCount?'':' disabled')+'>Write synthesis</button></div>'+
+      '<div class="status" id="genStatus"></div></div>';
+  }
+  return h;
+}
+
+function generate5(){
+  STATE.current = 5;
+  generate();
+}
+
+function selectAllModels(on){
+  document.querySelectorAll('.mp-cb').forEach(c=>c.checked=on);
+}
+
+async function runModels(){
+  const keys = [...document.querySelectorAll('.mp-cb:checked')].map(c=>c.value);
+  const st = el('modelStatus'), btn = el('runModelsBtn');
+  if(!keys.length){ st.className='status err'; st.textContent='Select at least one model.'; return; }
+
+  btn.disabled = true;
+  st.className='status';
+  st.innerHTML = '<span class="spin"></span>Running '+keys.length+' model'+(keys.length>1?'s':'')+' — roughly a minute each. You can close this page.';
+
+  try{
+    await fetch(API+'/run-models-background',{ method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ company_id: STATE.company.id, models: keys }) });
+
+    let ticks=0;
+    const t = setInterval(async ()=>{
+      ticks++;
+      await loadModels();
+      const done = MODELS.filter(m=>keys.includes(m.model_key) && m.status==='complete').length;
+      const failed = MODELS.filter(m=>keys.includes(m.model_key) && m.status==='failed').length;
+      renderNav();
+      if(done+failed >= keys.length || ticks>200){
+        clearInterval(t);
+        renderModels();
+        return;
+      }
+      const s2 = el('modelStatus');
+      if(s2) s2.innerHTML = '<span class="spin"></span>'+done+' of '+keys.length+' complete · '+(ticks*5)+'s';
+    }, 5000);
+
+  }catch(e){
+    btn.disabled=false; st.className='status err'; st.textContent='Could not start: '+e.message;
+  }
 }
 
 function renderReport(){
@@ -407,12 +660,35 @@ async function loadPortalPanel(){
     'Publishing makes the completed stages visible at transformos.co.uk/clients/ using this code. Nothing is visible to the client until you publish.</p>';
 }
 
+async function extractDocs(){
+  const b = el('exBtn');
+  const force = b.textContent.startsWith('Re-read');
+  b.disabled = true; b.textContent = 'Reading documents…';
+  try{
+    await fetch(API+'/extract-docs-background',{ method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ company_id: STATE.company.id, force }) });
+    let ticks=0;
+    const t = setInterval(async ()=>{
+      ticks++;
+      const d = await load(true);
+      if(!d){ clearInterval(t); return; }
+      const total = STATE.documents.length;
+      const done = STATE.documents.filter(x=>x.extraction_status==='complete').length;
+      const failed = STATE.documents.filter(x=>x.extraction_status==='failed').length;
+      if(done+failed >= total || ticks>120){ clearInterval(t); renderStage(); return; }
+      if(el('exBtn')) el('exBtn').textContent = 'Reading… '+done+' of '+total;
+    }, 5000);
+  }catch(e){
+    b.disabled=false; b.textContent = 'Failed: '+e.message;
+  }
+}
+
 async function buildSummary(){
   const b = el('sumBtn');
   b.disabled = true; b.textContent = 'Building overview — a few minutes…';
   try{
-    await fetch(API+'/build-summary-background',{ method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ company_id: STATE.company.id }) });
+    await fetch(API+'/run-stage-background',{ method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ company_id: STATE.company.id, mode: 'summary' }) });
     pollSummary();
   }catch(e){
     b.disabled = false;
@@ -606,6 +882,7 @@ async function ask(){
 (async function(){
   const d = await load(false);
   if(!d) return;
+  await loadModels();
   const firstIncomplete = STATE.stages.find(s=>s.status!=='complete');
   STATE.current = firstIncomplete ? firstIncomplete.stage_number : 0;
   renderNav(); renderStage();
