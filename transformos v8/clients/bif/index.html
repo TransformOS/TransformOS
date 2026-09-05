@@ -25,6 +25,47 @@ body{background:var(--navy);color:var(--mist);font-family:var(--sans);font-weigh
 
 
 
+
+/* ---------- SCENARIO MODELLER ---------- */
+#sim{position:fixed;inset:0;background:var(--navy);z-index:500;overflow-y:auto;display:none}
+#sim.on{display:block}
+.sim-head{position:sticky;top:0;background:var(--navy);border-bottom:1px solid var(--border);padding:1.4rem 3rem;display:flex;justify-content:space-between;align-items:center;z-index:10}
+.sim-title{font-family:var(--serif);font-size:1.5rem;color:var(--white)}
+.sim-title span{color:var(--gold2)}
+.sim-close{background:none;border:1px solid var(--bdim);color:var(--gold2);font-family:var(--mono);font-size:.64rem;letter-spacing:.13em;text-transform:uppercase;padding:.55rem 1.2rem;cursor:pointer}
+.sim-close:hover{border-color:var(--gold)}
+.sim-body{padding:2.2rem 3rem 5rem;max-width:1300px}
+.sim-presets{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:2rem}
+.preset{font-family:var(--sans);font-size:.78rem;padding:.55rem 1rem;border:1px solid var(--bdim);background:none;color:var(--mist);cursor:pointer;transition:all .18s}
+.preset:hover{border-color:var(--gold);color:var(--gold2)}
+.preset.active{background:var(--gold2);color:var(--navy);border-color:var(--gold2);font-weight:500}
+.sim-grid{display:grid;grid-template-columns:320px 1fr;gap:2.5rem;align-items:start}
+.sim-controls{border:1px solid var(--bdim);padding:1.5rem}
+.ctrl{margin-bottom:1.5rem}
+.ctrl:last-child{margin-bottom:0}
+.ctrl-lab{font-family:var(--mono);font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);display:flex;justify-content:space-between;margin-bottom:.5rem}
+.ctrl-val{color:var(--gold2)}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:3px;background:rgba(184,196,208,.2);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--gold2);cursor:pointer;border-radius:0}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;background:var(--gold2);cursor:pointer;border:none;border-radius:0}
+.ctrl-note{font-size:.7rem;color:var(--slate);margin-top:.4rem;line-height:1.45}
+.sim-out{min-width:0}
+.sim-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:2px;background:var(--bdim);margin-bottom:2rem}
+.kpi{background:var(--navy2);padding:1.3rem 1.2rem}
+.kpi-lab{font-family:var(--mono);font-size:.55rem;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);margin-bottom:.6rem}
+.kpi-val{font-family:var(--serif);font-size:1.75rem;font-weight:300;color:var(--gold2);line-height:1}
+.kpi-val.bad{color:#E07A5F}
+.kpi-val.good{color:#7FB069}
+.kpi-delta{font-family:var(--mono);font-size:.66rem;margin-top:.5rem;color:var(--slate)}
+.kpi-delta.bad{color:#E07A5F}
+.kpi-delta.good{color:#7FB069}
+.sim-verdict{border-left:2px solid var(--gold);padding:1.1rem 1.4rem;background:var(--navy2);font-size:.95rem;color:var(--cream);line-height:1.75;margin-bottom:2rem}
+.wf-row{display:grid;grid-template-columns:200px 1fr 130px;gap:1rem;align-items:center;margin-bottom:.7rem;font-size:.82rem}
+.wf-track{height:22px;background:rgba(184,196,208,.07);position:relative}
+.wf-bar{height:100%;position:absolute;top:0}
+.wf-num{font-family:var(--mono);font-size:.76rem;text-align:right}
+@media(max-width:1000px){.sim-grid{grid-template-columns:1fr}.sim-head,.sim-body{padding-left:1.4rem;padding-right:1.4rem}}
+
 /* ---------- ACCESS GATE ---------- */
 #gate{position:fixed;inset:0;background:var(--navy);z-index:9999;display:flex;align-items:center;justify-content:center;padding:2rem}
 #gate.hidden{display:none}
@@ -167,7 +208,15 @@ p{margin-bottom:1.15rem;max-width:820px}
 .answer{position:fixed;bottom:76px;right:2rem;width:min(620px,calc(100% - var(--sidebar) - 4rem));max-height:56vh;overflow-y:auto;background:var(--navy3);border:1px solid var(--border);padding:1.6rem 1.8rem;z-index:95;display:none;box-shadow:0 -8px 40px rgba(0,0,0,.5)}
 .answer.on{display:block}
 .answer-q{font-family:var(--mono);font-size:.62rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold2);margin-bottom:.9rem;padding-bottom:.9rem;border-bottom:1px solid var(--bdim)}
-.answer-body{font-size:.9rem;line-height:1.75;color:var(--cream);white-space:pre-wrap}
+.answer-body{font-size:.9rem;line-height:1.75;color:var(--cream)}
+.answer-body p{margin:0 0 .85rem;max-width:none}
+.answer-body p:last-child{margin-bottom:0}
+.answer-body strong{color:var(--white);font-weight:500}
+.answer-body em{color:var(--gold3);font-style:normal}
+.answer-body h4{font-family:var(--serif);font-size:1.05rem;color:var(--white);font-weight:500;margin:1.1rem 0 .5rem}
+.answer-body h4:first-child{margin-top:0}
+.answer-body ul{margin:.6rem 0 .9rem 1.1rem}
+.answer-body li{margin-bottom:.4rem}
 .answer-close{position:absolute;top:1rem;right:1.2rem;background:none;border:none;color:var(--slate);font-size:1.2rem;cursor:pointer;padding:0}
 .answer-close:hover{color:var(--gold2)}
 .suggest{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
@@ -193,7 +242,7 @@ body.present .present-bar{display:flex}
 @media print{
   @page{margin:16mm}
   body{background:#fff;color:#1a1a1a}
-  .sidebar,.ask,.answer,.present-bar,.sb-actions,#gate{display:none!important}
+  .sidebar,.ask,.answer,.present-bar,.sb-actions,#gate,#sim{display:none!important}
   .main{margin:0;padding:0;max-width:none}
   section.blk{display:block!important;page-break-after:always}
   section.blk:last-child{page-break-after:auto}
@@ -280,6 +329,7 @@ body.present .present-bar{display:flex}
   <div class="sb-actions">
     <button class="sb-btn" onclick="window.print()">Export full report</button>
     <button class="sb-btn" onclick="boardPack()">Board pack</button>
+    <button class="sb-btn" onclick="openSim()">Scenario modeller</button>
     <button class="sb-btn" onclick="startPresent()">Presentation mode</button>
   </div>
 </aside>
@@ -737,6 +787,78 @@ body.present .present-bar{display:flex}
 
 </main>
 
+<!-- ═══════════ SCENARIO MODELLER ═══════════ -->
+<div id="sim">
+  <div class="sim-head">
+    <div class="sim-title">Scenario <span>Modeller</span></div>
+    <button class="sim-close" onclick="closeSim()">Close</button>
+  </div>
+  <div class="sim-body">
+
+    <div class="sim-presets" id="presets">
+      <button class="preset active" data-p="base">Baseline FY24/25</button>
+      <button class="preset" data-p="bw">Lose Business Wales contract</button>
+      <button class="preset" data-p="bw50">Business Wales re-scoped &minus;50%</button>
+      <button class="preset" data-p="allgov">Lose all government contracts</button>
+      <button class="preset" data-p="plan">Transformation plan delivers</button>
+      <button class="preset" data-p="mit">Lose Business Wales + full mitigation</button>
+    </div>
+
+    <div class="sim-grid">
+      <div class="sim-controls">
+        <div class="ctrl">
+          <div class="ctrl-lab"><span>Business services retained</span><span class="ctrl-val" id="lBS">100%</span></div>
+          <input type="range" id="rBS" min="0" max="100" value="100">
+          <div class="ctrl-note">£8.05m &mdash; government-derived contract delivery</div>
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-lab"><span>Business Wales retained</span><span class="ctrl-val" id="lBW">100%</span></div>
+          <input type="range" id="rBW" min="0" max="100" value="100">
+          <div class="ctrl-note">£2.60m &mdash; the contract most often re-tendered</div>
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-lab"><span>Property rent uplift</span><span class="ctrl-val" id="lPR">0%</span></div>
+          <input type="range" id="rPR" min="0" max="25" value="0">
+          <div class="ctrl-note">Moving 14 sites toward market rate</div>
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-lab"><span>New commercial revenue</span><span class="ctrl-val" id="lNC">£0</span></div>
+          <input type="range" id="rNC" min="0" max="4000" step="100" value="0">
+          <div class="ctrl-note">Defence in Focus, AI Adoption, UK regional</div>
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-lab"><span>Cost removed on lost revenue</span><span class="ctrl-val" id="lCF">60%</span></div>
+          <input type="range" id="rCF" min="0" max="100" value="60">
+          <div class="ctrl-note">How much of the associated cost base can actually be taken out. 90% of the workforce is contract-funded, but notice periods and TUPE limit speed.</div>
+        </div>
+      </div>
+
+      <div class="sim-out">
+        <div class="sim-kpis" id="kpis"></div>
+        <div class="sim-verdict" id="verdict"></div>
+
+        <div class="chart-wrap" style="margin-top:0">
+          <div class="chart-title">Revenue by stream &mdash; scenario vs baseline</div>
+          <div id="wf"></div>
+        </div>
+
+        <table class="tbl" id="simTable"></table>
+
+        <details class="ev">
+          <summary>Model assumptions &mdash; read before quoting any of these numbers</summary>
+          <div class="ev-body">
+            <p><strong style="color:var(--gold2)">What is evidenced.</strong> All baseline revenue figures, the £360,000 cash position, the £555,694 annual interest obligation and the £7.1m bank debt are taken from the audited accounts year ended 31 March 2025, filed at Companies House March 2026.</p>
+            <p><strong style="color:var(--gold2)">What is assumed.</strong> Contribution margins by stream are TransformOS estimates, not disclosed figures: business services 8%, Business Wales 10%, property 55%, group 40%. Contract delivery is treated as low-margin and substantially pass-through; property as high-margin with fixed underlying cost. Central overhead is set at £1.6m, derived so that the baseline runs at approximately break-even, which is consistent with the filed position.</p>
+            <p><strong style="color:var(--gold2)">What the runway figure means.</strong> Weeks of cash cover is calculated as cash divided by the monthly operating deficit where a deficit exists. It assumes no new borrowing, no asset disposal and contract receipts arriving on current terms. It is an indicator of pressure, not a forecast of insolvency.</p>
+            <p><strong style="color:var(--gold2)">What this model does not do.</strong> It does not model working capital timing, VAT, deferred income, restructuring costs, or the covenant position on the £7.1m of bank debt. A property covenant breach would likely bite before the cash runway does &mdash; the portfolio fell £2.825m in value during the year.</p>
+            <p>Use this to understand the shape and the sensitivity, not to set a budget.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════ ANSWER PANEL ═══════════ -->
 <div class="answer" id="answer">
   <button class="answer-close" onclick="document.getElementById('answer').classList.remove('on')">×</button>
@@ -832,6 +954,156 @@ document.querySelectorAll('.viz').forEach(v=>v.addEventListener('keydown',e=>{
   if(e.key==='Enter'||e.key===' '){e.preventDefault();v.click();}
 }));
 
+
+/* ═══════════ SCENARIO MODELLER ═══════════ */
+const BASE={bs:8053247,bw:2602593,prop:2083709,grp:361940};
+const MARGIN={bs:.08,bw:.10,prop:.55,grp:.40,newc:.35};
+const CASH=360000, INTEREST=555694, OVERHEAD=1600000, HEADCOUNT=176;
+
+const PRESETS={
+  base:{bs:100,bw:100,pr:0,nc:0,cf:60},
+  bw:  {bs:100,bw:0,  pr:0,nc:0,cf:60},
+  bw50:{bs:100,bw:50, pr:0,nc:0,cf:60},
+  allgov:{bs:0,bw:0,  pr:0,nc:0,cf:70},
+  plan:{bs:100,bw:100,pr:10,nc:3500,cf:60},
+  mit: {bs:100,bw:0,  pr:12,nc:2000,cf:75}
+};
+
+const R=id=>document.getElementById(id);
+const fmtM=v=>'£'+(v/1e6).toFixed(2)+'m';
+const fmtK=v=>(v<0?'-':'')+'£'+Math.abs(Math.round(v/1000)).toLocaleString()+'k';
+
+function calc(){
+  const bsP=+R('rBS').value/100, bwP=+R('rBW').value/100;
+  const prU=+R('rPR').value/100, nc=+R('rNC').value*1000, cf=+R('rCF').value/100;
+
+  const bs=BASE.bs*bsP, bw=BASE.bw*bwP, prop=BASE.prop*(1+prU), grp=BASE.grp;
+  const rev=bs+bw+prop+grp+nc;
+
+  // contribution
+  let contrib = bs*MARGIN.bs + bw*MARGIN.bw + prop*MARGIN.prop + grp*MARGIN.grp + nc*MARGIN.newc;
+
+  // overhead: portion of fixed cost that cannot be removed when revenue is lost
+  const lostRev=(BASE.bs-bs)+(BASE.bw-bw);
+  const baseRev=BASE.bs+BASE.bw+BASE.prop+BASE.grp;
+  const ohRelief = OVERHEAD * (lostRev/baseRev) * cf;
+  const overhead = OVERHEAD - ohRelief;
+
+  const surplus = contrib - overhead - INTEREST;
+  const govRev = bs+bw;
+  const govPct = rev>0 ? govRev/rev*100 : 0;
+
+  // runway
+  let runway;
+  if(surplus>=0) runway=null;
+  else runway = Math.max(0, CASH/(Math.abs(surplus)/52));
+
+  // headcount exposure — 90% of workforce contract funded
+  const hcRisk = Math.round(HEADCOUNT*0.90*(lostRev/(BASE.bs+BASE.bw))*cf);
+
+  return {rev,bs,bw,prop,grp,nc,contrib,overhead,surplus,govPct,runway,hcRisk,lostRev};
+}
+
+function render(){
+  const d=calc();
+  const b=(()=>{const sv=['rBS','rBW','rPR','rNC','rCF'].map(i=>R(i).value);
+    R('rBS').value=100;R('rBW').value=100;R('rPR').value=0;R('rNC').value=0;R('rCF').value=60;
+    const base=calc();
+    ['rBS','rBW','rPR','rNC','rCF'].forEach((i,n)=>R(i).value=sv[n]);
+    return base;})();
+
+  R('lBS').textContent=R('rBS').value+'%';
+  R('lBW').textContent=R('rBW').value+'%';
+  R('lPR').textContent='+'+R('rPR').value+'%';
+  R('lNC').textContent=+R('rNC').value?('£'+(+R('rNC').value/1000).toFixed(1)+'m'):'£0';
+  R('lCF').textContent=R('rCF').value+'%';
+
+  const dRev=d.rev-b.rev, dSur=d.surplus-b.surplus, dGov=d.govPct-b.govPct;
+  const runTxt = d.runway===null ? 'Surplus' : (d.runway>=52?'52+ wks':Math.round(d.runway)+' wks');
+  const runCls = d.runway===null ? 'good' : (d.runway<8?'bad':'');
+
+  R('kpis').innerHTML=`
+    <div class="kpi"><div class="kpi-lab">Total revenue</div>
+      <div class="kpi-val">${fmtM(d.rev)}</div>
+      <div class="kpi-delta ${dRev<0?'bad':dRev>0?'good':''}">${dRev===0?'baseline':(dRev>0?'+':'')+fmtK(dRev)}</div></div>
+    <div class="kpi"><div class="kpi-lab">Operating surplus</div>
+      <div class="kpi-val ${d.surplus<0?'bad':'good'}">${fmtK(d.surplus)}</div>
+      <div class="kpi-delta ${dSur<0?'bad':dSur>0?'good':''}">${dSur===0?'baseline':(dSur>0?'+':'')+fmtK(dSur)}</div></div>
+    <div class="kpi"><div class="kpi-lab">Cash runway</div>
+      <div class="kpi-val ${runCls}">${runTxt}</div>
+      <div class="kpi-delta">£360k opening cash</div></div>
+    <div class="kpi"><div class="kpi-lab">Government dependency</div>
+      <div class="kpi-val ${d.govPct>70?'bad':d.govPct<60?'good':''}">${d.govPct.toFixed(1)}%</div>
+      <div class="kpi-delta ${dGov>0?'bad':dGov<0?'good':''}">${dGov===0?'baseline':(dGov>0?'+':'')+dGov.toFixed(1)+' pts'}</div></div>
+    <div class="kpi"><div class="kpi-lab">Roles exposed</div>
+      <div class="kpi-val ${d.hcRisk>40?'bad':''}">${d.hcRisk}</div>
+      <div class="kpi-delta">of 176 &mdash; 90% contract-funded</div></div>
+    <div class="kpi"><div class="kpi-lab">Gap to £18m target</div>
+      <div class="kpi-val">${fmtM(Math.max(0,18000000-d.rev))}</div>
+      <div class="kpi-delta">March 2029</div></div>`;
+
+  // verdict
+  let v;
+  if(d.surplus>=0 && d.rev>=b.rev){
+    v='The organisation holds its position. '+(d.nc>0?'Commercial revenue of '+fmtM(d.nc)+' moves government dependency to '+d.govPct.toFixed(1)+'% — the structural measure that matters more than the revenue line.':'This is the current model continuing unchanged, which is the scenario the transformation exists to avoid.');
+  } else if(d.runway!==null && d.runway<8){
+    v='This scenario is not survivable on current terms. The operating deficit of '+fmtK(Math.abs(d.surplus))+' against £360,000 of cash leaves roughly '+Math.round(d.runway)+' weeks of cover. Interest obligations of £555,694 continue regardless. Any response requires new borrowing, asset disposal, or immediate restructuring — and the £7.1m of bank debt is secured on a property portfolio that fell £2.825m in value during the year.';
+  } else if(d.surplus<0){
+    v='The organisation moves into deficit of '+fmtK(Math.abs(d.surplus))+'. Cash cover of roughly '+Math.round(d.runway)+' weeks buys time to act but not to deliberate. '+(d.hcRisk>0?d.hcRisk+' of 176 roles sit against the lost income.':'');
+  } else {
+    v='The organisation remains in surplus at '+fmtK(d.surplus)+', but revenue falls '+fmtK(Math.abs(dRev))+' below baseline. Government dependency at '+d.govPct.toFixed(1)+'% remains the structural exposure.';
+  }
+  R('verdict').textContent=v;
+
+  // waterfall
+  const max=Math.max(b.rev,d.rev,1);
+  const rows=[['Business services',d.bs,b.bs],['Business Wales',d.bw,b.bw],
+              ['Property',d.prop,b.prop],['Group',d.grp,b.grp],['New commercial',d.nc,b.nc]];
+  R('wf').innerHTML=rows.map(([n,val,bv])=>{
+    const w=val/max*100, bw2=bv/max*100;
+    const col = val<bv ? '#E07A5F' : val>bv ? '#7FB069' : 'var(--gold2)';
+    return `<div class="wf-row"><span>${n}</span>
+      <div class="wf-track">
+        <div class="wf-bar" style="width:${bw2}%;background:rgba(184,196,208,.18)"></div>
+        <div class="wf-bar" style="width:${w}%;background:${col};opacity:.85"></div>
+      </div>
+      <span class="wf-num" style="color:${val<bv?'#E07A5F':val>bv?'#7FB069':'var(--mist)'}">${fmtM(val)}</span></div>`;
+  }).join('')+'<p style="font-size:.72rem;color:var(--slate);margin-top:.9rem;max-width:none">Grey bar shows the FY24/25 baseline. Coloured bar shows the scenario.</p>';
+
+  R('simTable').innerHTML=`
+    <thead><tr><th>Line</th><th class="num">Baseline</th><th class="num">Scenario</th><th class="num">Movement</th></tr></thead>
+    <tbody>
+      <tr><td>Total revenue</td><td class="num">${fmtM(b.rev)}</td><td class="num">${fmtM(d.rev)}</td><td class="num">${fmtK(dRev)}</td></tr>
+      <tr><td>Contribution</td><td class="num">${fmtK(b.contrib)}</td><td class="num">${fmtK(d.contrib)}</td><td class="num">${fmtK(d.contrib-b.contrib)}</td></tr>
+      <tr><td>Central overhead</td><td class="num">${fmtK(-b.overhead)}</td><td class="num">${fmtK(-d.overhead)}</td><td class="num">${fmtK(b.overhead-d.overhead)}</td></tr>
+      <tr><td>Interest</td><td class="num">${fmtK(-INTEREST)}</td><td class="num">${fmtK(-INTEREST)}</td><td class="num">£0k</td></tr>
+      <tr><td><strong>Operating surplus</strong></td><td class="num"><strong>${fmtK(b.surplus)}</strong></td><td class="num"><strong>${fmtK(d.surplus)}</strong></td><td class="num"><strong>${fmtK(dSur)}</strong></td></tr>
+    </tbody>`;
+}
+
+['rBS','rBW','rPR','rNC','rCF'].forEach(id=>R(id).addEventListener('input',()=>{
+  document.querySelectorAll('.preset').forEach(p=>p.classList.remove('active'));
+  render();
+}));
+
+document.querySelectorAll('.preset').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('.preset').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  const p=PRESETS[btn.dataset.p];
+  R('rBS').value=p.bs;R('rBW').value=p.bw;R('rPR').value=p.pr;R('rNC').value=p.nc;R('rCF').value=p.cf;
+  render();
+}));
+
+function openSim(preset){
+  R('sim').classList.add('on');
+  document.body.style.overflow='hidden';
+  if(preset){const b=document.querySelector('.preset[data-p="'+preset+'"]');if(b)b.click();}
+  else render();
+}
+function closeSim(){R('sim').classList.remove('on');document.body.style.overflow='';}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&R('sim').classList.contains('on'))closeSim();});
+render();
+
 /* ---------- ASK TRANSFORMOS ---------- */
 const CONTEXT=`You are TransformOS, an enterprise transformation operating system, answering questions from the leadership team of Business in Focus Limited about their own transformation analysis. Answer only from the evidence below. If something is not covered, say so plainly rather than inventing figures.
 
@@ -855,7 +1127,26 @@ KEY FACTS
 - Execution risks: BiF has never sold a commercial product to an SME; Head of BD is overloaded across four initiatives; recommendation to hire a commercial bid writer/product seller by Month 2 at £45-60k; Focus Diagnostic SaaS is watch-list only.
 - Five converging themes: structural dependency; untapped assets; self-imposed geographic constraint; governance as a brake; change readiness gap.
 
-STYLE: Direct and commercially sharp. No consultant waffle. Lead with the answer. Distinguish evidenced fact from professional judgement. Under 200 words unless the question demands more.`;
+STYLE: Direct and commercially sharp. No consultant waffle. Lead with the answer in the first sentence. Distinguish evidenced fact from professional judgement. Under 180 words unless the question demands more. Write in short plain paragraphs. Do NOT use markdown headings. Use **bold** only to mark the two or three phrases that matter most. No bullet lists unless genuinely listing discrete items.`;
+
+function md(t){
+  const esc=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const lines=esc.split('\n');
+  let out='',inList=false;
+  for(let ln of lines){
+    ln=ln.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+         .replace(/(^|[^*])\*(?!\*)([^*]+?)\*(?!\*)/g,'$1<em>$2</em>');
+    const h=ln.match(/^#{1,6}\s+(.*)$/);
+    const li=ln.match(/^\s*[-\u2022]\s+(.*)$/);
+    if(li){ if(!inList){out+='<ul>';inList=true;} out+='<li>'+li[1]+'</li>'; continue; }
+    if(inList){out+='</ul>';inList=false;}
+    if(h){ out+='<h4>'+h[1]+'</h4>'; continue; }
+    if(ln.trim()==='') continue;
+    out+='<p>'+ln+'</p>';
+  }
+  if(inList)out+='</ul>';
+  return out||'<p>No response.</p>';
+}
 
 async function ask(){
   const q=document.getElementById('askInput').value.trim();
@@ -863,7 +1154,7 @@ async function ask(){
   const btn=document.getElementById('askBtn');
   const panel=document.getElementById('answer');
   document.getElementById('answerQ').textContent=q;
-  document.getElementById('answerBody').textContent='Analysing…';
+  document.getElementById('answerBody').innerHTML='<p>Analysing…</p>';
   panel.classList.add('on');
   btn.disabled=true;btn.textContent='…';
   try{
@@ -879,10 +1170,16 @@ async function ask(){
     if(!r)throw new Error(lastErr||'no endpoint responded');
     const d=await r.json();
     const txt=(d.content||[]).filter(i=>i.type==='text').map(i=>i.text).join('\n')||JSON.stringify(d).slice(0,400);
-    document.getElementById('answerBody').textContent=txt;
+    document.getElementById('answerBody').innerHTML=md(txt);
+    if(/business wales|contract|lose|lost|what if|scenario|dependen/i.test(q)){
+      const b=document.createElement('div');
+      b.className='suggest';
+      b.innerHTML='<button class="sug" onclick="document.getElementById(\'answer\').classList.remove(\'on\');openSim()">Model this scenario &rarr;</button>';
+      document.getElementById('answerBody').appendChild(b);
+    }
   }catch(e){
-    document.getElementById('answerBody').textContent=
-      'Not connected yet.\n\nThe Ask panel needs a Netlify function that proxies the Anthropic API. Open this file and set ASK_ENDPOINT near the top of the script to the correct function path.\n\nLast attempt: '+e.message;
+    document.getElementById('answerBody').innerHTML=md(
+      'Not connected yet.\n\nThe Ask panel needs a Netlify function that proxies the Anthropic API. Open this file and set ASK_ENDPOINT near the top of the script to the correct function path.\n\nLast attempt: '+e.message);
   }
   btn.disabled=false;btn.textContent='Ask';
   document.getElementById('askInput').value='';
