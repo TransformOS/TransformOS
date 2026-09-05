@@ -1,236 +1,242 @@
-// ── BACKGROUND FUNCTION — no timeout limit
-// Must be named with -background suffix OR exported as background
-// Netlify detects this via the filename: run-stage-background.mjs
-// We use a workaround: set status to 'generating' immediately,
-// then do the work, then save. Client polls check-stage-status.
+// ── RUN STAGE (BACKGROUND) — generates one stage.
+// Netlify treats any function whose filename ends in "-background"
+// as a background function: it returns 202 immediately and may run
+// for up to 15 minutes. That is what allows a proper-length output
+// instead of the 2,500-token summaries the synchronous version was
+// forced to produce.
 
 import { createClient } from '@supabase/supabase-js';
 import Anthropic from '@anthropic-ai/sdk';
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SECRET_KEY);
-// Credentials are injected by the Netlify AI Gateway at runtime — do not set an API key here.
-const anthropic = new Anthropic({ baseURL: process.env.ANTHROPIC_BASE_URL });
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  ...(process.env.ANTHROPIC_BASE_URL ? { baseURL: process.env.ANTHROPIC_BASE_URL } : {})
+});
+
+/* ═══ MODEL AND LENGTH PER STAGE ═══
+   Cost difference across a full run is roughly £2.
+   Quality difference on the judgement-heavy stages is not marginal. */
+const STAGE_CONFIG = {
+  1: { model: 'claude-opus-5',    max_tokens: 16000 },
+  2: { model: 'claude-opus-5',    max_tokens: 12000 },
+  3: { model: 'claude-sonnet-5',  max_tokens: 12000 },
+  4: { model: 'claude-opus-5',    max_tokens: 14000 },
+  5: { model: 'claude-sonnet-5',  max_tokens: 14000 },
+  6: { model: 'claude-opus-5',    max_tokens: 14000 },
+  7: { model: 'claude-opus-5',    max_tokens: 14000 },
+  8: { model: 'claude-opus-5',    max_tokens: 16000 }
+};
+
+const SYSTEM_PROMPT = `You are TransformOS, an enterprise transformation operating system built on thirty years of building, growing and transforming businesses.
+
+STANDARDS — not optional:
+- Run every framework the section calls for, in full. Never condense, never sample, never write "for brevity". If a section asks for twelve sub-sections, produce twelve.
+- Direct and commercially sharp. No consultant waffle. Lead with the answer.
+- Distinguish evidenced fact from professional judgement explicitly. Where a figure is an estimate rather than a provided number, say so in the text.
+- Where evidence is thin, still complete the analysis using best available information and reasoned professional judgement, and label it as such. Never leave a section blank for lack of sources.
+- Volunteer where the analysis could be wrong and where a plan could fail. This is the most credible thing in any document.
+- British English throughout.
+- Use markdown headings and tables so the output renders directly.
+
+You are producing one stage of an eight-stage engagement. Prior stages are supplied as established findings — build on them and stay consistent. Do not contradict earlier findings without flagging that you are doing so and why.`;
 
 const STAGE_PROMPTS = {
-  1: `You are a senior management consultant with 20+ years experience. Produce a comprehensive Business Diagnostic report. Be direct, evidence-based, commercially rigorous. No fluff. No consultant-speak.
+  1: `Produce a Business Diagnostic report:
+SECTION 1: BUSINESS OVERVIEW — company details, what it does, brief history.
+SECTION 2: EXECUTIVE SUMMARY — current state, market context, critical constraint, biggest opportunity, recommended focus.
+SECTION 3: BUSINESS MODEL CANVAS — all 9 elements. End with Model Type, Revenue Predictability, Scalability, Vulnerabilities.
+SECTION 4: COMMERCIAL HEALTH — score 1-5: Lead Generation, Sales Process, Conversion, Pricing, Retention, Revenue Quality. Each: score, evidence, red flags, actions.
+SECTION 5: FINANCIAL HEALTH — revenue trend, gross margin vs sector benchmark, cost structure, cash position, key risks. Rating: Strong/Stable/Vulnerable/Critical.
+SECTION 6: OPERATIONAL CAPABILITY — score 1-5: Delivery, Process Maturity, Technology, Capacity, Quality. Each: score, evidence, bottlenecks, actions.
+SECTION 7: PEOPLE & ORGANISATION — leadership completeness, key person dependencies, capability gaps, culture. People Health Rating.
+SECTION 8: SWOT ANALYSIS — 4-6 bullets each.
+SECTION 9: CRITICAL CONSTRAINT — the single most important thing holding this business back. State it plainly.
+SECTION 10: TOP 10 PRIORITY RECOMMENDATIONS — ranked by impact. Each: action, why it matters, owner, timeline, expected impact.
+SECTION 11: TOM CURRENT STATE BASELINE — score each (High/Med/Low gap): Strategy & Direction, Operating Model, Processes & Capabilities, People & Organisation, Technology & Data, Governance & Controls, Culture & Behaviours, Customer Experience. Top 3 TOM priorities.
+SECTION 12: VALUATION MULTIPLIER SNAPSHOT — score /10: Financial Quality, Commercial Strength, Scale & Growth, People & Organisation, Brand & Reputation. Total /50. Rating: Premium/Strong/Market Rate/Discounted/Distressed. Top 3 improvements.
+SECTION 13: EVIDENCE & CONFIDENCE — what is directly evidenced, what is professional estimate, what could not be assessed.`,
 
-Structure EXACTLY as follows:
+  2: `Build a Road to 2030 vision document:
+SECTION 1: STRATEGIC BASELINE — where we are, the gap, the burning platform
+SECTION 2: THE 2030 AMBITION — headline statement, revenue target, market position
+SECTION 3: THE GROWTH THESIS — core logic, 3-4 strategic bets, key assumptions
+SECTION 4: STRATEGIC PILLARS — 3-4 pillars with rationale, initiatives, 2030 metrics
+SECTION 5: MILESTONE MAP — 2026 foundation through 2030 destination
+SECTION 6: CRITICAL SUCCESS FACTORS — 5-7 things that must go right
+SECTION 7: STRATEGIC RISKS — top 5 with likelihood, impact, mitigation
+SECTION 8: THE LEADERSHIP CHALLENGE — what must change at leadership level
+SECTION 9: WHY THIS MIGHT NOT HAPPEN — the three most likely reasons this trajectory is not achieved`,
 
-SECTION 1: BUSINESS OVERVIEW
-Company name, sector, revenue scale, headcount, what the business does (2-3 plain English sentences), key facts.
-
-SECTION 2: EXECUTIVE SUMMARY
-5 paragraphs: (1) current state in plain language, (2) market context, (3) the critical constraint — the single most important thing holding it back, (4) the biggest opportunity, (5) recommended strategic focus.
-
-SECTION 3: BUSINESS MODEL CANVAS
-Customer Segments, Value Propositions, Channels, Customer Relationships, Revenue Streams, Key Resources, Key Activities, Key Partnerships, Cost Structure. End with: Model Type, Revenue Predictability (High/Med/Low), Scalability (High/Med/Low), Top 2 Model Vulnerabilities.
-
-SECTION 4: COMMERCIAL HEALTH ASSESSMENT
-Score 1-5 with evidence and recommended actions for: Lead Generation, Sales Process, Conversion Rate, Pricing Strategy, Customer Retention, Revenue Quality. Overall Commercial Health Rating.
-
-SECTION 5: FINANCIAL HEALTH ASSESSMENT
-Revenue trend, gross margin vs sector benchmark, cost structure analysis, cash position, working capital, key financial risks. Overall Financial Health Rating: Strong/Stable/Vulnerable/Critical.
-
-SECTION 6: OPERATIONAL CAPABILITY ASSESSMENT
-Score 1-5 with evidence for: Delivery Quality, Process Maturity, Technology Utilisation, Capacity Management, Quality Control. Key bottlenecks. Top 3 operational priorities.
-
-SECTION 7: PEOPLE & ORGANISATION
-Leadership team completeness, key person dependencies, capability gaps, culture indicators. People Health Rating.
-
-SECTION 8: SWOT ANALYSIS
-4-6 specific, evidence-based bullets for each: Strengths, Weaknesses, Opportunities, Threats.
-
-SECTION 9: CRITICAL CONSTRAINT
-The single most important thing holding this business back. Root cause. Downstream impact if not addressed. State it plainly — do not soften it.
-
-SECTION 10: TOP 10 PRIORITY RECOMMENDATIONS
-Ranked 1-10 by impact. Each: action, why it matters, owner role, timeline (Immediate/30/90 days/6 months), expected impact.
-
-SECTION 11: DELOITTE TOM — CURRENT STATE BASELINE
-Score each dimension (High/Med/Low gap, Yes/No priority):
-Strategy & Direction | Operating Model & Structure | Processes & Capabilities | People & Organisation | Technology & Data | Governance & Controls | Culture & Behaviours | Customer Experience
-Top 3 TOM priorities. Critical question this business must resolve.
-
-SECTION 12: VALUATION MULTIPLIER ASSESSMENT
-Score out of 10 for each of 25 factors across 5 categories:
-FINANCIAL QUALITY: EBITDA quality, Add-backs, Margins, Financial MI, Debtor Days
-COMMERCIAL STRENGTH: Revenue model, Pricing, Customer quality, Contracts, Network, Competitive advantage, Partnerships
-SCALE & GROWTH: Scale, Diversification, Market trends, Size, Age
-PEOPLE & ORGANISATION: Team depth, Org design, HR book, Process maturity, Metrics
-BRAND & REPUTATION: Brand strength, Reputation, Tech/IP
-
-Total /250. Normalised score /10. Rating: Premium(8.5+)/Strong(7-8.4)/Market Rate(5.5-6.9)/Discounted(4-5.4)/Distressed(<4).
-Top 5 multiplier improvement opportunities with current score, target score, action.
-Multiplier Verdict: 3-4 sentences on current valuation story and what would move the multiple most.`,
-
-  2: `You are a senior strategist. Build a Road to 2030 vision document.
-
-SECTION 1: STRATEGIC BASELINE — current state summary, the gap, the burning platform (why change is not optional)
-SECTION 2: THE 2030 AMBITION — headline ambition statement, revenue target, market position target, what success looks like
-SECTION 3: THE GROWTH THESIS — core strategic logic, 3-4 strategic bets, key assumptions, what must be true
-SECTION 4: STRATEGIC PILLARS — 3-4 pillars each with name, rationale, key initiatives, 2030 success metrics
-SECTION 5: MILESTONE MAP — 2026 foundations, 2027 acceleration, 2028 scale, 2029 optimisation, 2030 destination
-SECTION 6: CRITICAL SUCCESS FACTORS — 5-7 things that must go right, why critical, what puts each at risk
-SECTION 7: STRATEGIC RISKS — top 5 risks with likelihood H/M/L, impact H/M/L, mitigation
-SECTION 8: THE LEADERSHIP CHALLENGE — what must change at leadership level, mindset shift required, capability gaps to close
-
-Bold, specific, commercially grounded. Should inspire and challenge in equal measure.`,
-
-  3: `You are an Operations Director. Produce an Operational Excellence report.
-
+  3: `Produce an Operational Excellence report:
 SECTION 1: OPERATIONAL HEALTH SUMMARY — maturity score 1-5, top 3 strengths, top 3 weaknesses
-SECTION 2: QUICK WINS — 8 specific improvements in 90 days. Each: what, why, how, owner, effort L/M/H, impact
-SECTION 3: PROCESS IMPROVEMENT PRIORITIES — top 5 processes. Each: current state, target, gap, approach, timeline, metric
-SECTION 4: TECHNOLOGY & SYSTEMS GAPS — stack assessment, critical gaps, recommendations with approximate cost
-SECTION 5: CAPACITY & RESOURCE ANALYSIS — utilisation, bottlenecks, recommended changes (hire/restructure/outsource/automate)
-SECTION 6: OPERATIONAL ROADMAP — Month 1-3, 4-6, 7-9, 10-12 actions
-SECTION 7: OPERATIONAL KPI DASHBOARD — 10-15 KPIs with baseline, target, frequency, owner
+SECTION 2: QUICK WINS — 8 improvements executable in 90 days. Each: what, why, how, owner, effort, impact
+SECTION 3: PROCESS IMPROVEMENT PRIORITIES — top 5 processes. Each: current state, target state, approach, timeline, metric
+SECTION 4: TECHNOLOGY & SYSTEMS GAPS — stack assessment, critical gaps, recommendations
+SECTION 5: CAPACITY & RESOURCE ANALYSIS — utilisation, bottlenecks, recommended changes
+SECTION 6: OPERATIONAL ROADMAP — months 1-3, 4-6, 7-9, 10-12
+SECTION 7: OPERATIONAL KPI DASHBOARD — 10 KPIs with baseline, target, frequency, owner
+Every recommendation must be executable by the management team without consultants.`,
 
-Every recommendation executable without external consultants.`,
+  4: `Identify and evaluate Strategic Opportunities:
+SECTION 1: OPPORTUNITY LANDSCAPE — top 3-5 market opportunities and the timing argument
+SECTION 2: OPPORTUNITY DEEP-DIVES — top 5. Each: description, market size, strategic fit, revenue Y1/Y3, investment, risks, verdict (Pursue Now/Plan/Monitor/Avoid)
+SECTION 3: ANSOFF MATRIX — mapped across all 4 quadrants with risk and priority
+SECTION 4: PRIORITISATION — score each: Revenue Potential, Strategic Fit, Feasibility, Speed to Value, Competitive Advantage (1-5)
+SECTION 5: GO-TO-MARKET — for the top 2: target customer, value proposition, channel, pricing, sales motion, 90-day launch plan
+SECTION 6: STRATEGIC PARTNERSHIPS — 3-5 with deal structure and approach
+SECTION 7: THE CONVICTION BET — the single opportunity most deserving of resource, and the honest case against it`,
 
-  4: `You are a Chief Commercial Officer. Identify Strategic Opportunities.
+  5: `Apply the Models Master framework:
+SECTION 1: PORTER'S FIVE FORCES — each force: assessment, score 1-5, implication. Overall industry attractiveness.
+SECTION 2: MCKINSEY 7S — each element: current state, alignment gaps, recommendations. Alignment score 1-10.
+SECTION 3: BALANCED SCORECARD — 4 perspectives, 3-4 KPIs each with baseline, target, initiative.
+SECTION 4: BCG GROWTH-SHARE MATRIX — products/segments mapped, with investment recommendation.
+SECTION 5: VALUE CHAIN ANALYSIS — primary and support activities, effectiveness 1-5, where value is created and where it leaks.
+SECTION 6: PESTLE — each factor: observations, impact H/M/L, strategic response.
+SECTION 7: TRANSFORMOS TOM+ — all 11 dimensions scored 1-5: the 8 standard dimensions plus Commercial Performance, Financial Sustainability, Innovation & Future Readiness. Current, target, gap, priority.
+SECTION 8: STRATEGIC SYNTHESIS — 3 most important insights, clearest strategic direction, and where frameworks converge. Convergence across multiple frameworks is the most reliable signal.`,
 
-SECTION 1: OPPORTUNITY LANDSCAPE — top 3-5 market opportunities, timing argument for each
-SECTION 2: OPPORTUNITY DEEP-DIVES — top 5 opportunities. Each: description, market size, strategic fit, revenue potential Y1/Y3, investment required, key risks, verdict: Pursue Now/Plan Next Quarter/Monitor/Avoid
-SECTION 3: ANSOFF MATRIX — opportunities across all 4 quadrants with risk level and recommended priority
-SECTION 4: OPPORTUNITY PRIORITISATION — score all: Revenue Potential, Strategic Fit, Feasibility, Speed to Value, Competitive Advantage (1-5 each). Ranked list.
-SECTION 5: GO-TO-MARKET — top 2 opportunities: target customer, value proposition, channel, pricing, sales motion, 90-day launch plan
-SECTION 6: STRATEGIC PARTNERSHIPS — 3-5 opportunities with partner profile, deal structure, approach`,
+  6: `Build a 36-month Roadmap for Growth:
+SECTION 1: GROWTH THESIS — growth story, revenue baseline, 36-month target, 3 primary drivers
+SECTION 2: STRATEGIC PRIORITIES — 5-7 with rationale, success metrics, interdependencies
+SECTION 3: 36-MONTH ROADMAP — quarterly for Year 1, half-yearly Years 2-3. Each: initiatives, revenue milestones, capability milestones, investment, risks
+SECTION 4: INITIATIVE REGISTER — all initiatives with owner, timeline, investment, revenue impact, priority
+SECTION 5: RESOURCE PLAN — headcount, capital, technology investment by year
+SECTION 6: REVENUE MODEL — by stream Y1-Y3, key assumptions, base/upside/downside
+SECTION 7: MILESTONE & METRICS FRAMEWORK — 10 milestones, monthly metrics, success at 12/24/36 months
+SECTION 8: THE CHALLENGE PANEL — pressure-test the plan: capability check, execution difficulty check, focus check, revenue link check. Where does this plan break?`,
 
-  5: `You are a strategy consultant. Apply the Models Master framework.
+  7: `Build the Business Case:
+SECTION 1: EXECUTIVE SUMMARY — recommendation, investment, expected return, payback, risk rating
+SECTION 2: STRATEGIC CONTEXT — why necessary, cost of inaction, opportunity, alignment to 2030
+SECTION 3: INVESTMENT REQUIRED — Y1/Y2/Y3 by category: People, Technology, Operations, Commercial, Governance
+SECTION 4: FINANCIAL PROJECTIONS — revenue and EBITDA for Base/Upside/Downside Y1-Y3. ROI, NPV, payback.
+SECTION 5: BENEFITS REALISATION — quantified financial benefits, strategic benefits, timeline
+SECTION 6: RISK REGISTER — top 10 with likelihood, impact, score, mitigation, owner
+SECTION 7: SENSITIVITY ANALYSIS — revenue at 50% of forecast, costs 20% higher, key talent loss
+SECTION 8: WHAT WOULD MAKE THIS WRONG — the honest case against your own numbers. What is excluded, which variable is most sensitive, what has not been tested, what competitor response is unmodelled.
+SECTION 9: RECOMMENDATION & NEXT STEPS
+All figures must reconcile with the roadmap and diagnostic. Show the inputs for any derived number.`,
 
-SECTION 1: PORTER'S FIVE FORCES — each force: assessment, score 1-5, strategic implication. Overall industry attractiveness verdict.
-SECTION 2: MCKINSEY 7S — each element: current state, alignment gaps, recommendations. Alignment score 1-10. Key misalignments.
-SECTION 3: BALANCED SCORECARD — 4 perspectives, 3-4 KPIs each with baseline, target, initiative to close gap
-SECTION 4: BCG GROWTH-SHARE MATRIX — products/services mapped across Stars/Cash Cows/Question Marks/Dogs with investment recommendation
-SECTION 5: VALUE CHAIN ANALYSIS — primary and support activities, effectiveness 1-5, where value created and where it leaks
-SECTION 6: PESTLE ANALYSIS — each factor: observations, impact H/M/L, strategic response
-SECTION 7: STRATEGIC SYNTHESIS — 3 most important cross-framework insights, single clearest strategic direction`,
-
-  6: `You are a Growth Director. Build a 36-month Roadmap for Growth.
-
-SECTION 1: GROWTH THESIS — growth story, revenue baseline, 36-month target, 3 primary growth drivers
-SECTION 2: STRATEGIC PRIORITIES — 5-7 priorities with rationale, success metrics, interdependencies
-SECTION 3: 36-MONTH ROADMAP — Q by Q Year 1, half-year Years 2-3. Each: initiatives, revenue milestones, capability milestones, investment, risks
-SECTION 4: INITIATIVE REGISTER — all initiatives: owner, dates, investment, revenue impact, priority Critical/High/Medium
-SECTION 5: RESOURCE PLAN — headcount, capital, technology by year. Total investment requirement.
-SECTION 6: REVENUE MODEL — revenue by stream Y1-Y3, base/upside/downside cases, key assumptions
-SECTION 7: MILESTONE & METRICS FRAMEWORK — 10 key milestones, monthly metrics, success at 12/24/36 months`,
-
-  7: `You are building the Business Case for this transformation.
-
-SECTION 1: EXECUTIVE SUMMARY — recommendation, investment required, expected return, payback period, risk rating
-SECTION 2: STRATEGIC CONTEXT — why necessary, cost of inaction, opportunity being addressed
-SECTION 3: INVESTMENT REQUIRED — Y1/Y2/Y3 by category: People, Technology, Operations, Commercial, Governance. Totals.
-SECTION 4: FINANCIAL PROJECTIONS — revenue and EBITDA Base/Upside/Downside Y1-Y3. ROI, NPV at 10%, payback period.
-SECTION 5: BENEFITS REALISATION — quantified financial benefits, unquantified strategic benefits, benefits timeline
-SECTION 6: RISK REGISTER — top 10 risks: likelihood H/M/L, impact H/M/L, risk score, mitigation, owner
-SECTION 7: SENSITIVITY ANALYSIS — revenue 50% of forecast, costs 20% higher, key talent loss — impact on ROI
-SECTION 8: RECOMMENDATION & NEXT STEPS — clear recommendation, conditions, immediate actions, decision required from board`,
-
-  8: `You are a CFO building Financial Models for this transformation.
-
+  8: `Build the Financial Models:
 SECTION 1: FINANCIAL BASELINE — revenue, margin, EBITDA, cash, key ratios vs sector benchmark
-SECTION 2: 3-YEAR P&L FORECAST — Base/Upside/Downside: Revenue, Gross Profit, EBITDA, PBT, PAT with margins
-SECTION 3: CASH FLOW PROJECTIONS — monthly Y1, quarterly Y2-Y3. Working capital, capex, financing requirements.
-SECTION 4: INVESTMENT & FUNDING PLAN — total by year and category, funding sources, funding gap analysis
-SECTION 5: KEY FINANCIAL ASSUMPTIONS — all major assumptions with justification
+SECTION 2: 3-YEAR P&L FORECAST — Base/Upside/Downside: Revenue, COGS, Gross Profit, OpEx, EBITDA, PBT, PAT
+SECTION 3: CASH FLOW PROJECTIONS — monthly Y1, quarterly Y2-Y3. Drivers, working capital, capex, financing needs
+SECTION 4: INVESTMENT & FUNDING PLAN — by year and category, funding sources, funding gap
+SECTION 5: KEY ASSUMPTIONS — every major assumption stated with justification
 SECTION 6: BREAK-EVEN ANALYSIS — fixed costs, contribution margin, break-even revenue, safety margin
-SECTION 7: SCENARIO ANALYSIS — Base/Upside/Downside with key variables and trigger points between scenarios
-SECTION 8: FINANCIAL KPI DASHBOARD — 15 KPIs: current value, Y1 target, Y3 target, frequency, owner
-SECTION 9: VALUATION IMPLICATIONS — current EV range, Y3 value base case, value drivers, exit multiple range`
+SECTION 7: SCENARIO ANALYSIS — Base, Upside, Downside with key variables and trigger points
+SECTION 8: FINANCIAL KPI DASHBOARD — 15 KPIs with current, Y1 target, Y3 target, frequency, owner
+SECTION 9: VALUATION IMPLICATIONS — current EV range, Y3 value base case, value drivers, exit multiple range
+SECTION 10: MODEL ASSUMPTIONS & LIMITATIONS — what is evidenced, what is assumed, what this model does not cover
+Every figure must reconcile with the business case. Show workings for derived numbers.`
 };
-
-const headers = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-};
-
-const json = (statusCode, payload) =>
-  new Response(payload === '' ? '' : JSON.stringify(payload), { status: statusCode, headers });
 
 export default async (req) => {
-  if (req.method === 'OPTIONS') return json(200, '');
-  if (req.method !== 'POST') return json(405, { error: 'Method not allowed' });
-
-  const token = (req.headers.get('authorization') || '').replace('Bearer ', '');
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-  if (authError || !user) return json(401, { error: 'Unauthorised' });
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
+  }
 
   let body;
   try { body = await req.json(); }
-  catch { return json(400, { error: 'Invalid JSON' }); }
+  catch { return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400 }); }
 
-  const { stage_number, company_id } = body;
+  const { company_id, stage_number, extra_context } = body;
+  const config = STAGE_CONFIG[stage_number];
+
+  if (!company_id || !config) {
+    return new Response(JSON.stringify({ error: 'company_id and valid stage_number required' }), { status: 400 });
+  }
 
   try {
     const { data: company } = await supabase
-      .from('companies').select('*')
-      .eq('id', company_id).eq('user_id', user.id).single();
+      .from('companies').select('*').eq('id', company_id).single();
+    if (!company) throw new Error('Company not found');
 
-    if (!company) return json(404, { error: 'Company not found' });
-
-    // SET STATUS TO 'generating' IMMEDIATELY so client knows it started
     await supabase.from('transformation_stages')
-      .update({ status: 'generating', output_content: null })
+      .update({ status: 'in_progress', started_at: new Date().toISOString(), error_message: null })
       .eq('company_id', company_id).eq('stage_number', stage_number);
 
     const { data: priorStages } = await supabase
-      .from('transformation_stages').select('stage_number, stage_name, output_content')
+      .from('transformation_stages')
+      .select('stage_number, stage_name, output_content')
       .eq('company_id', company_id).eq('status', 'complete')
       .order('stage_number', { ascending: true });
 
     const { data: documents } = await supabase
-      .from('documents').select('file_name, document_type')
-      .eq('company_id', company_id);
+      .from('documents').select('file_name, document_type').eq('company_id', company_id);
 
     let context = `COMPANY: ${company.company_name || 'Not provided'}
 SECTOR: ${company.sector || 'Not specified'}
 EMPLOYEES: ${company.employee_count || 'Not specified'}
-ANNUAL REVENUE: ${company.annual_revenue || 'Not specified'}
+TURNOVER: ${company.annual_revenue || 'Not specified'}
+BUSINESS STAGE: ${company.business_stage || 'Not specified'}
+GEOGRAPHY: ${company.geography || 'Not specified'}
+OWNERSHIP: ${company.ownership || 'Not specified'}
 WEBSITE: ${company.website || 'Not specified'}
-TRANSFORMATION GOAL: ${company.transformation_goal || 'Not specified'}
-DOCUMENTS UPLOADED: ${documents?.length > 0 ? documents.map(d => `${d.file_name} (${d.document_type})`).join(', ') : 'None — base analysis on intake profile only, flag where documents would sharpen the assessment'}`;
+PRIMARY OBJECTIVE: ${company.transformation_goal || 'Not specified'}
+BIGGEST CHALLENGE: ${company.challenges || 'Not specified'}
+TECH STACK: ${company.tech_stack || 'Not specified'}
+ADDITIONAL CONTEXT: ${company.context || 'None provided'}`;
 
-    if (priorStages?.length > 0) {
-      context += '\n\nPRIOR STAGE OUTPUTS — TREAT AS PRIMARY EVIDENCE:\n';
+    if (documents?.length) {
+      context += `\n\nDOCUMENTS SUPPLIED BY THE CLIENT (${documents.length}):\n`;
+      context += documents.map(d => `- ${d.file_name} [${d.document_type}]`).join('\n');
+      context += `\n\nDocument contents are not machine-readable in this pass. Treat the presence and type of these documents as evidence of what the organisation holds, and note where a document would resolve an open question.`;
+    }
+
+    if (extra_context && extra_context.trim()) {
+      context += `\n\nADDITIONAL INFORMATION PROVIDED FOR THIS STAGE:\n${extra_context.trim()}`;
+    }
+
+    if (priorStages?.length) {
+      context += '\n\n═══ PRIOR STAGE OUTPUTS — established findings ═══\n';
+      const BUDGET = 300000;
+      const per = Math.floor(BUDGET / priorStages.length);
       priorStages.forEach(s => {
-        context += `\n${'='.repeat(50)}\nSTAGE ${s.stage_number}: ${s.stage_name.toUpperCase()}\n${'='.repeat(50)}\n${s.output_content || ''}\n`;
+        const full = s.output_content || '';
+        const clipped = full.length > per ? full.slice(0, per) + '\n...[truncated]' : full;
+        context += `\n───── STAGE ${s.stage_number} — ${s.stage_name} ─────\n${clipped}\n`;
       });
     }
 
-    // CALL ANTHROPIC — no timeout concern with background function
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5',
-      max_tokens: 8000,
-      messages: [{
-        role: 'user',
-        content: `${context}\n\n${'='.repeat(50)}\nYOUR TASK — STAGE ${stage_number}\n${'='.repeat(50)}\n${STAGE_PROMPTS[stage_number]}\n\nIMPORTANT: Produce a comprehensive, detailed report. Every section is required. Be specific to this company — use the data provided throughout. This is a board-level document.`
-      }]
+      model: config.model,
+      max_tokens: config.max_tokens,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: `${context}\n\n═══════════════\nTASK — STAGE ${stage_number}:\n${STAGE_PROMPTS[stage_number]}` }]
     });
 
-    const output = message.content[0].text;
+    const output = (message.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+    if (!output.trim()) throw new Error('Empty response from model');
 
-    // SAVE COMPLETE OUTPUT
     await supabase.from('transformation_stages')
-      .update({ status: 'complete', output_content: output, completed_at: new Date().toISOString() })
+      .update({
+        status: 'complete',
+        output_content: output,
+        model_used: config.model,
+        input_tokens: message.usage?.input_tokens,
+        output_tokens: message.usage?.output_tokens,
+        completed_at: new Date().toISOString()
+      })
       .eq('company_id', company_id).eq('stage_number', stage_number);
 
-    // UNLOCK NEXT STAGE
-    if (stage_number < 8) {
-      await supabase.from('transformation_stages')
-        .update({ status: 'in_progress' })
-        .eq('company_id', company_id).eq('stage_number', stage_number + 1);
-    }
+    await supabase.from('usage_log').insert({
+      company_id,
+      event_type: 'stage',
+      model_used: config.model,
+      input_tokens: message.usage?.input_tokens,
+      output_tokens: message.usage?.output_tokens
+    });
 
-    return json(200, { success: true });
+    return new Response(JSON.stringify({ success: true }), { status: 200 });
 
   } catch (error) {
-    console.error('Background stage error:', error.message);
+    console.error(`Stage ${stage_number} failed:`, error.message);
     await supabase.from('transformation_stages')
-      .update({ status: 'error' })
+      .update({ status: 'failed', error_message: error.message })
       .eq('company_id', company_id).eq('stage_number', stage_number);
-    return json(500, { error: error.message });
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
 };
