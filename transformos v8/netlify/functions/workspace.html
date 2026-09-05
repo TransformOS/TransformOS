@@ -411,8 +411,8 @@ async function buildSummary(){
   const b = el('sumBtn');
   b.disabled = true; b.textContent = 'Building overview — a few minutes…';
   try{
-    await fetch(API+'/build-summary-background',{ method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ company_id: STATE.company.id }) });
+    await fetch(API+'/run-stage-background',{ method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ company_id: STATE.company.id, mode: 'summary' }) });
     pollSummary();
   }catch(e){
     b.disabled = false;
