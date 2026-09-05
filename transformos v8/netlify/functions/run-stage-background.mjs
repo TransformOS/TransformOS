@@ -17,15 +17,20 @@ const anthropic = new Anthropic({
 /* ═══ MODEL AND LENGTH PER STAGE ═══
    Cost difference across a full run is roughly £2.
    Quality difference on the judgement-heavy stages is not marginal. */
+// max_tokens is a shared ceiling for reasoning AND written output.
+// Stage 8 originally failed with stop_reason=max_tokens and only
+// thinking blocks returned: the model used its whole budget reasoning
+// and had nothing left to write with. The synthesis-heavy stages
+// therefore need substantially more headroom than the early ones.
 const STAGE_CONFIG = {
-  1: { model: 'claude-opus-5',    max_tokens: 16000, research: 10 },
-  2: { model: 'claude-opus-5',    max_tokens: 12000, research: 4  },
-  3: { model: 'claude-sonnet-5',  max_tokens: 12000, research: 0  },
-  4: { model: 'claude-opus-5',    max_tokens: 14000, research: 10 },
-  5: { model: 'claude-sonnet-5',  max_tokens: 14000, research: 5  },
-  6: { model: 'claude-opus-5',    max_tokens: 14000, research: 0  },
-  7: { model: 'claude-opus-5',    max_tokens: 14000, research: 3  },
-  8: { model: 'claude-opus-5',    max_tokens: 16000, research: 0  }
+  1: { model: 'claude-opus-5',    max_tokens: 24000, research: 8 },
+  2: { model: 'claude-opus-5',    max_tokens: 20000, research: 4 },
+  3: { model: 'claude-sonnet-5',  max_tokens: 20000, research: 0 },
+  4: { model: 'claude-opus-5',    max_tokens: 24000, research: 8 },
+  5: { model: 'claude-sonnet-5',  max_tokens: 22000, research: 4 },
+  6: { model: 'claude-opus-5',    max_tokens: 24000, research: 0 },
+  7: { model: 'claude-opus-5',    max_tokens: 28000, research: 3 },
+  8: { model: 'claude-opus-5',    max_tokens: 32000, research: 0 }
 };
 
 const SYSTEM_PROMPT = `You are TransformOS, an enterprise transformation operating system built on thirty years of building, growing and transforming businesses.
