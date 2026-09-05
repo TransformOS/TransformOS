@@ -633,8 +633,8 @@
       <div class="meta-label">Valuation Factors</div>
     </div>
     <div class="meta-item">
-      <div class="meta-number">5</div>
-      <div class="meta-label">DRIVE Phases</div>
+      <div class="meta-number">8</div>
+      <div class="meta-label">Transformation Stages</div>
     </div>
   </div>
   <div class="scroll-cue">
@@ -657,10 +657,8 @@
       <div class="progress-step" id="ps5"></div>
     </div>
 
-    <form id="intakeForm" name="transformos-intake" data-netlify="true" data-netlify-honeypot="bot-field" enctype="multipart/form-data">
-      <input type="hidden" name="form-name" value="transformos-intake">
+    <form id="intakeForm" name="transformos-intake">
       <input type="hidden" name="access_code" id="hidden_access_code">
-      <p class="hidden" style="display:none"><label>Don't fill this out: <input name="bot-field"></label></p>
 
       <!-- ── SECTION 1: PROFILE ── -->
       <div class="section-block" id="sec1">
@@ -871,7 +869,7 @@
       <div class="section-block" id="sec4">
         <div class="section-number">04</div>
         <h2 class="section-title">Commercial <span class="teal">Data</span></h2>
-        <p class="section-desc">Sales, marketing and customer intelligence. This powers the Commercial Performance dimension of GrowthOS TOM+ and calibrates your go-to-market analysis.</p>
+        <p class="section-desc">Sales, marketing and customer intelligence. This powers the Commercial Performance dimension of TransformOS TOM+ and calibrates your go-to-market analysis.</p>
 
         <div class="upload-grid">
           <div class="upload-zone">
@@ -911,7 +909,7 @@
       <div class="section-block" id="sec5">
         <div class="section-number">05</div>
         <h2 class="section-title">Operations <span class="teal">&</span> Strategy</h2>
-        <p class="section-desc">The structural and directional engine of the organisation. These documents unlock the deepest analysis across all 11 GrowthOS TOM+ dimensions.</p>
+        <p class="section-desc">The structural and directional engine of the organisation. These documents unlock the deepest analysis across all 11 TransformOS TOM+ dimensions.</p>
 
         <div class="upload-grid">
           <div class="upload-zone">
@@ -989,17 +987,17 @@
 
     <!-- SUCCESS STATE -->
     <div class="success-state" id="successState">
-      <div class="success-icon">✅</div>
+      <div class="success-icon">&#9989;</div>
       <div class="success-title">Profile Received</div>
-      <p class="success-msg">Your intelligence profile has been received. One final step — please upload your supporting documents using the button below. These go directly into your secure client folder and significantly improve the quality of your analysis.</p>
+      <p class="success-msg" id="successMsg">Your intelligence profile has been saved.</p>
+
+      <div id="uploadProgress" style="max-width:520px;margin:32px auto 0;text-align:left"></div>
+
       <div style="margin-top:32px">
-        <a id="driveUploadLink" href="https://drive.google.com/drive/folders/FOLDER_ID_HERE" target="_blank" style="display:inline-block;background:var(--teal);color:var(--ink);padding:16px 36px;font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.2rem;letter-spacing:0.1em;text-decoration:none;border-radius:6px;transition:all 0.2s">
-          Upload Your Documents →
+        <a id="continueLink" href="workspace.html" style="display:none;background:var(--teal);color:var(--ink);padding:16px 36px;font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.2rem;letter-spacing:0.1em;text-decoration:none;border-radius:6px">
+          Open Your Workspace &rarr;
         </a>
-        <p style="margin-top:16px;font-size:0.8rem;color:var(--ghost);font-family:'DM Mono',monospace;letter-spacing:0.08em">
-          P&L · Cash flow · Strategy docs · Org charts · Any relevant files<br>
-          Your advisor will be in touch within 24 hours.
-        </p>
+        <p style="margin-top:16px;font-size:0.8rem;color:var(--ghost);font-family:'DM Mono',monospace;letter-spacing:0.08em" id="refNote"></p>
       </div>
     </div>
 
@@ -1123,117 +1121,120 @@
     }
   })();
 
-  // ── FORM SUBMIT — calls Netlify analyse function
+  // ── FORM SUBMIT
   document.getElementById('intakeForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
     const btn = document.querySelector('.btn-submit');
     const originalText = btn.textContent;
+    const form = e.target;
 
-    // ── LOADING STATE
-    btn.textContent = 'Submitting your profile…';
+    btn.textContent = 'Saving your profile…';
     btn.style.opacity = '0.7';
     btn.style.pointerEvents = 'none';
 
-    // ── COLLECT FORM DATA
-    const form = e.target;
-    const data = {
-      access_code: sessionStorage.getItem('tos_access') || 'PILOT-2026',
-      company_name:  form.company_name?.value || '',
-      user_name:     form.user_name?.value || '',
-      role:          form.role?.value || '',
-      email:         form.email?.value || '',
-      sector:        form.sector?.value || '',
-      turnover:      form.turnover?.value || '',
-      headcount:     form.headcount?.value || '',
-      stage:         form.stage?.value || '',
-      geography:     form.geography?.value || '',
-      ownership:     form.ownership?.value || '',
-      objective:     form.objective?.value || '',
-      challenges:    form.challenges?.value || '',
-      tech_stack:    form.tech_stack?.value || '',
-      website:       form.website?.value || '',
-      social:        form.social?.value || '',
-      context:       form.context?.value || '',
-      documents_summary: buildDocumentSummary(form),
-      files: getAllUploadedFiles()
+    const company_data = {
+      company_name: form.company_name?.value || '',
+      user_name:    form.user_name?.value || '',
+      role:         form.role?.value || '',
+      email:        form.email?.value || '',
+      sector:       form.sector?.value || '',
+      turnover:     form.turnover?.value || '',
+      headcount:    form.headcount?.value || '',
+      stage:        form.stage?.value || '',
+      geography:    form.geography?.value || '',
+      ownership:    form.ownership?.value || '',
+      objective:    form.objective?.value || '',
+      challenges:   form.challenges?.value || '',
+      tech_stack:   form.tech_stack?.value || '',
+      website:      form.website?.value || '',
+      social:       form.social?.value || '',
+      context:      form.context?.value || ''
     };
 
-    // Warn if files are very large (>10MB total)
-    const totalSize = data.files.reduce((sum, f) => sum + (f.data ? f.data.length * 0.75 : 0), 0);
-    if (totalSize > 10 * 1024 * 1024) {
-      btn.textContent = 'Files too large — please reduce file sizes and try again';
-      btn.style.background = '#c0392b';
-      btn.style.opacity = '1';
-      btn.style.pointerEvents = 'auto';
-      return;
-    }
-
     try {
-      // Set hidden access code field
-      document.getElementById('hidden_access_code').value = sessionStorage.getItem('tos_access') || 'PILOT-2026';
-
-      // Submit via Netlify Forms (handles file uploads natively)
-      const formData = new FormData(form);
-      
-      const response = await fetch('/intake.html', {
+      // ── STEP 1: save the profile, get a company_id back
+      const res = await fetch('/.netlify/functions/save-intake', {
         method: 'POST',
-        headers: { 'Accept': 'application/json' },
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          access_code: sessionStorage.getItem('tos_access') || '',
+          company_data
+        })
       });
 
-      if (response.ok) {
-        form.style.display = 'none';
-        document.getElementById('successState').classList.add('visible');
-        window.scrollTo({ top: document.querySelector('.form-section').offsetTop, behavior: 'smooth' });
-      } else {
-        throw new Error('Submission failed');
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Save failed');
+
+      const companyId = result.company_id;
+      localStorage.setItem('tos_company_id', companyId);
+      localStorage.setItem('tos_company_name', result.company_name || '');
+
+      form.style.display = 'none';
+      document.getElementById('successState').classList.add('visible');
+      window.scrollTo({ top: document.querySelector('.form-section').offsetTop, behavior: 'smooth' });
+
+      const files = getAllUploadedFiles();
+      const progress = document.getElementById('uploadProgress');
+      const msg = document.getElementById('successMsg');
+
+      if (files.length === 0) {
+        msg.textContent = 'Your intelligence profile has been saved. You can add documents at any time from your workspace.';
+        finish(companyId);
+        return;
       }
 
+      msg.textContent = 'Profile saved. Uploading ' + files.length + ' document' + (files.length > 1 ? 's' : '') + ' — please keep this page open.';
+
+      let ok = 0; const failed = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i];
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--mist);font-size:0.82rem';
+        row.innerHTML = '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span><span style="color:var(--ghost);flex-shrink:0">uploading…</span>';
+        row.firstElementChild.textContent = f.name;
+        progress.appendChild(row);
+
+        try {
+          const up = await fetch('/.netlify/functions/upload-document', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ company_id: companyId, file: f })
+          });
+          const upResult = await up.json();
+          if (!up.ok) throw new Error(upResult.error || 'failed');
+          row.lastElementChild.textContent = '\u2713 saved';
+          row.lastElementChild.style.color = 'var(--teal)';
+          ok++;
+        } catch (err) {
+          row.lastElementChild.textContent = '\u2715 ' + err.message;
+          row.lastElementChild.style.color = '#c0392b';
+          failed.push(f.name);
+        }
+      }
+
+      msg.textContent = failed.length === 0
+        ? 'Profile saved and all ' + ok + ' documents uploaded.'
+        : 'Profile saved. ' + ok + ' of ' + files.length + ' documents uploaded — you can retry the rest from your workspace.';
+
+      finish(companyId);
+
     } catch (error) {
-      btn.textContent = 'Something went wrong — please try again';
+      btn.textContent = error.message || 'Something went wrong — please try again';
       btn.style.background = '#c0392b';
       btn.style.opacity = '1';
       btn.style.pointerEvents = 'auto';
-      setTimeout(() => {
-        btn.textContent = originalText;
-        btn.style.background = '';
-      }, 4000);
+      setTimeout(function () { btn.textContent = originalText; btn.style.background = ''; }, 5000);
       console.error('Submit error:', error);
     }
   });
 
-  // ── BUILD TEXT SUMMARY OF UPLOADED FILES (sent as context to Claude)
-  function buildDocumentSummary(form) {
-    const uploadZones = [
-      { id: 'ul1',  label: 'P&L — Last 3 Years' },
-      { id: 'ul2',  label: 'Cash Flow Forecast' },
-      { id: 'ul3',  label: 'Balance Sheet' },
-      { id: 'ul4',  label: 'Financial Models / Budgets' },
-      { id: 'ul5',  label: 'Marketing Materials' },
-      { id: 'ul6',  label: 'Sales Data & Pipeline' },
-      { id: 'ul7',  label: 'Customer Data' },
-      { id: 'ul8',  label: 'Competitor / Market Intel' },
-      { id: 'ul9',  label: 'Operations (Org chart, Manuals)' },
-      { id: 'ul10', label: 'Strategy Documents' },
-      { id: 'ul11', label: 'People & HR' },
-      { id: 'ul12', label: 'Technology & Systems' },
-      { id: 'ul13', label: 'IP, Patents & Awards' },
-      { id: 'ul14', label: 'Governance & Compliance' },
-    ];
-
-    const uploaded = [];
-    uploadZones.forEach(zone => {
-      const list = document.getElementById(zone.id);
-      if (list && list.children.length > 0) {
-        const files = Array.from(list.children).map(el => el.textContent.trim()).join(', ');
-        uploaded.push(`${zone.label}: ${files}`);
-      }
-    });
-
-    if (uploaded.length === 0) return 'No documents uploaded — analysis based on intake profile only.';
-    return 'The following documents were uploaded by the client:\n' + uploaded.join('\n') +
-      '\n\nNote: Full document content will be reviewed separately. Base your analysis on the intake profile and document titles as evidence indicators.';
+  function finish(companyId) {
+    const link = document.getElementById('continueLink');
+    link.style.display = 'inline-block';
+    document.getElementById('refNote').textContent =
+      'Your reference: ' + companyId.slice(0, 8).toUpperCase() + ' — keep this to return to your workspace.';
   }
 </script>
 </body>
