@@ -136,6 +136,19 @@ textarea:focus{outline:none;border-color:var(--gold)}
 const API = '/.netlify/functions';
 let STATE = { company:null, stages:[], documents:[], current:1, polling:null };
 
+const PROGRESS = [
+  'Reading your intake profile and evidence base…',
+  'Establishing the commercial and financial baseline…',
+  'Running the framework set in full…',
+  'Scoring across the operating model dimensions…',
+  'Testing findings against the available evidence…',
+  'Identifying the critical constraint…',
+  'Ranking recommendations by impact…',
+  'Separating evidenced fact from professional judgement…',
+  'Drafting the analysis…',
+  'Still working — thorough due diligence takes time…'
+];
+
 const el = id => document.getElementById(id);
 
 /* ── markdown → html ── */
@@ -228,6 +241,7 @@ function renderStage(){
     html += '<div class="panel"><div class="plabel">Anything else for this stage?</div>'+
       '<textarea id="extra" placeholder="Optional. Context, corrections, recent changes, specific questions you want this stage to address…"></textarea>'+
       '<div style="margin-top:1.1rem"><button class="btn" id="genBtn" onclick="generate()">Generate '+s.stage_name+'</button></div>'+
+      '<p style="font-size:.8rem;color:var(--slate);margin-top:1rem;line-height:1.6">This stage runs extensive due diligence across your evidence base and applies every framework in full. Expect it to take five to ten minutes. You can close this page and return &mdash; the work continues in the background.</p>'+
       '<div class="status" id="genStatus"></div></div>';
 
     if(s.status==='failed' && s.error_message){
@@ -256,7 +270,7 @@ async function generate(){
   const extra = el('extra') ? el('extra').value : '';
   btn.disabled = true;
   status.className = 'status';
-  status.innerHTML = '<span class="spin"></span>Starting — this takes a few minutes. You can leave this page open and come back.';
+  status.innerHTML = '<span class="spin"></span>Beginning due diligence — typically five to ten minutes.';
 
   try{
     await fetch(API+'/run-stage-background',{
@@ -289,7 +303,9 @@ function poll(){
       if(status){ status.className='status err'; status.textContent = 'Generation failed: '+(s.error_message||'unknown error'); }
       const b = el('genBtn'); if(b) b.disabled = false;
     } else if(status){
-      status.innerHTML = '<span class="spin"></span>Working… '+(ticks*5)+'s elapsed. Longer stages can take several minutes.';
+      const mins = Math.floor(ticks*5/60), secs = (ticks*5)%60;
+      const elapsed = mins ? mins+'m '+String(secs).padStart(2,'0')+'s' : secs+'s';
+      status.innerHTML = '<span class="spin"></span>'+PROGRESS[Math.min(Math.floor(ticks/6), PROGRESS.length-1)]+' &nbsp;·&nbsp; '+elapsed;
     }
     if(ticks > 180){ clearInterval(STATE.polling); }
   }, 5000);
