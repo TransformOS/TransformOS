@@ -1197,6 +1197,11 @@ function renderSection(group, cfg){
       if(hit) boxes.push({ label:b.title, body:b.body });
       else leftover.push(b);
     });
+
+    // Narrative first. The boxes close the section, so a reader meets
+    // the argument before the detail behind it.
+    leftover.forEach(b => { inner += '<h4>'+iconFor(b.title,14)+esc(b.title)+'</h4>' + b.body; });
+
     if(boxes.length){
       // A score in the heading turns the box into a metric card: the
       // number leads, a bar shows the level, and the detail opens on
@@ -1238,7 +1243,7 @@ function renderSection(group, cfg){
           '<div class="bx-b">'+bx.body+'</div></details>';
       }).join('') + '</div>';
     }
-    leftover.forEach(b => { inner += '<h4>'+iconFor(b.title,14)+esc(b.title)+'</h4>' + b.body; });
+
     if(cfg.model) inner += modelLink(cfg.model);
     return inner;
   }
