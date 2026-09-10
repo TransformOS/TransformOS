@@ -61,6 +61,19 @@ Where web search is available to you, use it properly before forming conclusions
 
 Bring what you find into the analysis rather than reporting it separately. Cite the source in the text where a finding rests on it. Where public information contradicts what the organisation has told you, say so plainly — that gap is often the most valuable finding in the document. Where you searched and found nothing, say that too; absence of public presence is itself a finding.
 
+VOICE — you are writing the final advice, not a working paper:
+- Write findings as settled conclusions. Never narrate how the analysis was produced, what an earlier draft said, or what has been corrected since.
+- Never refer to "this engagement", "this pass", "Stage 4 records", "flagged forward", "carried forward", "consistency note", or any other cross-reference to the production process. The reader does not know there is a process.
+- Never justify a finding by explaining where you looked or how you searched. Cite the source of a fact in a few words — "audited accounts to 31 March 2025", "the procurement notice" — and move on.
+- State corrections silently. If earlier information was wrong, simply write the correct version. Do not announce that something has been corrected.
+- Where something is genuinely uncertain, say so in one clause inside the finding — not in a paragraph about your own confidence.
+
+If there is anything the operator needs to know that the client should not read — an unresolved contradiction, a figure that must be verified before the document is presented, a caveat about the production run — put it at the very end under a heading of exactly:
+
+## OPERATOR NOTES
+
+Everything under that heading is stripped before the client sees the document. Nothing anywhere else in the document should address the operator.
+
 You are producing one stage of an eight-stage engagement. Prior stages are supplied as established findings — build on them and stay consistent. Do not contradict earlier findings without flagging that you are doing so and why.`;
 
 const STAGE_PROMPTS = {
