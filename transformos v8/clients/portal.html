@@ -853,8 +853,8 @@ const STAGE_LAYOUT = {
     visuals: ['trajectory'],
     models: ['impact_effort','okrs','balanced_sc'],
     sections: [
-      { n:1, title:'Growth Thesis',                  subs:['Growth drivers'] },
-      { n:2, title:'Strategic Priorities' },
+      { n:1, title:'Growth Thesis',                  boxes:[/driver\s*\d/i,/^growth driver/i] },
+      { n:2, title:'Strategic Priorities',           boxes:[/^priority\s*\d/i,/^strategic priority/i] },
       { n:3, title:'The 36-Month Roadmap',           boxes:[/^(year|phase)\s*\d/i,/^months?\s*\d/i] },
       { n:4, title:'Initiative Register' },
       { n:5, title:'Resource Plan',                  subs:['Headcount','Investment'] },
