@@ -903,6 +903,16 @@ function iconFor(title, size){
    None of that belongs in front of a chief executive. It stays in
    the workspace; it is removed here.
    ═══════════════════════════════════════════════════════════ */
+// Document furniture and assistant-voice preambles. These are written
+// for the operator or by the model talking about itself; neither belongs
+// in a board paper.
+const FURNITURE = [
+  /^\s*(prepared|classification|engagement stage|vision period|builds on|basis|model period|reconciles to)\s*:/i,
+  /^\s*(i'?ll|i will|let me|first,? i|before (building|i )|i'?m going to|i have|i'?ve)\b/i,
+  /engagement stage:\s*\d+\s*of\s*\d+/i,
+  /classification:\s*client confidential/i
+];
+
 const META_PATTERNS = [
   /correction (notice|carried|note)/i,
   /this (engagement|pass|diagnostic) (carries|records|establishes|flags)/i,
@@ -943,13 +953,18 @@ function stripOperatorContent(html){
     html = html.slice(0, heads[i].start) + html.slice(end);
   }
 
-  // Remove individual paragraphs and blockquote-style lines that are
-  // addressed to the operator rather than the client.
+  // Remove document furniture and assistant-voice preambles outright,
+  // then any paragraph addressed to the operator rather than the client.
   html = html.replace(/<p>([\s\S]*?)<\/p>/g, (full, inner) => {
-    const text = inner.replace(/<[^>]+>/g,'');
+    const text = inner.replace(/<[^>]+>/g,'').trim();
+    if(FURNITURE.some(re => re.test(text))) return '';
     if(text.length < 400 && META_PATTERNS.some(re => re.test(text))) return '';
     return full;
   });
+
+  // A stage often opens by restating its own title and the client name.
+  // The portal already shows both.
+  html = html.replace(/^\s*<h[1-4]>\s*STAGE\s+\d+[^<]*<\/h[1-4]>/i, '');
 
   return html;
 }
