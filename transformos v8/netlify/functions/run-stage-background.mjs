@@ -28,7 +28,7 @@ const anthropic = new Anthropic({
 // so the document stays continuous.
 const SPLIT_AT = {
   1: ['SECTION 6','SECTION 11'],
-  3: ['SECTION 4'],
+  3: ['SECTION 3','SECTION 5'],   // quick wins and their data block finish inside pass one
   4: ['SECTION 2','SECTION 5'],
   6: ['SECTION 4','SECTION 7'],
   7: ['SECTION 4','SECTION 7'],   // nine sections needs three passes
@@ -116,14 +116,43 @@ SECTION 8: THE LEADERSHIP CHALLENGE — what must change at leadership level
 SECTION 9: WHY THIS MIGHT NOT HAPPEN — the three most likely reasons this trajectory is not achieved`,
 
   3: `Produce an Operational Excellence report:
-SECTION 1: OPERATIONAL HEALTH SUMMARY — maturity score 1-5, top 3 strengths, top 3 weaknesses
-SECTION 2: QUICK WINS — 8 improvements executable in 90 days. Each: what, why, how, owner, effort, impact
+SECTION 1: OPERATIONAL HEALTH SUMMARY — overall maturity score 1-5, then exactly 3 strengths and exactly 3 weaknesses. Head each one "Strength N: <operational dimension>" or "Weakness N: <operational dimension>" and score each 1-5 on the same scale as the overall score
+SECTION 2: QUICK WINS — exactly 8 improvements executable in 90 days, ranked by impact. Head each one "Quick win N: <title>". Each: what, why, how, owner, effort, impact, and the day it goes live
 SECTION 3: PROCESS IMPROVEMENT PRIORITIES — top 5 processes. Each: current state, target state, approach, timeline, metric
 SECTION 4: TECHNOLOGY & SYSTEMS GAPS — stack assessment, critical gaps, recommendations
 SECTION 5: CAPACITY & RESOURCE ANALYSIS — utilisation, bottlenecks, recommended changes
 SECTION 6: OPERATIONAL ROADMAP — months 1-3, 4-6, 7-9, 10-12
 SECTION 7: OPERATIONAL KPI DASHBOARD — 10 KPIs with baseline, target, frequency, owner
-Every recommendation must be executable by the management team without consultants.`,
+Every recommendation must be executable by the management team without consultants.
+
+═══ STRUCTURED DATA — REQUIRED ═══
+Two fenced code blocks are machine-read to draw the client's charts. The format must be exact and every entry must match the narrative it sits beside.
+
+At the end of SECTION 1, before SECTION 2 begins:
+
+\`\`\`opex_health
+{
+  "strengths":  [ { "dimension": "Customer delivery", "score": 4.0, "evidence": "440+ SMEs supported, 98% occupancy" } ],
+  "weaknesses": [ { "dimension": "Technology", "score": 2.0, "evidence": "Three core systems changing at once" } ]
+}
+\`\`\`
+
+At the end of SECTION 2, before SECTION 3 begins:
+
+\`\`\`opex_wins
+{
+  "wins": [ { "n": 1, "title": "Weekly cash flow tracker", "owner": "Head of Finance", "day": 7, "impact": 5, "effort": 1 } ]
+}
+\`\`\`
+
+RULES FOR THE BLOCKS
+- Exactly 3 strengths, 3 weaknesses and 8 wins, in the same order as the narrative. "n" matches the quick win's number.
+- "score": 1 to 5, at most one decimal place. Score honestly: a strength that is only adequate is 3.0, not inflated.
+- "evidence": the proof point in 8 words or fewer. A fact or figure, never an adjective.
+- "day": a whole number from 1 to 90, the day the win is live. Never a phrase. Where a win depends on an event such as a board meeting, estimate the day and state the assumption in the narrative.
+- "impact" and "effort": whole numbers 1 to 5. Impact 5 transforms an operational weakness; effort 5 is the hardest thing to deliver inside 90 days. Use the full range rather than clustering at 3 and 4.
+- "title": 6 words or fewer. "owner": a role, not a person's name.
+- Plain JSON only: no comments, no trailing commas, no other text inside the block.`,
 
   4: `Identify and evaluate Strategic Opportunities:
 SECTION 0: MARKET RESEARCH — search before you assess. Current market size and growth, named competitors and their positioning, live funding streams, grants, contracts or policy movements the organisation could act on, and what is changing in the sector right now. Cite sources and dates. Timing arguments must rest on something you found, not something you assumed.
@@ -539,6 +568,9 @@ ADDITIONAL CONTEXT: ${company.context || 'None provided'}`;
     let output = '';
     let message;
     let totalIn = 0, totalOut = 0;
+    // Every pass is checked. Checking only the last one let an earlier
+    // pass run out mid-section without anything being flagged.
+    const truncatedParts = [];
 
     const marks = SPLIT_AT[stage_number];
 
@@ -567,6 +599,7 @@ ADDITIONAL CONTEXT: ${company.context || 'None provided'}`;
         totalIn  += res.msg.usage?.input_tokens  || 0;
         totalOut += res.msg.usage?.output_tokens || 0;
         message = res.msg;
+        if (res.msg.stop_reason === 'max_tokens') truncatedParts.push(i + 1);
 
         if (!res.text.trim() && i === 0) {
           throw new Error('Part one returned no text. stop_reason=' + (res.msg.stop_reason || 'unknown') +
@@ -599,8 +632,9 @@ ADDITIONAL CONTEXT: ${company.context || 'None provided'}`;
       );
     }
 
-    if (message.stop_reason === 'max_tokens') {
-      output += '\n\n---\n\n## OPERATOR NOTES\n\nThis stage reached its output limit and may be incomplete. Regenerate to produce a full version.';
+    if (message.stop_reason === 'max_tokens' || truncatedParts.length) {
+      const where = truncatedParts.length ? ' in part ' + truncatedParts.join(' and ') : '';
+      output += '\n\n---\n\n## OPERATOR NOTES\n\nThis stage reached its output limit' + where + ' and may be incomplete. Regenerate to produce a full version.';
     }
 
     await supabase.from('transformation_stages')
