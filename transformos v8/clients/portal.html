@@ -879,6 +879,44 @@ function iconFor(title, size){
 }
 
 
+/* ═══════════════════════════════════════════════════════════
+   CLIENT CLEANUP
+   The generation occasionally writes for the operator — corrections,
+   cross-references to other stages, commentary on its own process.
+   None of that belongs in front of a chief executive. It stays in
+   the workspace; it is removed here.
+   ═══════════════════════════════════════════════════════════ */
+const META_PATTERNS = [
+  /correction (notice|carried|note)/i,
+  /this (engagement|pass|diagnostic) (carries|records|establishes|flags)/i,
+  /(stage|section)\s+\d+\s+(of this engagement|records|flagged|mis-attributed|establishes|revises)/i,
+  /flagged (forward|in four separate stages)/i,
+  /carried forward from/i,
+  /consistency (note|flag)/i,
+  /we searched and found/i,
+  /is now redundant/i,
+  /stands as a record of what happened/i,
+  /health warning\b.*this pass/i,
+  /before it is shown to a lender/i,
+  /in this pass\b/i
+];
+
+function stripOperatorContent(html){
+  // Everything from an OPERATOR NOTES heading onwards is removed.
+  const cut = html.search(/<h[1-4]>\s*OPERATOR NOTES\s*<\/h[1-4]>/i);
+  if(cut > -1) html = html.slice(0, cut);
+
+  // Remove individual paragraphs and blockquote-style lines that are
+  // addressed to the operator rather than the client.
+  html = html.replace(/<p>([\s\S]*?)<\/p>/g, (full, inner) => {
+    const text = inner.replace(/<[^>]+>/g,'');
+    if(text.length < 400 && META_PATTERNS.some(re => re.test(text))) return '';
+    return full;
+  });
+
+  return html;
+}
+
 function tokeniseHeadings(html){
   const out = [];
   const re = /<h([1-4])>([\s\S]*?)<\/h\1>/g;
@@ -1344,7 +1382,7 @@ function render(){
 
   html+=DATA.stages.map(st=>{
     const meta = sum && Array.isArray(sum.stages) ? sum.stages.find(x=>x.stage_number===st.stage_number) : null;
-    const bodyHtml = md(st.output_content||'');
+    const bodyHtml = stripOperatorContent(md(st.output_content||''));
     return '<section class="stage" id="st'+st.stage_number+'">'+
       '<div class="stage-head">Stage '+String(st.stage_number).padStart(2,'0')+'</div>'+
       '<div class="stage-title">'+st.stage_name+'</div>'+
@@ -1372,7 +1410,7 @@ function render(){
     const parts = [];
 
     if(tomStage){
-      const tk = tokeniseHeadings(md(tomStage.output_content||''));
+      const tk = tokeniseHeadings(stripOperatorContent(md(tomStage.output_content||'')));
       const g = groupBySection(tk.blocks).find(x=>x.n===11);
       if(g) parts.push({ title:'Current State Baseline', body: renderSection(g,{n:11,title:'TOM+',subs:['Top 3','Top three','TOM priorities']}) });
     }
