@@ -901,10 +901,30 @@ const META_PATTERNS = [
   /in this pass\b/i
 ];
 
+// Whole sections that exist to caveat the analysis for the operator.
+const META_SECTIONS = /^(prefatory note|health warning|basis|before the diagnostic|before we begin|three things to settle|note on sources|methodology|caveats?|scope and limitations)/i;
+
 function stripOperatorContent(html){
   // Everything from an OPERATOR NOTES heading onwards is removed.
   const cut = html.search(/<h[1-4]>\s*OPERATOR NOTES\s*<\/h[1-4]>/i);
   if(cut > -1) html = html.slice(0, cut);
+
+  // Remove entire sections whose heading marks them as operator caveats,
+  // taking everything up to the next heading of the same or higher level.
+  const heads = [];
+  const hre = /<h([1-4])>([\s\S]*?)<\/h\1>/g;
+  let hm;
+  while((hm = hre.exec(html)) !== null){
+    heads.push({ level:+hm[1], text:hm[2].replace(/<[^>]+>/g,'').trim(), start:hm.index, after:hre.lastIndex });
+  }
+  for(let i = heads.length - 1; i >= 0; i--){
+    if(!META_SECTIONS.test(heads[i].text)) continue;
+    let end = html.length;
+    for(let j = i + 1; j < heads.length; j++){
+      if(heads[j].level <= heads[i].level){ end = heads[j].start; break; }
+    }
+    html = html.slice(0, heads[i].start) + html.slice(end);
+  }
 
   // Remove individual paragraphs and blockquote-style lines that are
   // addressed to the operator rather than the client.
