@@ -235,6 +235,17 @@ textarea:focus{outline:none;border-color:var(--gold)}
 .mv-conf{font-size:.74rem;color:var(--slate);margin-top:1.2rem;padding-top:.9rem;border-top:1px solid var(--bdim);line-height:1.6}
 @media print{.mv{break-inside:avoid}.mv-box{background:#f6f4f0;border:1px solid #ddd}.mv-bt{color:#8a6418}.mv-bi,.mv-fn,.mv-sd{color:#333}}
 
+.sec{border:1px solid var(--bdim);margin-bottom:.6rem;background:var(--navy2)}
+.sec>summary{cursor:pointer;padding:.9rem 1.2rem;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:1rem}
+.sec>summary::-webkit-details-marker{display:none}
+.sec>summary:hover{background:var(--navy3)}
+.sec-t{font-family:var(--serif);font-size:1.05rem;color:var(--white);font-weight:500}
+.sec-i{font-family:var(--mono);font-size:1rem;color:var(--gold);transition:transform .2s}
+.sec[open] .sec-i{transform:rotate(45deg)}
+.sec-body{padding:.2rem 1.2rem 1.3rem;border-top:1px solid var(--bdim)}
+.expand-all{font-family:var(--mono);font-size:.58rem;letter-spacing:.13em;text-transform:uppercase;background:none;border:1px solid var(--bdim);color:var(--gold2);padding:.45rem .9rem;cursor:pointer;margin-bottom:1rem}
+.expand-all:hover{border-color:var(--gold)}
+@media print{.sec .sec-body{display:block!important}.sec{border:none}.expand-all{display:none}}
 </style>
 </head>
 <body>
@@ -372,6 +383,18 @@ const CATALOGUE = [
   { key:'okrs',           name:'OKR Framework',                    cat:'Change',           type:'ladder' }
 ];
 
+// One-click bundles. The core set is the seven frameworks the
+// original fixed Stage 5 ran, so a new engagement reaches parity
+// without ticking boxes.
+const MODEL_SETS = {
+  'Core set':      ['bmc','porters5','mck7s','balanced_sc','bcg','value_chain','pestle','tom_plus'],
+  'Strategy':      ['ansoff','porters5','blue_ocean','three_horizons','vrio','scenarios','moat'],
+  'Financial':     ['valuation','dupont','break_even','cash_conversion','cost_structure','scenario_fin','unit_economics'],
+  'Operating':     ['tom_plus','mck7s','capability','process_map','raci','tech_stack','data_maturity'],
+  'Market':        ['pestle','swot','tows','competitor','market_sizing','stakeholder','disruption'],
+  'Change':        ['lippitt','kotter','adkar','force_field','risk_register','impact_effort','moscow']
+};
+
 let MODELS = [];
 let MP_CAT = 'All';
 let STATE = { company:null, stages:[], documents:[], current:1, polling:null };
@@ -397,43 +420,48 @@ const el = id => document.getElementById(id);
 
 /* ── markdown → html ── */
 function md(t){
-  const esc = t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const lines = esc.split('\n');
-  let out='', inUl=false, inTable=false;
-  const closeUl = () => { if(inUl){ out+='</ul>'; inUl=false; } };
-  const closeTable = () => { if(inTable){ out+='</tbody></table>'; inTable=false; } };
+  const esc=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const lines=esc.split('\n');
+  let out='',inUl=false,inTable=false,buf=[];
+  const closeUl=()=>{if(inUl){out+='</ul>';inUl=false;}};
+  const closeTable=()=>{if(inTable){out+='</tbody></table>';inTable=false;}};
+  // Consecutive lines belong to the same paragraph. Only a blank line,
+  // a heading, a list, a table or a rule ends one. Without this, prose
+  // wrapped around a quotation fragments into one paragraph per line.
+  const flush=()=>{
+    if(!buf.length) return;
+    out += '<p>'+buf.join(' ').replace(/\s+/g,' ').trim()+'</p>';
+    buf=[];
+  };
 
-  for(let i=0;i<lines.length;i++){
-    let ln = lines[i];
-    ln = ln.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  for(let ln of lines){
+    ln=ln.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
 
-    // table
     if(/^\s*\|.*\|\s*$/.test(ln)){
-      const cells = ln.trim().replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
       if(/^[\s|:-]+$/.test(ln)) continue;
-      if(!inTable){
-        closeUl();
-        out += '<table><thead><tr>' + cells.map(c=>'<th>'+c+'</th>').join('') + '</tr></thead><tbody>';
-        inTable = true;
-      } else {
-        out += '<tr>' + cells.map(c=>'<td>'+c+'</td>').join('') + '</tr>';
-      }
+      flush(); closeUl();
+      const cells=ln.trim().replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+      if(!inTable){out+='<table><thead><tr>'+cells.map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>';inTable=true;}
+      else out+='<tr>'+cells.map(c=>'<td>'+c+'</td>').join('')+'</tr>';
       continue;
     }
     closeTable();
 
-    const h = ln.match(/^(#{1,4})\s+(.*)$/);
-    if(h){ closeUl(); const lvl = Math.min(h[1].length+1,4); out += '<h'+lvl+'>'+h[2]+'</h'+lvl+'>'; continue; }
+    const h=ln.match(/^(#{1,4})\s+(.*)$/);
+    if(h){flush();closeUl();const l=Math.min(h[1].length+1,4);out+='<h'+l+'>'+h[2]+'</h'+l+'>';continue;}
 
-    const li = ln.match(/^\s*[-*•]\s+(.*)$/);
-    if(li){ if(!inUl){ out+='<ul>'; inUl=true; } out += '<li>'+li[1]+'</li>'; continue; }
+    const li=ln.match(/^\s*[-*\u2022]\s+(.*)$/);
+    if(li){flush();if(!inUl){out+='<ul>';inUl=true;}out+='<li>'+li[1]+'</li>';continue;}
 
-    closeUl();
-    if(/^\s*---+\s*$/.test(ln)){ out += '<hr>'; continue; }
-    if(ln.trim()==='') continue;
-    out += '<p>'+ln+'</p>';
+    if(/^\s*---+\s*$/.test(ln)){flush();closeUl();out+='<hr>';continue;}
+
+    if(ln.trim()===''){flush();closeUl();continue;}
+
+    // A blockquote line is folded into the surrounding paragraph so a
+    // quotation does not break the sentence it sits inside.
+    buf.push(ln.replace(/^\s*>\s?/,''));
   }
-  closeUl(); closeTable();
+  flush();closeUl();closeTable();
   return out;
 }
 
@@ -528,7 +556,7 @@ function renderStage(){
     }
   } else {
     html += '<div style="margin-bottom:1.5rem"><button class="btn btn-ghost" onclick="regen()">Regenerate this stage</button></div>';
-    html += '<div class="output">'+md(s.output_content||'')+'</div>';
+    html += '<div class="output">'+groupSections(md(s.output_content||''),'stage'+s.stage_number)+'</div>';
     html += '<div class="meta">Generated '+(s.completed_at? new Date(s.completed_at).toLocaleString('en-GB') : '')+
             (s.model_used? ' · '+s.model_used : '')+'</div>';
     html += '<div class="ask"><div class="plabel">Ask about this stage</div>'+
@@ -557,7 +585,12 @@ function renderModels(){
   let html = '<div class="eyebrow">Models Master</div><h1>Apply any framework, <em>whenever you like.</em></h1>'+
     '<p class="lede">Sixty strategic models, each run against the full evidence base — intake, documents and every completed stage. Models accumulate: run a few now, come back and add more later. Each is stored with its own interpretation and rendered as the framework itself in the client portal.</p>';
 
-  html += '<div class="panel"><div class="plabel">Choose models to run</div>';
+  html += '<div class="panel"><div class="plabel">Run a set</div>'+
+    '<div class="mp-cats" style="margin-bottom:1.3rem">'+Object.keys(MODEL_SETS).map(k=>
+      '<button class="mp-cat" onclick="pickSet(\''+k.replace(/'/g,"\\'")+'\')">'+k+' ('+MODEL_SETS[k].length+')</button>').join('')+
+    '</div>'+
+    '<p style="font-size:.78rem;color:var(--slate);margin-bottom:1.4rem">Selects a bundle below. Anything already run is skipped unless you tick it again.</p>'+
+    '<div class="plabel">Or choose individually</div>';
   html += '<div class="mp-cats">'+cats.map(c=>
     '<button class="mp-cat'+(c===MP_CAT?' on':'')+'" onclick="MP_CAT=\''+c.replace(/'/g,"\\'")+'\';renderModels()">'+c+'</button>').join('')+'</div>';
 
@@ -581,13 +614,10 @@ function renderModels(){
   if(doneCount){
     html += '<div class="eyebrow" style="margin-top:2.5rem">Models run for this organisation</div>';
     html += MODELS.filter(m=>m.status==='complete').map(m=>
-      '<details class="panel" style="padding:0"><summary style="cursor:pointer;padding:1.1rem 1.5rem;list-style:none;display:flex;justify-content:space-between;align-items:center">'+
-      '<span><span style="font-family:var(--serif);font-size:1.1rem;color:var(--white)">'+m.model_name+'</span>'+
-      '<span class="mp-c">'+m.category+'</span></span><span style="color:var(--gold)">+</span></summary>'+
-      '<div style="padding:0 1.5rem 1.5rem">'+
-      (m.payload && m.payload.headline ? '<p style="font-family:var(--serif);font-size:1.15rem;color:var(--gold2);font-style:italic;margin-bottom:1rem">'+m.payload.headline+'</p>' : '')+
       renderModelVisual(m)+
-      '<div class="output" style="border:none;margin:0;padding:0">'+md(m.narrative||'')+'</div></div></details>').join('');
+      (m.narrative ? '<details class="sec" style="margin:-1rem 0 1.8rem"><summary><span class="sec-t">Interpretation &mdash; '+m.model_name+'</span><span class="sec-i">+</span></summary>'+
+        '<div class="sec-body"><div class="output" style="border:none;margin:0;padding:0">'+md(m.narrative)+'</div></div></details>' : '')
+    ).join('');
   }
 
   html += renderStageFiveBlock();
@@ -748,6 +778,30 @@ function mvLadder(p){
     (s.note?'<div class="mv-sd">'+mvEsc(s.note)+'</div>':'')+'</div>').join('')+'</div>';
 }
 
+function groupSections(html, id){
+  const parts = html.split(/(?=<h[23]>)/);
+  if(parts.length < 3) return html;
+  let out = '<button class="expand-all" onclick="toggleAll(\''+id+'\',this)">Expand all</button>';
+  let i = 0;
+  if(!/^<h[23]>/.test(parts[0])){ out += parts[0]; i = 1; }
+  for(; i < parts.length; i++){
+    const m = parts[i].match(/^<h([23])>(.*?)<\/h\1>/);
+    if(!m){ out += parts[i]; continue; }
+    const title = m[2].replace(/<[^>]+>/g,'').trim();
+    out += '<details class="sec"><summary><span class="sec-t">'+title+'</span><span class="sec-i">+</span></summary>'+
+           '<div class="sec-body">'+parts[i].slice(m[0].length)+'</div></details>';
+  }
+  return '<div id="grp-'+id+'">'+out+'</div>';
+}
+
+function toggleAll(id, btn){
+  const wrap = document.getElementById('grp-'+id);
+  if(!wrap) return;
+  const open = btn.textContent.trim() === 'Expand all';
+  wrap.querySelectorAll('details.sec').forEach(d=>d.open = open);
+  btn.textContent = open ? 'Collapse all' : 'Expand all';
+}
+
 function renderModelVisual(m){
   const p = m.payload || {};
   const type = m.render_type;
@@ -784,6 +838,23 @@ function renderModelVisual(m){
 
 function selectAllModels(on){
   document.querySelectorAll('.mp-cb').forEach(c=>c.checked=on);
+}
+
+function pickSet(name){
+  const keys = MODEL_SETS[name] || [];
+  // Switch to All so every model in the set is on screen and tickable.
+  if(MP_CAT !== 'All'){ MP_CAT = 'All'; renderModels(); }
+  setTimeout(()=>{
+    document.querySelectorAll('.mp-cb').forEach(c=>{ c.checked = keys.includes(c.value); });
+    const st = el('modelStatus');
+    const already = MODELS.filter(m=>keys.includes(m.model_key) && m.status==='complete').length;
+    if(st){
+      st.className='status';
+      st.textContent = keys.length+' selected'+(already?' — '+already+' already run, tick off any you do not want to redo.':'.');
+    }
+    const bar = document.querySelector('.mp-bar');
+    if(bar) bar.scrollIntoView({behavior:'smooth',block:'center'});
+  }, 60);
 }
 
 async function runModels(){
@@ -850,7 +921,7 @@ function renderReport(){
     '<section class="rpt-stage" id="rpt'+s.stage_number+'">'+
     '<div class="rpt-head">Stage '+String(s.stage_number).padStart(2,'0')+'</div>'+
     '<div class="rpt-title">'+s.stage_name+'</div>'+
-    '<div class="output">'+md(s.output_content||'')+'</div>'+
+    '<div class="output">'+groupSections(md(s.output_content||''),'rpt'+s.stage_number)+'</div>'+
     '</section>'
   ).join('');
 
