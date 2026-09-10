@@ -11,6 +11,7 @@
   --navy:#0D1B2A; --navy2:#142236; --navy3:#1C2F45;
   --gold:#C9922A; --gold2:#E8B454; --gold3:#F5D48A;
   --cream:#F2EDE4; --mist:#B8C4D0; --slate:#6B7F92; --white:#fff;
+  --green:#7FB069; --green2:#9BC98A; --red:#E07A5F;
   --border:rgba(201,146,42,.28); --bdim:rgba(184,196,208,.14);
   --serif:'Cormorant Garamond',Georgia,serif;
   --sans:'DM Sans',system-ui,sans-serif;
@@ -98,7 +99,9 @@ h1.doc em{font-style:italic;color:var(--gold2)}
 .chart .drill{font-family:var(--mono);font-size:.5rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);opacity:.5;margin-top:.9rem;display:block}
 .chart.clickable:hover .drill{opacity:1}
 .mval{font-family:var(--serif);font-size:2rem;font-weight:300;color:var(--gold2);line-height:1}
-.mval.bad{color:#E07A5F}.mval.good{color:#7FB069}
+.mval.bad{color:var(--red)}.mval.good{color:var(--green)}
+.mcard.good{border-left:2px solid var(--green)}
+.mcard.bad{border-left:2px solid var(--red)}
 .mlab{font-family:var(--mono);font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;color:var(--slate);margin-top:.65rem}
 .mnote{font-size:.76rem;color:var(--mist);margin-top:.45rem;line-height:1.5}
 
@@ -110,6 +113,8 @@ h1.doc em{font-style:italic;color:var(--gold2)}
 .btrack{height:18px;background:rgba(184,196,208,.07)}
 .bfill{height:100%;background:rgba(184,196,208,.3)}
 .bfill.hi{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.bfill.good{background:linear-gradient(90deg,#5f8f52,var(--green))}
+.bfill.bad{background:linear-gradient(90deg,#b35c45,var(--red))}
 .bval{font-family:var(--mono);font-size:.73rem;text-align:right;color:var(--mist)}
 
 .fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2px;background:var(--bdim);margin:2.4rem 0}
@@ -132,6 +137,7 @@ h1.doc em{font-style:italic;color:var(--gold2)}
 .jump{border:1px solid var(--bdim);padding:1.1rem 1.4rem;margin-bottom:2.2rem;display:flex;flex-wrap:wrap;gap:.5rem}
 .jump a{font-size:.74rem;padding:.32rem .7rem;border:1px solid var(--bdim);color:var(--mist);cursor:pointer;text-decoration:none;transition:all .18s}
 .jump a:hover{border-color:var(--gold);color:var(--gold2)}
+.jump a b{font-family:var(--mono);font-size:.62rem;color:var(--gold);margin-right:.4rem;font-weight:400}
 
 /* FRONT OFFICE LAYOUT */
 .crit{border-left:3px solid var(--gold);padding:1.6rem 0 1.6rem 2rem;margin:2.5rem 0 3.5rem}
@@ -179,6 +185,17 @@ h1.doc em{font-style:italic;color:var(--gold2)}
 }
 
 /* STRUCTURED STAGE */
+.bx-score{display:flex;align-items:center;gap:.7rem;margin-top:.55rem}
+.bx-bar{flex:1;height:5px;background:rgba(184,196,208,.12);position:relative;min-width:70px}
+.bx-fill{height:100%;position:absolute;left:0;top:0}
+.bx-num{font-family:var(--mono);font-size:.66rem;color:var(--mist);white-space:nowrap}
+.bx.s-low{border-left:2px solid var(--red)}
+.bx.s-mid{border-left:2px solid var(--gold2)}
+.bx.s-high{border-left:2px solid var(--green)}
+.bx-head{display:flex;flex-direction:column;flex:1}
+.avg{display:flex;align-items:baseline;gap:.8rem;margin:1.2rem 0 .4rem}
+.avg-v{font-family:var(--serif);font-size:2.1rem;color:var(--gold2);line-height:1}
+.avg-l{font-family:var(--mono);font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--slate)}
 .bxgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:2px;background:var(--bdim);margin:1.4rem 0}
 .bx{background:var(--navy3);border:none}
 .bx>summary{cursor:pointer;padding:1rem 1.2rem;list-style:none;display:flex;justify-content:space-between;align-items:flex-start;gap:.8rem}
@@ -496,7 +513,12 @@ function drawSpider(sc){
   return '<div class="chart wide"><div class="ctitle">Operating model — current against target</div>'+
     '<div class="spider-wrap"><svg width="330" height="250" viewBox="0 0 250 250">'+rings+spokes+
     '<polygon points="'+poly(d=>d.target||5)+'" fill="rgba(232,180,84,.07)" stroke="rgba(232,180,84,.45)" stroke-width="1.5" stroke-dasharray="4 3"/>'+
-    '<polygon points="'+poly(d=>d.current)+'" fill="rgba(201,146,42,.22)" stroke="#E8B454" stroke-width="2"/>'+
+    (function(){
+      const avg=dims.reduce((a,d)=>a+d.current,0)/dims.length;
+      const col = avg<=2.2?'#E07A5F':avg<=3.5?'#E8B454':'#7FB069';
+      const fill = avg<=2.2?'rgba(224,122,95,.18)':avg<=3.5?'rgba(201,146,42,.22)':'rgba(127,176,105,.18)';
+      return '<polygon points="'+poly(d=>d.current)+'" fill="'+fill+'" stroke="'+col+'" stroke-width="2"/>';
+    })()+
     labels+'</svg>'+
     '<div style="flex:1;min-width:220px">'+(sc.note?'<p style="font-size:.85rem;line-height:1.7">'+esc(sc.note)+'</p>':'')+
     '<div class="legend"><span><i style="background:#E8B454"></i>Current</span><span><i style="background:rgba(232,180,84,.35)"></i>Target</span></div>'+
@@ -661,14 +683,14 @@ const STAGE_LAYOUT = {
       { n:2,  title:'Executive Summary',              subs:['Biggest Opportunity','Recommended Focus'] },
       { n:3,  title:'Business Model Canvas',          model:'bmc' },
       { n:4,  title:'Commercial Health',              boxes:['Lead Generation','Sales Process','Conversion','Pricing','Retention','Revenue Quality'] },
-      { n:5,  title:'Financial Health',               subs:['Key Financial Risks','Financial Health Rating'] },
-      { n:6,  title:'Operational Capability' },
+      { n:5,  title:'Financial Health',               boxes:['Revenue trend','Gross margin','Cost structure','Cash position'], subs:['Key financial risks','Financial health rating'] },
+      { n:6,  title:'Operational Capability',         boxes:['Delivery','Process Maturity','Technology','Capacity','Quality'] },
       { n:7,  title:'People & Organisation',          subs:['Capability Gaps','Culture','People Health Rating'] },
       { n:8,  title:'SWOT Analysis',                  boxes:['Strengths','Weaknesses','Opportunities','Threats'] },
       { n:9,  title:'Critical Constraint' },
       { n:10, title:'Top 10 Priority Recommendations' },
-      { n:11, title:'TOM+ Current State Baseline',    subs:['Top 3'], model:'tom_plus' },
-      { n:12, title:'Valuation Multiplier Snapshot',  subs:['Rating','Top 3 Improvements'] },
+      { n:11, title:'TOM+ Current State Baseline',    subs:['Top 3','Top three','TOM priorities'], model:'tom_plus' },
+      { n:12, title:'Valuation Multiplier Snapshot',  subs:['Rating','Top 3 improvements','Top three improvements'] },
       { n:13, title:'External Due Diligence' }
     ]
   }
@@ -743,9 +765,24 @@ function renderSection(group, cfg){
       else leftover.push(b);
     });
     if(boxes.length){
-      inner += '<div class="bxgrid">' + boxes.map(bx =>
-        '<details class="bx"><summary><span class="bx-t">'+esc(bx.label)+'</span><span class="sec-i">+</span></summary>'+
-        '<div class="bx-b">'+bx.body+'</div></details>').join('') + '</div>';
+      inner += '<div class="bxgrid">' + boxes.map(bx => {
+        // A score in the heading ("4.1 LEAD GENERATION — 2/5") becomes a
+        // bar on the closed box, so the shape of the section is readable
+        // before anything is opened.
+        const sm = bx.label.match(/(\d(?:\.\d)?)\s*\/\s*(\d)/);
+        let cls='', bar='';
+        if(sm){
+          const v=parseFloat(sm[1]), max=parseFloat(sm[2])||5;
+          const pct=Math.max(4,(v/max)*100);
+          const col = v/max<=0.45?'var(--red)':v/max<=0.7?'var(--gold2)':'var(--green)';
+          cls = v/max<=0.45?' s-low':v/max<=0.7?' s-mid':' s-high';
+          bar = '<div class="bx-score"><div class="bx-bar"><div class="bx-fill" style="width:'+pct+'%;background:'+col+'"></div></div>'+
+                '<span class="bx-num" style="color:'+col+'">'+sm[1]+'/'+sm[2]+'</span></div>';
+        }
+        const title = bx.label.replace(/^\d+(\.\d+)?\s*/,'').replace(/\s*[—-]\s*\d(\.\d)?\s*\/\s*\d\s*$/,'');
+        return '<details class="bx'+cls+'"><summary><span class="bx-head"><span class="bx-t">'+esc(title)+'</span>'+bar+'</span><span class="sec-i">+</span></summary>'+
+        '<div class="bx-b">'+bx.body+'</div></details>';
+      }).join('') + '</div>';
     }
     leftover.forEach(b => { inner += '<h4>'+esc(b.title)+'</h4>' + b.body; });
     if(cfg.model) inner += modelLink(cfg.model);
@@ -797,15 +834,31 @@ function renderStructuredStage(stageNum, html){
 }
 
 
+// Only the numbered sections appear in the jump strip. Sub-headings
+// are reachable inside their section and would swamp the navigation.
 function jumpNav(html, n){
-  const re=/<h([23])>(.*?)<\/h\1>/g; let m, items=[], i=0;
+  const re=/<h([1-4])>([\s\S]*?)<\/h\1>/g; let m, items=[];
   while((m=re.exec(html))!==null){
     const txt=m[2].replace(/<[^>]+>/g,'').trim();
-    if(txt.length>1 && txt.length<70) items.push({txt, id:'s'+n+'h'+(i++)});
+    if(/^SECTION\s+\d+/i.test(txt) || /^STAGE\s+\d+/i.test(txt)) items.push(txt);
   }
   if(items.length<3) return '';
-  return '<div class="jump">'+items.slice(0,14).map((it,ix)=>
-    '<a onclick="jumpTo('+n+','+ix+')">'+esc(it.txt)+'</a>').join('')+'</div>';
+  return '<div class="jump">'+items.map(t=>{
+    const num=(t.match(/SECTION\s+(\d+)/i)||[])[1];
+    const label=t.replace(/^SECTION\s+\d+\s*[:—-]\s*/i,'');
+    return '<a onclick="openSection('+n+','+num+')"><b>'+num+'</b> '+esc(label)+'</a>';
+  }).join('')+'</div>';
+}
+
+function openSection(stage, num){
+  const wrap=document.getElementById('grp-'+stage);
+  if(!wrap) return;
+  const all=[...wrap.children].filter(x=>x.tagName==='DETAILS');
+  const target=all.find(d=>{
+    const t=d.querySelector('.sec-t');
+    return t && new RegExp('^Section '+num+':').test(t.textContent.trim());
+  });
+  if(target){ target.open=true; target.scrollIntoView({behavior:'smooth',block:'start'}); }
 }
 
 function jumpTo(stage,index){
@@ -901,8 +954,10 @@ function mvScored(p){
     const max = i.max||5;
     const w = typeof i.score==='number' ? (i.score/max)*100 : 0;
     const t = typeof i.target==='number' ? (i.target/max)*100 : null;
+    const ratio = typeof i.score==='number' ? i.score/max : 0;
+    const scol = ratio<=0.45?'linear-gradient(90deg,#b35c45,#E07A5F)':ratio<=0.7?'linear-gradient(90deg,var(--gold),var(--gold2))':'linear-gradient(90deg,#5f8f52,#7FB069)';
     return '<div><div class="mv-srow"><span style="color:var(--white)">'+mvEsc(i.label)+'</span>'+
-      '<div class="mv-strack"><div class="mv-sfill" style="width:'+w+'%"></div>'+
+      '<div class="mv-strack"><div class="mv-sfill" style="width:'+w+'%;background:'+scol+'"></div>'+
       (t!==null?'<div class="mv-starget" style="left:'+t+'%"></div>':'')+'</div>'+
       '<span class="mv-sv">'+(typeof i.score==='number'?i.score+'/'+max:'—')+'</span></div>'+
       (i.note?'<div style="font-size:.74rem;color:var(--slate);margin:.25rem 0 .5rem;line-height:1.5">'+mvEsc(i.note)+'</div>':'')+
@@ -1066,7 +1121,7 @@ function render(){
       '<span class="blk-s">Click any figure for the working behind it.</span></div>';
     html += '<div class="mgrid">'+sum.metrics.map(m=>{
       const st = m.stage;
-      return '<div class="mcard'+(st?' clickable" onclick="go('+st+')':'"')+'>'+
+      return '<div class="mcard '+(m.tone==='good'?'good':m.tone==='bad'?'bad':'')+(st?' clickable" onclick="go('+st+')':'"')+'>'+
       '<div class="mval '+(m.tone==='bad'?'bad':m.tone==='good'?'good':'')+'">'+esc(m.value)+'</div>'+
       '<div class="mlab">'+esc(m.label)+'</div>'+(m.note?'<div class="mnote">'+esc(m.note)+'</div>':'')+
       (st?'<span class="drill">Stage '+String(st).padStart(2,'0')+' &rarr;</span>':'')+'</div>';
