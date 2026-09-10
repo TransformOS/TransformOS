@@ -178,6 +178,22 @@ h1.doc em{font-style:italic;color:var(--gold2)}
   .op-v,.op-e{text-align:left}
 }
 
+/* STRUCTURED STAGE */
+.bxgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:2px;background:var(--bdim);margin:1.4rem 0}
+.bx{background:var(--navy3);border:none}
+.bx>summary{cursor:pointer;padding:1rem 1.2rem;list-style:none;display:flex;justify-content:space-between;align-items:flex-start;gap:.8rem}
+.bx>summary::-webkit-details-marker{display:none}
+.bx>summary:hover{background:rgba(201,146,42,.06)}
+.bx-t{font-family:var(--serif);font-size:1.05rem;color:var(--white);line-height:1.3}
+.bx-b{padding:0 1.2rem 1.2rem;font-size:.85rem}
+.bx-b p{margin-bottom:.7rem}
+.sec.sub{border-color:var(--bdim);background:var(--navy3);margin:1rem 0}
+.sec.sub>summary{padding:.75rem 1.1rem}
+.sec.sub .sec-t{font-size:.98rem;font-family:var(--sans);font-weight:400;color:var(--gold3)}
+.mlink{font-family:var(--mono);font-size:.6rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold2);border:1px solid var(--border);padding:.6rem 1rem;display:inline-block;margin-top:1.2rem;cursor:pointer;transition:all .2s}
+.mlink:hover{background:var(--gold2);color:var(--navy)}
+@media print{.bx-b,.sec.sub .sec-body{display:block!important}.mlink{display:none}}
+
 /* SECTION DISCLOSURE */
 .sec{border:1px solid var(--bdim);margin-bottom:.6rem;background:var(--navy2)}
 .sec>summary{cursor:pointer;padding:1rem 1.3rem;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:1rem;transition:background .18s}
@@ -377,6 +393,7 @@ body.present .pbar{display:flex}
   <a class="sb-link active" onclick="go(-1)"><span class="sb-num">—</span><span>Your Transformation</span></a>
   <div class="sb-sec">The Stages</div>
   <div id="nav"></div>
+  <div id="tomNav"></div>
   <div id="modelsNav"></div>
   <div class="sb-actions">
     <button class="sb-btn" onclick="window.print()">Export full report</button>
@@ -621,13 +638,164 @@ function groupSections(html, stageNum){
 }
 
 function toggleAll(n, btn){
-  const sec = document.getElementById('st'+n);
+  const sec = document.getElementById('grp-'+n) || document.getElementById('st'+n);
   if(!sec) return;
-  const items = sec.querySelectorAll('details.sec');
+  const items = sec.querySelectorAll('details');
   const open = btn.textContent.trim() === 'Expand all';
   items.forEach(d => d.open = open);
   btn.textContent = open ? 'Collapse all' : 'Expand all';
 }
+
+/* ═══════════════════════════════════════════════════════════
+   STRUCTURED STAGE RENDERING
+   The generated stages are prose. This turns them into the
+   layout a chief executive should meet: section-level
+   disclosure, with nested dropdowns and box grids where the
+   content warrants it.
+   ═══════════════════════════════════════════════════════════ */
+
+const STAGE_LAYOUT = {
+  1: {
+    lead: 'Stage 1: Business Diagnostic',
+    sections: [
+      { n:2,  title:'Executive Summary',              subs:['Biggest Opportunity','Recommended Focus'] },
+      { n:3,  title:'Business Model Canvas',          model:'bmc' },
+      { n:4,  title:'Commercial Health',              boxes:['Lead Generation','Sales Process','Conversion','Pricing','Retention','Revenue Quality'] },
+      { n:5,  title:'Financial Health',               subs:['Key Financial Risks','Financial Health Rating'] },
+      { n:6,  title:'Operational Capability' },
+      { n:7,  title:'People & Organisation',          subs:['Capability Gaps','Culture','People Health Rating'] },
+      { n:8,  title:'SWOT Analysis',                  boxes:['Strengths','Weaknesses','Opportunities','Threats'] },
+      { n:9,  title:'Critical Constraint' },
+      { n:10, title:'Top 10 Priority Recommendations' },
+      { n:11, title:'TOM+ Current State Baseline',    subs:['Top 3'], model:'tom_plus' },
+      { n:12, title:'Valuation Multiplier Snapshot',  subs:['Rating','Top 3 Improvements'] },
+      { n:13, title:'External Due Diligence' }
+    ]
+  }
+};
+
+/* Break rendered HTML into an ordered list of heading blocks. */
+function tokeniseHeadings(html){
+  const out = [];
+  const re = /<h([1-4])>([\s\S]*?)<\/h\1>/g;
+  let m, last = 0, lead = '';
+  const marks = [];
+  while((m = re.exec(html)) !== null){
+    marks.push({ level:+m[1], title:m[2].replace(/<[^>]+>/g,'').trim(), start:m.index, end:re.lastIndex });
+  }
+  if(!marks.length) return { lead: html, blocks: [] };
+  lead = html.slice(0, marks[0].start);
+  marks.forEach((mk, i) => {
+    out.push({
+      level: mk.level,
+      title: mk.title,
+      body: html.slice(mk.end, i+1 < marks.length ? marks[i+1].start : html.length)
+    });
+  });
+  return { lead, blocks: out };
+}
+
+const norm = t => t.toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+
+/* Group heading blocks under their section, using "SECTION n" in the heading. */
+function groupBySection(blocks){
+  const groups = [];
+  let current = { n: 0, title: '', blocks: [] };
+  blocks.forEach(b => {
+    const m = b.title.match(/SECTION\s+(\d+)/i);
+    if(m){
+      if(current.blocks.length || current.n) groups.push(current);
+      current = { n:+m[1], title:b.title, blocks:[{ ...b, isHead:true }] };
+    } else {
+      current.blocks.push(b);
+    }
+  });
+  if(current.blocks.length || current.n) groups.push(current);
+  return groups;
+}
+
+function detailsBlock(title, body, cls){
+  return '<details class="'+(cls||'sec')+'"><summary><span class="sec-t">'+esc(title)+
+    '</span><span class="sec-i">+</span></summary><div class="sec-body">'+body+'</div></details>';
+}
+
+function modelLink(key){
+  if(!DATA.models) return '';
+  const m = DATA.models.find(x => x.model_key === key);
+  if(!m) return '';
+  return '<div class="mlink" onclick="event.stopPropagation();go(-9);setTimeout(()=>{const t=document.getElementById(\'mv-'+key+'\');if(t)t.scrollIntoView({behavior:\'smooth\'})},250)">'+
+    'View the '+esc(m.model_name)+' &rarr;</div>';
+}
+
+/* Render one section according to its configuration. */
+function renderSection(group, cfg){
+  const head = group.blocks.find(b => b.isHead);
+  const rest = group.blocks.filter(b => !b.isHead);
+  let inner = head ? head.body : '';
+
+  // ── box grid
+  if(cfg && cfg.boxes){
+    const boxes = [];
+    const leftover = [];
+    rest.forEach(b => {
+      const hit = cfg.boxes.find(x => norm(b.title).includes(norm(x)));
+      if(hit) boxes.push({ label:b.title, body:b.body });
+      else leftover.push(b);
+    });
+    if(boxes.length){
+      inner += '<div class="bxgrid">' + boxes.map(bx =>
+        '<details class="bx"><summary><span class="bx-t">'+esc(bx.label)+'</span><span class="sec-i">+</span></summary>'+
+        '<div class="bx-b">'+bx.body+'</div></details>').join('') + '</div>';
+    }
+    leftover.forEach(b => { inner += '<h4>'+esc(b.title)+'</h4>' + b.body; });
+    if(cfg.model) inner += modelLink(cfg.model);
+    return inner;
+  }
+
+  // ── nested dropdowns for named subsections, everything else inline
+  rest.forEach(b => {
+    const isSub = cfg && cfg.subs && cfg.subs.some(x => norm(b.title).includes(norm(x)));
+    if(isSub) inner += detailsBlock(b.title, b.body, 'sec sub');
+    else inner += '<h4>'+esc(b.title)+'</h4>' + b.body;
+  });
+
+  if(cfg && cfg.model) inner += modelLink(cfg.model);
+  return inner;
+}
+
+function renderStructuredStage(stageNum, html){
+  const layout = STAGE_LAYOUT[stageNum];
+  if(!layout) return groupSections(html, stageNum);
+
+  const { lead, blocks } = tokeniseHeadings(html);
+  if(!blocks.length) return html;
+
+  const groups = groupBySection(blocks);
+  let out = '<button class="expand-all" onclick="toggleAll('+stageNum+',this)">Expand all</button>';
+
+  // Everything before SECTION 2 sits under the opening banner.
+  const opening = groups.filter(g => g.n < 2);
+  if(opening.length || lead.trim()){
+    let body = lead;
+    opening.forEach(g => g.blocks.forEach(b => {
+      body += (b.isHead ? '<h4>'+esc(b.title)+'</h4>' : '<h4>'+esc(b.title)+'</h4>') + b.body;
+    }));
+    out += detailsBlock(layout.lead, body);
+  }
+
+  layout.sections.forEach(cfg => {
+    const g = groups.find(x => x.n === cfg.n);
+    if(!g) return;
+    out += detailsBlock('Section '+cfg.n+': '+cfg.title, renderSection(g, cfg));
+  });
+
+  // Any section the layout does not name still appears, so nothing is lost.
+  groups.filter(g => g.n >= 2 && !layout.sections.some(c => c.n === g.n))
+        .forEach(g => out += detailsBlock(g.title, renderSection(g, null)));
+
+  return '<div id="grp-'+stageNum+'">'+out+'</div>';
+}
+
 
 function jumpNav(html, n){
   const re=/<h([23])>(.*?)<\/h\1>/g; let m, items=[], i=0;
@@ -793,7 +961,7 @@ function renderModelVisual(m){
   }
   if(!body) body = '<div class="mv-note">This model returned no structured output. Re-run it to rebuild the visual.</div>';
 
-  return '<div class="mv"><div class="mv-head">'+mvEsc(m.model_name)+'</div>'+
+  return '<div class="mv" id="mv-'+mvEsc(m.model_key||'')+'"><div class="mv-head">'+mvEsc(m.model_name)+'</div>'+
     (p.headline?'<div class="mv-hl">'+mvEsc(p.headline)+'</div>':'')+
     body +
     (p.confidence?'<div class="mv-conf">'+mvEsc(p.confidence)+'</div>':'')+
@@ -945,8 +1113,31 @@ function render(){
           '<div><span class="ssum-mv">'+esc(m.value)+'</span><span class="ssum-ml">'+esc(m.label)+'</span></div>').join('')+'</div>':'')+
         '</div>' : '')+
       jumpNav(bodyHtml, st.stage_number)+
-      '<div class="output">'+groupSections(bodyHtml, st.stage_number)+'</div></section>';
+      '<div class="output">'+renderStructuredStage(st.stage_number, bodyHtml)+'</div></section>';
   }).join('');
+
+  // ── TOM+ gets its own section: it sits alongside the business case
+  // and the financial model as a board-level artefact, not a framework.
+  const tom = (DATA.models||[]).find(m=>m.model_key==='tom_plus');
+  const tomSection = DATA.stages.find(x=>x.stage_number===1);
+  if(tom || tomSection){
+    let tomBody = '';
+    if(tom) tomBody += renderModelVisual(tom) +
+      (tom.narrative ? '<details class="sec" style="margin:-1rem 0 2rem"><summary><span class="sec-t">Interpretation</span><span class="sec-i">+</span></summary><div class="sec-body"><div class="output">'+md(tom.narrative)+'</div></div></details>' : '');
+    if(tomSection){
+      const tk = tokeniseHeadings(md(tomSection.output_content||''));
+      const g = groupBySection(tk.blocks).find(x=>x.n===11);
+      if(g) tomBody += '<div class="output">'+renderSection(g,{n:11,title:'TOM+',subs:['Top 3']})+'</div>';
+    }
+    if(tomBody){
+      el('tomNav').innerHTML='<a class="sb-link" onclick="go(-8)"><span class="sb-num">09</span><span>TOM+ Operating Model</span></a>';
+      html += '<section class="stage" id="st-8">'+
+        '<div class="stage-head">Stage 09</div>'+
+        '<div class="stage-title">Target Operating Model</div>'+
+        '<p class="lede">Eleven dimensions, current against target. This is the architecture the roadmap, the business case and the financial model all rest on.</p>'+
+        tomBody+'</section>';
+    }
+  }
 
   if(DATA.models && DATA.models.length){
     el('modelsNav').innerHTML='<div class="sb-sec">Models</div>'+
@@ -970,7 +1161,7 @@ function render(){
 function go(n){
   CUR=n;
   document.querySelectorAll('.stage').forEach(s=>s.classList.remove('on'));
-  const target=document.getElementById(n===-1?'st-1':n===-9?'st-9':'st'+n);
+  const target=document.getElementById(n===-1?'st-1':n===-9?'st-9':n===-8?'st-8':'st'+n);
   if(target)target.classList.add('on');
   document.querySelectorAll('.sb-link').forEach((l,i)=>l.classList.toggle('active', i===(n===-1?0:n)));
   document.querySelector('.sidebar').classList.remove('open');
