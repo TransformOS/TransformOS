@@ -27,12 +27,12 @@ const anthropic = new Anthropic({
 // full token budget, and the second pass receives the first as context
 // so the document stays continuous.
 const SPLIT_AT = {
-  1: 'SECTION 8',
-  3: 'SECTION 4',   // quick wins and process priorities were being cut short
-  4: 'SECTION 2',   // the five deep-dives were being cut short
-  6: 'SECTION 5',
-  7: 'SECTION 5',
-  8: 'SECTION 6'
+  1: ['SECTION 6','SECTION 11'],
+  3: ['SECTION 4'],
+  4: ['SECTION 2','SECTION 5'],
+  6: ['SECTION 4','SECTION 7'],
+  7: ['SECTION 4','SECTION 7'],   // nine sections needs three passes
+  8: ['SECTION 4','SECTION 8']
 };
 
 const STAGE_CONFIG = {
@@ -540,32 +540,42 @@ ADDITIONAL CONTEXT: ${company.context || 'None provided'}`;
     let message;
     let totalIn = 0, totalOut = 0;
 
-    const splitMarker = SPLIT_AT[stage_number];
+    const marks = SPLIT_AT[stage_number];
 
-    if (splitMarker) {
-      // ── PASS 1
-      const firstInstruction = basePrompt +
-        `\n\nIMPORTANT — THIS IS PART ONE OF TWO. Write everything up to but NOT including ${splitMarker}. Complete every section in that range in full depth. Do not summarise, do not skip ahead, and do not write a closing statement — the document continues in part two.`;
-      const first = await callModel(firstInstruction, null);
-      message = first.msg;
-      totalIn += first.msg.usage?.input_tokens || 0;
-      totalOut += first.msg.usage?.output_tokens || 0;
+    if (Array.isArray(marks) && marks.length) {
+      // The stage is written in consecutive passes, each with a full
+      // token budget. Splitting removes the output ceiling rather than
+      // raising it, which is what stops a document stopping mid-table.
+      const parts = [];
+      const total = marks.length + 1;
 
-      if (!first.text.trim()) {
-        throw new Error('Part one returned no text. stop_reason=' + (first.msg.stop_reason || 'unknown') +
-          ', blocks=' + (first.msg.content || []).map(b => b.type).join('|'));
+      for (let i = 0; i <= marks.length; i++) {
+        const from = i === 0 ? null : marks[i - 1];
+        const to   = i === marks.length ? null : marks[i];
+
+        let scope;
+        if (from === null)      scope = `Write everything up to but NOT including ${to}.`;
+        else if (to === null)   scope = `Write ${from} onwards to the end of the stage.`;
+        else                    scope = `Write ${from} up to but NOT including ${to}.`;
+
+        const instruction = basePrompt +
+          `\n\nIMPORTANT — THIS IS PART ${i + 1} OF ${total}. ${scope} Complete every section in that range in full depth. Do not summarise, do not skip ahead, and do not write a closing statement unless this is the final part.`;
+
+        const prior = i === 0 ? null : parts.join('\n\n').slice(-16000);
+        const res = await callModel(instruction, prior);
+
+        totalIn  += res.msg.usage?.input_tokens  || 0;
+        totalOut += res.msg.usage?.output_tokens || 0;
+        message = res.msg;
+
+        if (!res.text.trim() && i === 0) {
+          throw new Error('Part one returned no text. stop_reason=' + (res.msg.stop_reason || 'unknown') +
+            ', blocks=' + (res.msg.content || []).map(b => b.type).join('|'));
+        }
+        if (res.text.trim()) parts.push(res.text.trim());
       }
 
-      // ── PASS 2
-      const tail = first.text.slice(-16000);
-      const secondInstruction = basePrompt +
-        `\n\nIMPORTANT — THIS IS PART TWO OF TWO. Part one covered everything before ${splitMarker}. Write ${splitMarker} onwards, completing every remaining section in full depth. Do not repeat earlier sections and do not re-introduce the document.`;
-      const second = await callModel(secondInstruction, tail);
-      totalIn += second.msg.usage?.input_tokens || 0;
-      totalOut += second.msg.usage?.output_tokens || 0;
-
-      output = first.text.trim() + '\n\n' + second.text.trim();
-      if (second.msg.stop_reason === 'max_tokens') message = second.msg;
+      output = parts.join('\n\n');
 
     } else {
       const only = await callModel(basePrompt, null);
@@ -590,7 +600,7 @@ ADDITIONAL CONTEXT: ${company.context || 'None provided'}`;
     }
 
     if (message.stop_reason === 'max_tokens') {
-      output += '\n\n---\n\n*This stage reached its output limit and may be incomplete. Regenerate to produce a full version.*';
+      output += '\n\n---\n\n## OPERATOR NOTES\n\nThis stage reached its output limit and may be incomplete. Regenerate to produce a full version.';
     }
 
     await supabase.from('transformation_stages')
