@@ -1853,7 +1853,7 @@ function render(){
         (meta.headline?'<div class="ssum-h">'+esc(meta.headline)+'</div>':'')+
         (meta.summary?'<div class="ssum-p">'+esc(meta.summary)+'</div>':'')+
         '</div>' + stageMetricCards(meta.metrics) : '')+
-      jumpNav(bodyHtml, st.stage_number)+
+      ((STAGE_LAYOUT[st.stage_number] && STAGE_LAYOUT[st.stage_number].gallery) ? '' : jumpNav(bodyHtml, st.stage_number))+
       '<div class="output">'+renderStructuredStage(st.stage_number, bodyHtml)+'</div></section>';
   }).join('');
 
