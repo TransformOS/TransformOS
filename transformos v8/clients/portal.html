@@ -799,8 +799,8 @@ const STAGE_LAYOUT = {
       { n:3, title:'The Growth Thesis',         boxes:[/^bet\s*\d/i,/^strategic bet\s*\d/i] },
       { n:4, title:'Strategic Pillars',         boxes:[/^pillar\s*\d/i] },
       { n:5, title:'Milestone Map',             boxes:[/\b20(2[6-9]|30)\b/] },
-      { n:6, title:'Critical Success Factors' },
-      { n:7, title:'Strategic Risks',           subs:['Mitigation'] },
+      { n:6, title:'Critical Success Factors',   boxAll:true },
+      { n:7, title:'Strategic Risks',           boxAll:true },
       { n:8, title:'The Leadership Challenge' },
       { n:9, title:'Why This Might Not Happen' }
     ]
@@ -829,7 +829,7 @@ const STAGE_LAYOUT = {
       { n:3, title:'Ansoff Matrix',              model:'ansoff' },
       { n:4, title:'Opportunity Prioritisation' },
       { n:5, title:'Go-To-Market',               subs:['90-day launch','Pricing'] },
-      { n:6, title:'Strategic Partnerships' },
+      { n:6, title:'Strategic Partnerships',     boxAll:true },
       { n:7, title:'The Conviction Bet',         subs:['The case against'] }
     ]
   },
@@ -853,8 +853,8 @@ const STAGE_LAYOUT = {
     visuals: ['trajectory'],
     models: ['impact_effort','okrs','balanced_sc'],
     sections: [
-      { n:1, title:'Growth Thesis',                  boxes:[/driver\s*\d/i,/^growth driver/i] },
-      { n:2, title:'Strategic Priorities',           boxes:[/^priority\s*\d/i,/^strategic priority/i] },
+      { n:1, title:'Growth Thesis',                  boxes:[/driver/i,/^bet/i] },
+      { n:2, title:'Strategic Priorities',           boxAll:true },
       { n:3, title:'The 36-Month Roadmap',           boxes:[/^(year|phase)\s*\d/i,/^months?\s*\d/i] },
       { n:4, title:'Initiative Register' },
       { n:5, title:'Resource Plan',                  subs:['Headcount','Investment'] },
@@ -871,7 +871,7 @@ const STAGE_LAYOUT = {
       { n:2, title:'Strategic Context',        subs:['Cost of inaction'] },
       { n:3, title:'Investment Required',      boxes:['People','Technology','Operations','Commercial','Governance'] },
       { n:4, title:'Financial Projections',    boxes:['Base case','Upside case','Downside case'] },
-      { n:5, title:'Benefits Realisation' },
+      { n:5, title:'Benefits Realisation',     boxAll:true },
       { n:6, title:'Risk Register' },
       { n:7, title:'Sensitivity Analysis' },
       { n:8, title:'What Would Make This Wrong' },
@@ -1368,14 +1368,14 @@ function renderSection(group, cfg){
   let inner = head ? head.body : '';
 
   // ── box grid
-  if(cfg && cfg.boxes){
+  if(cfg && (cfg.boxes || cfg.boxAll)){
     const boxes = [];
     const leftover = [];
     rest.forEach(b => {
       // Headings arrive numbered ("2.1 Opportunity 1 — ..."), so the
       // numbering is removed before the pattern is tested.
       const bare = b.title.replace(/^\s*\d+(\.\d+)*\s*[).:-]?\s*/,'');
-      const hit = cfg.boxes.find(x =>
+      const hit = cfg.boxAll ? true : cfg.boxes.find(x =>
         x instanceof RegExp ? (x.test(bare) || x.test(b.title))
                             : norm(bare).includes(norm(x)));
       if(hit) boxes.push({ label:b.title, body:b.body });
