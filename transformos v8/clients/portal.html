@@ -197,6 +197,17 @@ h1.doc em{font-style:italic;color:var(--gold2)}
 .output h4 .ico{margin-right:.5rem;width:14px;height:14px}
 .sb-link .ico,.sb-report .ico{color:var(--gold)}
 
+/* STAGE METRIC CARDS */
+.smgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:2px;background:var(--bdim);margin:1.4rem 0 0}
+.sm{background:var(--navy3);padding:1.2rem 1.3rem 1.3rem}
+.sm-h{display:flex;align-items:center;gap:.5rem;margin-bottom:.85rem}
+.sm-l{font-family:var(--mono);font-size:.55rem;letter-spacing:.13em;text-transform:uppercase;color:var(--slate);line-height:1.4}
+.sm-v{font-family:var(--serif);font-size:1.95rem;font-weight:300;color:var(--gold2);line-height:1;display:flex;align-items:baseline;gap:.2rem}
+.sm-max{font-size:.9rem;color:var(--slate)}
+.sm-bar{height:4px;background:rgba(184,196,208,.12);margin-top:.8rem}
+.sm-fill{height:100%}
+.sm-n{font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);margin-top:.6rem;line-height:1.4}
+
 /* FINANCIAL DASHBOARD */
 .fgrid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:2px;background:var(--bdim);margin:1.8rem 0}
 .fcard{background:var(--navy2);padding:1.4rem 1.5rem}
@@ -1125,6 +1136,35 @@ function renderFinancials(f){
   return out;
 }
 
+// The metrics that head each stage. A score renders as a gauge with a
+// bar; anything else renders as a figure. Same treatment on every
+// stage so the reader learns the pattern once.
+function stageMetricCards(metrics){
+  if(!Array.isArray(metrics) || !metrics.length) return '';
+  return '<div class="smgrid">'+metrics.map(m=>{
+    const raw = String(m.value==null?'':m.value);
+    const sm = raw.match(/^\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/);
+
+    if(sm){
+      const v=parseFloat(sm[1]), max=parseFloat(sm[2])||5, ratio=v/max;
+      const col = ratio<=0.5?'var(--red)':ratio<=0.75?'var(--gold2)':'var(--green)';
+      const verdict = ratio<=0.5?'Weak':ratio<=0.75?'Adequate':'Strong';
+      const tail = raw.replace(sm[0],'').trim();
+      return '<div class="sm"><div class="sm-h">'+iconFor(m.label,15)+'<span class="sm-l">'+esc(m.label)+'</span></div>'+
+        '<div class="sm-v" style="color:'+col+'">'+sm[1]+'<span class="sm-max">/'+sm[2]+'</span></div>'+
+        '<div class="sm-bar"><div class="sm-fill" style="width:'+Math.max(4,ratio*100)+'%;background:'+col+'"></div></div>'+
+        '<div class="sm-n" style="color:'+col+'">'+verdict+(tail?' &middot; '+esc(tail):'')+'</div></div>';
+    }
+
+    const num = raw.match(/^([£$€]?\s*[\d.,]+\s*[a-z%]{0,3})(.*)$/i);
+    const head = num ? num[1].trim() : raw;
+    const tail = num && num[2] ? num[2].trim() : '';
+    return '<div class="sm"><div class="sm-h">'+iconFor(m.label,15)+'<span class="sm-l">'+esc(m.label)+'</span></div>'+
+      '<div class="sm-v">'+esc(head)+'</div>'+
+      (tail?'<div class="sm-n">'+esc(tail)+'</div>':'<div class="sm-n">&nbsp;</div>')+'</div>';
+  }).join('')+'</div>';
+}
+
 function tokeniseHeadings(html){
   const out = [];
   const re = /<h([1-4])>([\s\S]*?)<\/h\1>/g;
@@ -1216,8 +1256,8 @@ function renderSection(group, cfg){
         if(useCards && sm){
           const v = parseFloat(sm[1]), max = parseFloat(sm[2]) || 5;
           const ratio = v/max;
-          const col = ratio<=0.45 ? 'var(--red)' : ratio<=0.7 ? 'var(--gold2)' : 'var(--green)';
-          const verdict = ratio<=0.45 ? 'Weak' : ratio<=0.7 ? 'Adequate' : 'Strong';
+          const col = ratio<=0.5 ? 'var(--red)' : ratio<=0.75 ? 'var(--gold2)' : 'var(--green)';
+          const verdict = ratio<=0.5 ? 'Weak' : ratio<=0.75 ? 'Adequate' : 'Strong';
           const filled = Math.round(ratio*max);
           let spark = '';
           for(let i=1;i<=max;i++) spark += '<i class="'+(i<=filled?'on':'')+'" style="height:'+(30+i*14)+'%"></i>';
@@ -1234,8 +1274,8 @@ function renderSection(group, cfg){
         if(sm){
           const v=parseFloat(sm[1]), max=parseFloat(sm[2])||5;
           const pct=Math.max(4,(v/max)*100);
-          const col = v/max<=0.45?'var(--red)':v/max<=0.7?'var(--gold2)':'var(--green)';
-          cls = v/max<=0.45?' s-low':v/max<=0.7?' s-mid':' s-high';
+          const col = v/max<=0.5?'var(--red)':v/max<=0.75?'var(--gold2)':'var(--green)';
+          cls = v/max<=0.5?' s-low':v/max<=0.75?' s-mid':' s-high';
           bar = '<div class="bx-score"><div class="bx-bar"><div class="bx-fill" style="width:'+pct+'%;background:'+col+'"></div></div>'+
                 '<span class="bx-num" style="color:'+col+'">'+sm[1]+'/'+sm[2]+'</span></div>';
         }
@@ -1448,7 +1488,7 @@ function mvScored(p){
     const w = typeof i.score==='number' ? (i.score/max)*100 : 0;
     const t = typeof i.target==='number' ? (i.target/max)*100 : null;
     const ratio = typeof i.score==='number' ? i.score/max : 0;
-    const scol = ratio<=0.45?'linear-gradient(90deg,#b35c45,#E07A5F)':ratio<=0.7?'linear-gradient(90deg,var(--gold),var(--gold2))':'linear-gradient(90deg,#5f8f52,#7FB069)';
+    const scol = ratio<=0.5?'linear-gradient(90deg,#b35c45,#E07A5F)':ratio<=0.75?'linear-gradient(90deg,var(--gold),var(--gold2))':'linear-gradient(90deg,#5f8f52,#7FB069)';
     return '<div><div class="mv-srow"><span style="color:var(--white)">'+mvEsc(i.label)+'</span>'+
       '<div class="mv-strack"><div class="mv-sfill" style="width:'+w+'%;background:'+scol+'"></div>'+
       (t!==null?'<div class="mv-starget" style="left:'+t+'%"></div>':'')+'</div>'+
@@ -1659,9 +1699,7 @@ function render(){
       (meta ? '<div class="ssum">'+
         (meta.headline?'<div class="ssum-h">'+esc(meta.headline)+'</div>':'')+
         (meta.summary?'<div class="ssum-p">'+esc(meta.summary)+'</div>':'')+
-        (Array.isArray(meta.metrics)&&meta.metrics.length?'<div class="ssum-m">'+meta.metrics.map(m=>
-          '<div><span class="ssum-mv">'+esc(m.value)+'</span><span class="ssum-ml">'+esc(m.label)+'</span></div>').join('')+'</div>':'')+
-        '</div>' : '')+
+        '</div>' + stageMetricCards(meta.metrics) : '')+
       jumpNav(bodyHtml, st.stage_number)+
       '<div class="output">'+renderStructuredStage(st.stage_number, bodyHtml)+'</div></section>';
   }).join('');
@@ -1695,7 +1733,7 @@ function render(){
         parts.push({ title:'Where The Gaps Are', body:
           '<div class="bxgrid">'+gaps.map(gp=>{
             const max=gp.max||5, ratio=gp.score/max;
-            const col = ratio<=0.45?'var(--red)':ratio<=0.7?'var(--gold2)':'var(--green)';
+            const col = ratio<=0.5?'var(--red)':ratio<=0.75?'var(--gold2)':'var(--green)';
             const cls = ratio<=0.45?' s-low':ratio<=0.7?' s-mid':' s-high';
             return '<details class="bx'+cls+'"><summary>'+iconFor(gp.label,16)+
               '<span class="bx-head"><span class="bx-t">'+esc(gp.label)+'</span>'+
