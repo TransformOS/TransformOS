@@ -206,14 +206,14 @@ h1.doc em{font-style:italic;color:var(--gold2)}
 .avg-l{font-family:var(--mono);font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--slate)}
 .bxgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:2px;background:var(--bdim);margin:1.4rem 0}
 .bx{background:var(--navy3);border:none}
-.bx>summary{cursor:pointer;padding:1rem 1.2rem;list-style:none;display:flex;justify-content:space-between;align-items:flex-start;gap:.8rem}
+.bx>summary{cursor:pointer;padding:1rem 2.4rem 1rem 1.2rem;list-style:none;display:flex;justify-content:flex-start;align-items:flex-start;gap:.7rem;position:relative}
 .bx>summary::-webkit-details-marker{display:none}
 .bx>summary:hover{background:rgba(201,146,42,.06)}
 .bx-t{font-family:var(--serif);font-size:1.05rem;color:var(--white);line-height:1.3}
 .bx-b{padding:0 1.2rem 1.2rem;font-size:.85rem}
 .bx-b p{margin-bottom:.7rem}
 .sec.sub{border-color:var(--bdim);background:var(--navy3);margin:1rem 0}
-.sec.sub>summary{padding:.75rem 1.1rem}
+.sec.sub>summary{padding:.75rem 2.6rem;justify-content:center}
 .sec.sub .sec-t{font-size:.98rem;font-family:var(--sans);font-weight:400;color:var(--gold3)}
 .mlink{font-family:var(--mono);font-size:.6rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold2);border:1px solid var(--border);padding:.6rem 1rem;display:inline-block;margin-top:1.2rem;cursor:pointer;transition:all .2s}
 .mlink:hover{background:var(--gold2);color:var(--navy)}
@@ -221,11 +221,11 @@ h1.doc em{font-style:italic;color:var(--gold2)}
 
 /* SECTION DISCLOSURE */
 .sec{border:1px solid var(--bdim);margin-bottom:.6rem;background:var(--navy2)}
-.sec>summary{cursor:pointer;padding:1rem 1.3rem;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:1rem;transition:background .18s}
+.sec>summary{cursor:pointer;padding:1rem 3rem;list-style:none;display:flex;justify-content:center;align-items:center;gap:.75rem;transition:background .18s;position:relative;text-align:center}
 .sec>summary::-webkit-details-marker{display:none}
 .sec>summary:hover{background:var(--navy3)}
 .sec-t{font-family:var(--serif);font-size:1.12rem;color:var(--white);font-weight:500;line-height:1.3}
-.sec-i{font-family:var(--mono);font-size:1rem;color:var(--gold);flex-shrink:0;transition:transform .2s}
+.sec-i{font-family:var(--mono);font-size:1rem;color:var(--gold);flex-shrink:0;transition:transform .2s;position:absolute;right:1.3rem}
 .sec[open]>summary>.sec-i{transform:rotate(45deg)}
 .bx[open]>summary>.sec-i{transform:rotate(45deg)}
 .bx>summary>.sec-i{transition:transform .2s}
@@ -703,6 +703,106 @@ const STAGE_LAYOUT = {
       { n:12, title:'Valuation Multiplier Snapshot',  subs:['Rating','Top 3 improvements','Top three improvements'] },
       { n:13, title:'External Due Diligence' }
     ]
+  },
+
+  2: {
+    lead: 'Stage 2: Road to 2030',
+    sections: [
+      { n:1, title:'Strategic Baseline',        subs:['The gap','Burning platform'] },
+      { n:2, title:'The 2030 Ambition',         subs:['Revenue target','Market position'] },
+      { n:3, title:'The Growth Thesis',         subs:['Strategic bets','Key assumptions'] },
+      { n:4, title:'Strategic Pillars',         boxes:['Pillar 1','Pillar 2','Pillar 3','Pillar 4'] },
+      { n:5, title:'Milestone Map',             boxes:['2026','2027','2028','2029','2030'] },
+      { n:6, title:'Critical Success Factors' },
+      { n:7, title:'Strategic Risks',           subs:['Mitigation'] },
+      { n:8, title:'The Leadership Challenge' },
+      { n:9, title:'Why This Might Not Happen' }
+    ]
+  },
+
+  3: {
+    lead: 'Stage 3: Operational Excellence',
+    sections: [
+      { n:1, title:'Operational Health Summary',    subs:['Strengths','Weaknesses'] },
+      { n:2, title:'Quick Wins' },
+      { n:3, title:'Process Improvement Priorities' },
+      { n:4, title:'Technology & Systems Gaps',     subs:['Recommendations'] },
+      { n:5, title:'Capacity & Resource Analysis',  subs:['Bottlenecks'] },
+      { n:6, title:'Operational Roadmap',           boxes:['Month 1','Month 4','Month 7','Month 10'] },
+      { n:7, title:'Operational KPI Dashboard' }
+    ]
+  },
+
+  4: {
+    lead: 'Stage 4: Strategic Opportunities',
+    sections: [
+      { n:0, title:'Market Research',            model:'competitor' },
+      { n:1, title:'Opportunity Landscape' },
+      { n:2, title:'Opportunity Deep-Dives',     boxes:['Opportunity 1','Opportunity 2','Opportunity 3','Opportunity 4','Opportunity 5'] },
+      { n:3, title:'Ansoff Matrix',              model:'ansoff' },
+      { n:4, title:'Opportunity Prioritisation' },
+      { n:5, title:'Go-To-Market',               subs:['90-day launch','Pricing'] },
+      { n:6, title:'Strategic Partnerships' },
+      { n:7, title:'The Conviction Bet',         subs:['The case against'] }
+    ]
+  },
+
+  5: {
+    lead: 'Stage 5: Models Master',
+    sections: [
+      { n:1, title:'Models Applied' },
+      { n:2, title:'Where The Models Converge' },
+      { n:3, title:'Where The Models Disagree' },
+      { n:4, title:'What Only Becomes Visible Across Models' },
+      { n:5, title:'The Critical Constraint' },
+      { n:6, title:'What Is Still Untested' },
+      { n:7, title:'Strategic Synthesis' }
+    ]
+  },
+
+  6: {
+    lead: 'Stage 6: Roadmap for Growth',
+    sections: [
+      { n:1, title:'Growth Thesis',                  subs:['Growth drivers'] },
+      { n:2, title:'Strategic Priorities' },
+      { n:3, title:'The 36-Month Roadmap',           boxes:['Year 1','Year 2','Year 3'] },
+      { n:4, title:'Initiative Register' },
+      { n:5, title:'Resource Plan',                  subs:['Headcount','Investment'] },
+      { n:6, title:'Revenue Model',                  subs:['Assumptions','Base','Upside','Downside'] },
+      { n:7, title:'Milestones & Metrics' },
+      { n:8, title:'The Challenge Panel',            boxes:['Capability check','Execution difficulty check','Focus check','Revenue link check'] }
+    ]
+  },
+
+  7: {
+    lead: 'Stage 7: Business Case',
+    sections: [
+      { n:1, title:'Executive Summary' },
+      { n:2, title:'Strategic Context',        subs:['Cost of inaction'] },
+      { n:3, title:'Investment Required',      boxes:['People','Technology','Operations','Commercial','Governance'] },
+      { n:4, title:'Financial Projections',    boxes:['Base case','Upside case','Downside case'] },
+      { n:5, title:'Benefits Realisation' },
+      { n:6, title:'Risk Register' },
+      { n:7, title:'Sensitivity Analysis' },
+      { n:8, title:'What Would Make This Wrong' },
+      { n:9, title:'Recommendation & Next Steps' }
+    ]
+  },
+
+  8: {
+    lead: 'Stage 8: Financial Models',
+    sections: [
+      { n:1,  title:'Financial Baseline' },
+      { n:2,  title:'Three-Year P&L Forecast',   boxes:['Base','Upside','Downside'] },
+      { n:3,  title:'Cash Flow Projections',     subs:['Working capital','Financing needs'] },
+      { n:4,  title:'Investment & Funding Plan', subs:['Funding sources','Funding gap'] },
+      { n:5,  title:'Key Assumptions' },
+      { n:6,  title:'Break-Even Analysis' },
+      { n:7,  title:'Scenario Analysis',         boxes:['Base','Upside','Downside'] },
+      { n:8,  title:'Financial KPI Dashboard' },
+      { n:9,  title:'Valuation Implications',    subs:['Value drivers','Exit multiple'] },
+      { n:10, title:'Model Assumptions & Limitations' }
+    ]
   }
 };
 
@@ -893,7 +993,8 @@ function renderStructuredStage(stageNum, html){
   let out = '<button class="expand-all" onclick="toggleAll('+stageNum+',this)">Expand all</button>';
 
   // Everything before SECTION 2 sits under the opening banner.
-  const opening = groups.filter(g => g.n < 2);
+  const named = new Set(layout.sections.map(c => c.n));
+  const opening = groups.filter(g => !named.has(g.n) && g.n < 2);
   if(opening.length || lead.trim()){
     let body = lead;
     opening.forEach(g => g.blocks.forEach(b => {
@@ -909,7 +1010,7 @@ function renderStructuredStage(stageNum, html){
   });
 
   // Any section the layout does not name still appears, so nothing is lost.
-  groups.filter(g => g.n >= 2 && !layout.sections.some(c => c.n === g.n))
+  groups.filter(g => !named.has(g.n) && g.n >= 2)
         .forEach(g => out += detailsBlock(g.title, renderSection(g, null)));
 
   return '<div id="grp-'+stageNum+'">'+out+'</div>';
@@ -1260,22 +1361,61 @@ function render(){
   // ── TOM+ gets its own section: it sits alongside the business case
   // and the financial model as a board-level artefact, not a framework.
   const tom = (DATA.models||[]).find(m=>m.model_key==='tom_plus');
-  const tomSection = DATA.stages.find(x=>x.stage_number===1);
-  if(tom || tomSection){
+  const tomStage = DATA.stages.find(x=>x.stage_number===1);
+  if(tom || tomStage){
     let tomBody = '';
-    if(tom) tomBody += renderModelVisual(tom) +
-      (tom.narrative ? '<details class="sec" style="margin:-1rem 0 2rem"><summary><span class="sec-t">Interpretation</span><span class="sec-i">+</span></summary><div class="sec-body"><div class="output">'+md(tom.narrative)+'</div></div></details>' : '');
-    if(tomSection){
-      const tk = tokeniseHeadings(md(tomSection.output_content||''));
+
+    // The spider sits above the fold — the shape of the operating model
+    // is the point, and it should be readable before anything is opened.
+    if(tom) tomBody += renderModelVisual(tom);
+
+    const parts = [];
+
+    if(tomStage){
+      const tk = tokeniseHeadings(md(tomStage.output_content||''));
       const g = groupBySection(tk.blocks).find(x=>x.n===11);
-      if(g) tomBody += '<div class="output">'+renderSection(g,{n:11,title:'TOM+',subs:['Top 3']})+'</div>';
+      if(g) parts.push({ title:'Current State Baseline', body: renderSection(g,{n:11,title:'TOM+',subs:['Top 3','Top three','TOM priorities']}) });
     }
+
+    if(tom && tom.narrative) parts.push({ title:'What The Model Shows', body:'<div class="output">'+md(tom.narrative)+'</div>' });
+
+    if(tom && tom.payload && Array.isArray(tom.payload.items)){
+      const gaps = tom.payload.items
+        .filter(i=>typeof i.score==='number' && typeof i.target==='number' && i.target>i.score)
+        .sort((a,b)=>(b.target-b.score)-(a.target-a.score));
+      if(gaps.length){
+        parts.push({ title:'Where The Gaps Are', body:
+          '<div class="bxgrid">'+gaps.map(gp=>{
+            const max=gp.max||5, ratio=gp.score/max;
+            const col = ratio<=0.45?'var(--red)':ratio<=0.7?'var(--gold2)':'var(--green)';
+            const cls = ratio<=0.45?' s-low':ratio<=0.7?' s-mid':' s-high';
+            return '<details class="bx'+cls+'"><summary>'+iconFor(gp.label,16)+
+              '<span class="bx-head"><span class="bx-t">'+esc(gp.label)+'</span>'+
+              '<div class="bx-score"><div class="bx-bar"><div class="bx-fill" style="width:'+Math.max(4,ratio*100)+'%;background:'+col+'"></div></div>'+
+              '<span class="bx-num" style="color:'+col+'">'+gp.score+' &rarr; '+gp.target+'</span></div></span>'+
+              '<span class="sec-i">+</span></summary>'+
+              '<div class="bx-b">'+(gp.note?'<p>'+esc(gp.note)+'</p>':'<p>No detail recorded for this dimension.</p>')+
+              '<p style="color:var(--slate);font-size:.78rem">Gap of '+(gp.target-gp.score)+' point'+((gp.target-gp.score)===1?'':'s')+' against target.</p></div></details>';
+          }).join('')+'</div>' });
+      }
+    }
+
+    if(tom && tom.payload && tom.payload.confidence)
+      parts.push({ title:'Evidence & Confidence', body:'<p>'+esc(tom.payload.confidence)+'</p>' });
+
+    if(parts.length){
+      tomBody += '<div id="grp-9"><button class="expand-all" onclick="toggleAll(9,this)">Expand all</button>'+
+        parts.map(p2=>detailsBlock(p2.title, p2.body)).join('')+'</div>';
+    }
+
     if(tomBody){
-      el('tomNav').innerHTML='<a class="sb-link" onclick="go(-8)"><span class="sb-num">09</span><span>TOM+ Operating Model</span></a>';
+      el('tomNav').innerHTML='<a class="sb-link" onclick="go(-8)"><span class="sb-num">09</span>'+iconFor('target operating model',15)+'<span>TOM+ Operating Model</span></a>';
       html += '<section class="stage" id="st-8">'+
         '<div class="stage-head">Stage 09</div>'+
         '<div class="stage-title">Target Operating Model</div>'+
-        '<p class="lede">Eleven dimensions, current against target. This is the architecture the roadmap, the business case and the financial model all rest on.</p>'+
+        (tom && tom.payload && tom.payload.headline
+          ? '<div class="ssum"><div class="ssum-h">'+esc(tom.payload.headline)+'</div></div>'
+          : '<p class="lede">Eleven dimensions, current against target. This is the architecture the roadmap, the business case and the financial model all rest on.</p>')+
         tomBody+'</section>';
     }
   }
