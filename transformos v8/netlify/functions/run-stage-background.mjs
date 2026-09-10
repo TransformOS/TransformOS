@@ -29,7 +29,7 @@ const anthropic = new Anthropic({
 const SPLIT_AT = {
   1: 'SECTION 8',
   3: 'SECTION 4',   // quick wins and process priorities were being cut short
-  4: 'SECTION 4',
+  4: 'SECTION 2',   // the five deep-dives were being cut short
   6: 'SECTION 5',
   7: 'SECTION 5',
   8: 'SECTION 6'
