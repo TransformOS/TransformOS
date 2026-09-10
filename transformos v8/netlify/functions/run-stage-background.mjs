@@ -28,6 +28,7 @@ const anthropic = new Anthropic({
 // so the document stays continuous.
 const SPLIT_AT = {
   1: 'SECTION 8',
+  3: 'SECTION 4',   // quick wins and process priorities were being cut short
   4: 'SECTION 4',
   6: 'SECTION 5',
   7: 'SECTION 5',
@@ -37,7 +38,7 @@ const SPLIT_AT = {
 const STAGE_CONFIG = {
   1: { model: 'claude-opus-5',    max_tokens: 24000, research: 8 },
   2: { model: 'claude-opus-5',    max_tokens: 20000, research: 4 },
-  3: { model: 'claude-sonnet-5',  max_tokens: 20000, research: 0 },
+  3: { model: 'claude-opus-5',    max_tokens: 22000, research: 0 },
   4: { model: 'claude-opus-5',    max_tokens: 24000, research: 8 },
   5: { model: 'claude-sonnet-5',  max_tokens: 22000, research: 4 },
   6: { model: 'claude-opus-5',    max_tokens: 24000, research: 0 },
