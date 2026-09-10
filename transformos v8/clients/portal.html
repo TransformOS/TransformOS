@@ -799,7 +799,7 @@ const STAGE_LAYOUT = {
   3: {
     lead: 'Stage 3: Operational Excellence',
     sections: [
-      { n:1, title:'Operational Health Summary',    boxes:[/^(top\s*3\s*)?strength/i,/^(top\s*3\s*)?weakness/i] },
+      { n:1, title:'Operational Health Summary',    boxes:[/strength/i,/weakness/i] },
       { n:2, title:'Quick Wins',                    boxes:[/^quick win\s*\d/i] },
       { n:3, title:'Process Improvement Priorities', boxes:[/^(priority|process)\s*\d/i] },
       { n:4, title:'Technology & Systems Gaps',     subs:['Recommendations'] },
@@ -1153,8 +1153,8 @@ function stageMetricCards(metrics){
 
     if(sm){
       const v=parseFloat(sm[1]), max=parseFloat(sm[2])||5, ratio=v/max;
-      const col = ratio<=0.5?'var(--red)':ratio<=0.75?'var(--gold2)':'var(--green)';
-      const verdict = ratio<=0.5?'Weak':ratio<=0.75?'Adequate':'Strong';
+      const col = ragColour(v,max);
+      const verdict = ragVerdict(v,max);
       const tail = raw.replace(sm[0],'').trim();
       return '<div class="sm"><div class="sm-h">'+iconFor(m.label,15)+'<span class="sm-l">'+esc(m.label)+'</span></div>'+
         '<div class="sm-v" style="color:'+col+'">'+sm[1]+'<span class="sm-max">/'+sm[2]+'</span></div>'+
@@ -1174,13 +1174,31 @@ function stageMetricCards(metrics){
 // Scores inside tables get the same red / amber / green treatment as
 // the cards, and are held on one line so a figure never breaks across
 // two rows.
+// One scale used everywhere: on a five-point scale 1 and 2 are red,
+// 3 is amber, 4 and 5 are green. Expressed as a ratio so it holds for
+// any maximum.
+function ragColour(v, max){
+  const r = v/(max||5);
+  if(r < 0.5)  return 'var(--red)';     // up to and including 2 / 5
+  if(r < 0.7)  return 'var(--gold2)';   // 3 / 5
+  return 'var(--green)';                // 4 and 5 / 5
+}
+function ragVerdict(v, max){
+  const r = v/(max||5);
+  if(r < 0.5) return 'Weak';
+  if(r < 0.7) return 'Adequate';
+  return 'Strong';
+}
+
 function colourScores(html){
-  return html.replace(/<td>([^<]*?)<\/td>/g, (full, cell) => {
-    const t = cell.trim();
+  return html.replace(/<td>([\s\S]*?)<\/td>/g, (full, cell) => {
+    // The figure is often bold in the source, so strip any markup
+    // before testing whether the cell is a score.
+    const t = cell.replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').trim();
     const m = t.match(/^(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)$/);
     if(!m) return full;
-    const v = parseFloat(m[1]), max = parseFloat(m[2]) || 5, ratio = v/max;
-    const col = ratio<=0.5 ? 'var(--red)' : ratio<=0.75 ? 'var(--gold2)' : 'var(--green)';
+    const v = parseFloat(m[1]), max = parseFloat(m[2]) || 5;
+    const col = ragColour(v, max);
     return '<td class="score-cell"><span class="score-pill" style="color:'+col+';border-color:'+col+'">'+
       m[1]+'<em>/'+m[2]+'</em></span></td>';
   });
@@ -1277,8 +1295,8 @@ function renderSection(group, cfg){
         if(useCards && sm){
           const v = parseFloat(sm[1]), max = parseFloat(sm[2]) || 5;
           const ratio = v/max;
-          const col = ratio<=0.5 ? 'var(--red)' : ratio<=0.75 ? 'var(--gold2)' : 'var(--green)';
-          const verdict = ratio<=0.5 ? 'Weak' : ratio<=0.75 ? 'Adequate' : 'Strong';
+          const col = ragColour(v,max);
+          const verdict = ragVerdict(v,max);
           const filled = Math.round(ratio*max);
           let spark = '';
           for(let i=1;i<=max;i++) spark += '<i class="'+(i<=filled?'on':'')+'" style="height:'+(30+i*14)+'%"></i>';
@@ -1295,8 +1313,8 @@ function renderSection(group, cfg){
         if(sm){
           const v=parseFloat(sm[1]), max=parseFloat(sm[2])||5;
           const pct=Math.max(4,(v/max)*100);
-          const col = v/max<=0.5?'var(--red)':v/max<=0.75?'var(--gold2)':'var(--green)';
-          cls = v/max<=0.5?' s-low':v/max<=0.75?' s-mid':' s-high';
+          const col = ragColour(v,max);
+          cls = (v/max<0.5)?' s-low':(v/max<0.7)?' s-mid':' s-high';
           bar = '<div class="bx-score"><div class="bx-bar"><div class="bx-fill" style="width:'+pct+'%;background:'+col+'"></div></div>'+
                 '<span class="bx-num" style="color:'+col+'">'+sm[1]+'/'+sm[2]+'</span></div>';
         }
@@ -1509,7 +1527,7 @@ function mvScored(p){
     const w = typeof i.score==='number' ? (i.score/max)*100 : 0;
     const t = typeof i.target==='number' ? (i.target/max)*100 : null;
     const ratio = typeof i.score==='number' ? i.score/max : 0;
-    const scol = ratio<=0.5?'linear-gradient(90deg,#b35c45,#E07A5F)':ratio<=0.75?'linear-gradient(90deg,var(--gold),var(--gold2))':'linear-gradient(90deg,#5f8f52,#7FB069)';
+    const scol = ratio<0.5?'linear-gradient(90deg,#b35c45,#E07A5F)':ratio<0.7?'linear-gradient(90deg,var(--gold),var(--gold2))':'linear-gradient(90deg,#5f8f52,#7FB069)';
     return '<div><div class="mv-srow"><span style="color:var(--white)">'+mvEsc(i.label)+'</span>'+
       '<div class="mv-strack"><div class="mv-sfill" style="width:'+w+'%;background:'+scol+'"></div>'+
       (t!==null?'<div class="mv-starget" style="left:'+t+'%"></div>':'')+'</div>'+
