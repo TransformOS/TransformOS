@@ -197,6 +197,38 @@ h1.doc em{font-style:italic;color:var(--gold2)}
 .output h4 .ico{margin-right:.5rem;width:14px;height:14px}
 .sb-link .ico,.sb-report .ico{color:var(--gold)}
 
+/* FINANCIAL DASHBOARD */
+.fgrid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:2px;background:var(--bdim);margin:1.8rem 0}
+.fcard{background:var(--navy2);padding:1.4rem 1.5rem}
+.fc-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.1rem;gap:1rem}
+.fc-t{font-family:var(--mono);font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;color:var(--slate)}
+.fc-v{font-family:var(--serif);font-size:1.5rem;color:var(--gold2);line-height:1}
+.fb{display:flex;align-items:flex-end;height:130px;gap:2px}
+.fb-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.fb-bars{display:flex;align-items:flex-end;gap:2px;height:100%;width:100%;justify-content:center}
+.fb-bars i{width:14px;display:block;min-height:2px}
+.fb-lab{font-family:var(--mono);font-size:.55rem;color:var(--slate);margin-top:.5rem}
+
+/* SCORE CARDS */
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:2px;background:var(--bdim);margin:1.6rem 0}
+.card{background:var(--navy2);border:none;transition:background .2s}
+.card>summary{cursor:pointer;padding:1.3rem 1.3rem 1.2rem;list-style:none;position:relative;display:block}
+.card>summary::-webkit-details-marker{display:none}
+.card>summary:hover{background:var(--navy3)}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:.6rem;margin-bottom:.9rem}
+.card-l{font-family:var(--mono);font-size:.56rem;letter-spacing:.13em;text-transform:uppercase;color:var(--slate);line-height:1.45}
+.card-v{font-family:var(--serif);font-size:2.15rem;font-weight:300;line-height:1;display:flex;align-items:baseline;gap:.3rem}
+.card-max{font-size:.95rem;color:var(--slate)}
+.card-gap{font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;margin-top:.5rem}
+.card-spark{display:flex;gap:2px;align-items:flex-end;height:26px;margin-top:.9rem}
+.card-spark i{flex:1;background:rgba(184,196,208,.12);display:block}
+.card-spark i.on{background:currentColor}
+.card-more{font-family:var(--mono);font-size:.5rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);opacity:0;transition:opacity .2s;position:absolute;right:1.3rem;bottom:1.1rem}
+.card:hover .card-more{opacity:1}
+.card[open] .card-more{opacity:0}
+.card-b{padding:0 1.3rem 1.3rem;font-size:.84rem;border-top:1px solid var(--bdim);margin-top:0}
+.card-b>*:first-child{margin-top:1rem}
+
 /* STRUCTURED STAGE */
 .bx-score{display:flex;align-items:center;gap:.7rem;margin-top:.55rem}
 .bx-bar{flex:1;height:5px;background:rgba(184,196,208,.12);position:relative;min-width:70px}
@@ -458,6 +490,7 @@ body.present .pbar{display:flex}
 <script>
 const API='/.netlify/functions';
 let DATA=null, CUR=-1;
+const FIN={};
 const el=id=>document.getElementById(id);
 
 function md(t){
@@ -734,11 +767,11 @@ const STAGE_LAYOUT = {
     visuals: ['trajectory'],
     models: ['three_horizons','ansoff','scenarios','growth_loops'],
     sections: [
-      { n:1, title:'Strategic Baseline',        boxes:['Where we are','The gap','Burning platform','Position'] },
-      { n:2, title:'The 2030 Ambition',         boxes:['Headline','Revenue target','Market position'] },
-      { n:3, title:'The Growth Thesis',         boxes:['Bet 1','Bet 2','Bet 3','Bet 4','Strategic bet','Core strategic logic','Key assumptions'] },
-      { n:4, title:'Strategic Pillars',         boxes:['Pillar 1','Pillar 2','Pillar 3','Pillar 4'] },
-      { n:5, title:'Milestone Map',             boxes:['2026','2027','2028','2029','2030'] },
+      { n:1, title:'Strategic Baseline',        boxes:[/^fire\s*\d/i] },
+      { n:2, title:'The 2030 Ambition' },
+      { n:3, title:'The Growth Thesis',         boxes:[/^bet\s*\d/i,/^strategic bet\s*\d/i] },
+      { n:4, title:'Strategic Pillars',         boxes:[/^pillar\s*\d/i] },
+      { n:5, title:'Milestone Map',             boxes:[/\b20(2[6-9]|30)\b/] },
       { n:6, title:'Critical Success Factors' },
       { n:7, title:'Strategic Risks',           subs:['Mitigation'] },
       { n:8, title:'The Leadership Challenge' },
@@ -754,7 +787,7 @@ const STAGE_LAYOUT = {
       { n:3, title:'Process Improvement Priorities' },
       { n:4, title:'Technology & Systems Gaps',     subs:['Recommendations'] },
       { n:5, title:'Capacity & Resource Analysis',  subs:['Bottlenecks'] },
-      { n:6, title:'Operational Roadmap',           boxes:['Month 1','Month 4','Month 7','Month 10'] },
+      { n:6, title:'Operational Roadmap',           boxes:[/months?\s*\d/i,/^(q[1-4]|quarter)/i] },
       { n:7, title:'Operational KPI Dashboard' }
     ]
   },
@@ -765,7 +798,7 @@ const STAGE_LAYOUT = {
     sections: [
       { n:0, title:'Market Research',            model:'competitor' },
       { n:1, title:'Opportunity Landscape' },
-      { n:2, title:'Opportunity Deep-Dives',     boxes:['Opportunity 1','Opportunity 2','Opportunity 3','Opportunity 4','Opportunity 5'] },
+      { n:2, title:'Opportunity Deep-Dives',     boxes:[/^opportunity\s*\d/i] },
       { n:3, title:'Ansoff Matrix',              model:'ansoff' },
       { n:4, title:'Opportunity Prioritisation' },
       { n:5, title:'Go-To-Market',               subs:['90-day launch','Pricing'] },
@@ -794,7 +827,7 @@ const STAGE_LAYOUT = {
     sections: [
       { n:1, title:'Growth Thesis',                  subs:['Growth drivers'] },
       { n:2, title:'Strategic Priorities' },
-      { n:3, title:'The 36-Month Roadmap',           boxes:['Year 1','Year 2','Year 3'] },
+      { n:3, title:'The 36-Month Roadmap',           boxes:[/^(year|phase)\s*\d/i,/^months?\s*\d/i] },
       { n:4, title:'Initiative Register' },
       { n:5, title:'Resource Plan',                  subs:['Headcount','Investment'] },
       { n:6, title:'Revenue Model',                  subs:['Assumptions','Base','Upside','Downside'] },
@@ -983,13 +1016,122 @@ function stripOperatorContent(html){
   return html;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   FINANCIAL DASHBOARD
+   Stage 8 emits a structured block alongside its narrative. That
+   block draws the charts; the prose stays as the working behind
+   them.
+   ═══════════════════════════════════════════════════════════ */
+function extractFinancials(raw){
+  const m = raw.match(/```financials\s*([\s\S]*?)```/i);
+  if(!m) return { data:null, rest:raw };
+  let data = null;
+  try { data = JSON.parse(m[1].trim()); } catch(e){ data = null; }
+  return { data, rest: raw.replace(m[0], '') };
+}
+
+function fmtMoney(v, cur){
+  if(typeof v !== 'number') return '—';
+  const a = Math.abs(v);
+  if(a >= 1) return (v<0?'-':'')+cur+a.toFixed(a<10?1:0)+'m';
+  return (v<0?'-':'')+cur+Math.round(a*1000)+'k';
+}
+
+function barChart(title, labels, series, cur, note){
+  const all = series.flatMap(s=>s.values).filter(v=>typeof v==='number');
+  if(!all.length) return '';
+  const max = Math.max(...all, 0), min = Math.min(...all, 0);
+  const span = (max-min)||1;
+  const W = 100/labels.length;
+  let bars = '';
+  labels.forEach((lb,i)=>{
+    const group = series.map(sr=>{
+      const v = sr.values[i];
+      if(typeof v!=='number') return '';
+      const h = Math.max(2, (Math.abs(v)/span)*72);
+      return '<i style="height:'+h+'%;background:'+sr.colour+'" title="'+esc(sr.name+': '+fmtMoney(v,cur))+'"></i>';
+    }).join('');
+    bars += '<div class="fb-col" style="width:'+W+'%"><div class="fb-bars">'+group+'</div>'+
+            '<span class="fb-lab">'+esc(lb)+'</span></div>';
+  });
+  const legend = series.length>1 ? '<div class="legend">'+series.map(sr=>
+    '<span><i style="background:'+sr.colour+'"></i>'+esc(sr.name)+'</span>').join('')+'</div>' : '';
+  const top = series[0] ? fmtMoney(series[0].values[series[0].values.length-1], cur) : '';
+  return '<div class="fcard"><div class="fc-h"><span class="fc-t">'+esc(title)+'</span><span class="fc-v">'+top+'</span></div>'+
+    '<div class="fb">'+bars+'</div>'+legend+(note?'<div class="cnote">'+esc(note)+'</div>':'')+'</div>';
+}
+
+function lineChart(title, labels, values, cur, note){
+  const vals = values.filter(v=>typeof v==='number');
+  if(vals.length<2) return '';
+  const W=520,H=150,pad=30;
+  const max=Math.max(...vals)*1.1, min=Math.min(...vals,0)*1.1;
+  const X=i=>pad+(i*(W-pad*2)/(values.length-1));
+  const Y=v=>H-pad-((v-min)/((max-min)||1))*(H-pad*2);
+  const path=values.map((v,i)=>(i?'L':'M')+X(i)+' '+Y(v)).join(' ');
+  const area=path+' L'+X(values.length-1)+' '+(H-pad)+' L'+X(0)+' '+(H-pad)+' Z';
+  const low=Math.min(...vals);
+  const col = low<0 ? '#E07A5F' : 'var(--gold2)';
+  const dots=values.map((v,i)=>'<circle cx="'+X(i)+'" cy="'+Y(v)+'" r="2.6" fill="'+col+'"/>').join('');
+  const labs=labels.map((l,i)=> i%2===0 ?
+    '<text x="'+X(i)+'" y="'+(H-10)+'" text-anchor="middle" font-family="DM Mono,monospace" font-size="7" fill="#6B7F92">'+esc(l)+'</text>' : '').join('');
+  const zero = min<0 ? '<line x1="'+pad+'" y1="'+Y(0)+'" x2="'+(W-pad)+'" y2="'+Y(0)+'" stroke="rgba(224,122,95,.35)" stroke-dasharray="3 3"/>' : '';
+  return '<div class="fcard"><div class="fc-h"><span class="fc-t">'+esc(title)+'</span>'+
+    '<span class="fc-v" style="color:'+col+'">'+fmtMoney(values[values.length-1],cur)+'</span></div>'+
+    '<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'">'+
+    '<path d="'+area+'" fill="rgba(232,180,84,.10)"/>'+zero+
+    '<path d="'+path+'" fill="none" stroke="'+col+'" stroke-width="2"/>'+dots+labs+'</svg>'+
+    (note?'<div class="cnote">'+esc(note)+'</div>':'')+'</div>';
+}
+
+function renderFinancials(f){
+  if(!f) return '';
+  const cur = f.currency || '£';
+  let out = '';
+
+  if(Array.isArray(f.kpis) && f.kpis.length){
+    out += '<div class="mgrid">'+f.kpis.map(k=>{
+      const arrow = k.trend==='up'?'&uarr;':k.trend==='down'?'&darr;':'&rarr;';
+      return '<div class="mcard"><div class="mval">'+esc(k.value)+'</div>'+
+        '<div class="mlab">'+esc(k.label)+'</div>'+
+        (k.note?'<div class="mnote">'+arrow+' '+esc(k.note)+'</div>':'')+'</div>';
+    }).join('')+'</div>';
+  }
+
+  const cards = [];
+  if(f.pnl && Array.isArray(f.years)){
+    const series = [];
+    if(f.pnl.revenue) series.push({ name:'Revenue', values:f.pnl.revenue, colour:'var(--gold2)' });
+    if(f.pnl.ebitda && f.pnl.ebitda.some(v=>v)) series.push({ name:'EBITDA', values:f.pnl.ebitda, colour:'var(--green)' });
+    cards.push(barChart('Revenue and EBITDA by year', f.years, series, cur, 'Projected, base case.'));
+  }
+  if(f.scenarios && Array.isArray(f.years)){
+    const sc = [];
+    if(f.scenarios.upside && f.scenarios.upside.some(v=>v)) sc.push({ name:'Upside', values:f.scenarios.upside, colour:'var(--green)' });
+    if(f.scenarios.base) sc.push({ name:'Base', values:f.scenarios.base, colour:'var(--gold2)' });
+    if(f.scenarios.downside && f.scenarios.downside.some(v=>v)) sc.push({ name:'Downside', values:f.scenarios.downside, colour:'#E07A5F' });
+    if(sc.length>1) cards.push(barChart('Revenue by scenario', f.years, sc, cur, 'The spread is the risk.'));
+  }
+  if(f.cash && Array.isArray(f.cash.values) && f.cash.values.some(v=>v)){
+    cards.push(lineChart('Cash position — year one', f.cash.labels||[], f.cash.values, cur, 'Closing balance each month.'));
+  }
+  if(Array.isArray(f.investment) && f.investment.length){
+    cards.push(barChart('Investment by category', f.investment.map(i=>i.label),
+      [{ name:'Investment', values:f.investment.map(i=>i.value), colour:'var(--gold)' }], cur, 'Total across the plan.'));
+  }
+
+  const kept = cards.filter(Boolean);
+  if(kept.length) out += '<div class="fgrid2">'+kept.join('')+'</div>';
+  return out;
+}
+
 function tokeniseHeadings(html){
   const out = [];
   const re = /<h([1-4])>([\s\S]*?)<\/h\1>/g;
   let m, last = 0, lead = '';
   const marks = [];
   while((m = re.exec(html)) !== null){
-    marks.push({ level:+m[1], title:m[2].replace(/<[^>]+>/g,'').trim(), start:m.index, end:re.lastIndex });
+    marks.push({ level:+m[1], title:decodeEnt(m[2].replace(/<[^>]+>/g,'')).trim(), start:m.index, end:re.lastIndex });
   }
   if(!marks.length) return { lead: html, blocks: [] };
   lead = html.slice(0, marks[0].start);
@@ -1003,7 +1145,11 @@ function tokeniseHeadings(html){
   return { lead, blocks: out };
 }
 
-const norm = t => t.toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+const decodeEnt = t => String(t||'')
+  .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')
+  .replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&nbsp;/g,' ');
+
+const norm = t => decodeEnt(t).toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
 
 /* Group heading blocks under their section, using "SECTION n" in the heading. */
 function groupBySection(blocks){
@@ -1046,16 +1192,39 @@ function renderSection(group, cfg){
     const boxes = [];
     const leftover = [];
     rest.forEach(b => {
-      const hit = cfg.boxes.find(x => norm(b.title).includes(norm(x)));
+      const hit = cfg.boxes.find(x =>
+        x instanceof RegExp ? x.test(b.title) : norm(b.title).includes(norm(x)));
       if(hit) boxes.push({ label:b.title, body:b.body });
       else leftover.push(b);
     });
     if(boxes.length){
-      inner += '<div class="bxgrid">' + boxes.map(bx => {
-        // A score in the heading ("4.1 LEAD GENERATION — 2/5") becomes a
-        // bar on the closed box, so the shape of the section is readable
-        // before anything is opened.
+      // A score in the heading turns the box into a metric card: the
+      // number leads, a bar shows the level, and the detail opens on
+      // click. A section of six scores becomes readable at a glance.
+      const scored = boxes.filter(b => /(\d(?:\.\d)?)\s*\/\s*(\d)/.test(b.label));
+      const useCards = scored.length >= Math.max(2, boxes.length - 1);
+
+      inner += '<div class="'+(useCards?'cardgrid':'bxgrid')+'">' + boxes.map(bx => {
         const sm = bx.label.match(/(\d(?:\.\d)?)\s*\/\s*(\d)/);
+        const title = bx.label.replace(/^\d+(\.\d+)?\s*/,'').replace(/\s*[—–-]\s*\d(\.\d)?\s*\/\s*\d\s*$/,'').trim();
+
+        if(useCards && sm){
+          const v = parseFloat(sm[1]), max = parseFloat(sm[2]) || 5;
+          const ratio = v/max;
+          const col = ratio<=0.45 ? 'var(--red)' : ratio<=0.7 ? 'var(--gold2)' : 'var(--green)';
+          const verdict = ratio<=0.45 ? 'Weak' : ratio<=0.7 ? 'Adequate' : 'Strong';
+          const filled = Math.round(ratio*max);
+          let spark = '';
+          for(let i=1;i<=max;i++) spark += '<i class="'+(i<=filled?'on':'')+'" style="height:'+(30+i*14)+'%"></i>';
+          return '<details class="card"><summary>'+
+            '<div class="card-top"><span class="card-l">'+esc(title)+'</span>'+iconFor(title,15)+'</div>'+
+            '<div class="card-v" style="color:'+col+'">'+sm[1]+'<span class="card-max">/'+sm[2]+'</span></div>'+
+            '<div class="card-gap" style="color:'+col+'">'+verdict+'</div>'+
+            '<div class="card-spark" style="color:'+col+'">'+spark+'</div>'+
+            '<span class="card-more">Open &rarr;</span></summary>'+
+            '<div class="card-b">'+bx.body+'</div></details>';
+        }
+
         let cls='', bar='';
         if(sm){
           const v=parseFloat(sm[1]), max=parseFloat(sm[2])||5;
@@ -1065,9 +1234,8 @@ function renderSection(group, cfg){
           bar = '<div class="bx-score"><div class="bx-bar"><div class="bx-fill" style="width:'+pct+'%;background:'+col+'"></div></div>'+
                 '<span class="bx-num" style="color:'+col+'">'+sm[1]+'/'+sm[2]+'</span></div>';
         }
-        const title = bx.label.replace(/^\d+(\.\d+)?\s*/,'').replace(/\s*[—-]\s*\d(\.\d)?\s*\/\s*\d\s*$/,'');
         return '<details class="bx'+cls+'"><summary>'+iconFor(title,16)+'<span class="bx-head"><span class="bx-t">'+esc(title)+'</span>'+bar+'</span><span class="sec-i">+</span></summary>'+
-        '<div class="bx-b">'+bx.body+'</div></details>';
+          '<div class="bx-b">'+bx.body+'</div></details>';
       }).join('') + '</div>';
     }
     leftover.forEach(b => { inner += '<h4>'+iconFor(b.title,14)+esc(b.title)+'</h4>' + b.body; });
@@ -1119,7 +1287,7 @@ function renderStructuredStage(stageNum, html){
   if(!blocks.length) return html;
 
   const groups = groupBySection(blocks);
-  let out = stageVisuals(layout) +
+  let out = (FIN[stageNum] ? renderFinancials(FIN[stageNum]) : '') + stageVisuals(layout) +
     '<button class="expand-all" onclick="toggleAll('+stageNum+',this)">Expand all</button>';
 
   // Everything before SECTION 2 sits under the opening banner.
@@ -1477,7 +1645,9 @@ function render(){
 
   html+=DATA.stages.map(st=>{
     const meta = sum && Array.isArray(sum.stages) ? sum.stages.find(x=>x.stage_number===st.stage_number) : null;
-    const bodyHtml = stripOperatorContent(md(st.output_content||''));
+    const fin = extractFinancials(st.output_content||'');
+    const bodyHtml = stripOperatorContent(md(fin.rest));
+    if(fin.data) FIN[st.stage_number] = fin.data;
     return '<section class="stage" id="st'+st.stage_number+'">'+
       '<div class="stage-head">Stage '+String(st.stage_number).padStart(2,'0')+'</div>'+
       '<div class="stage-title">'+st.stage_name+'</div>'+
