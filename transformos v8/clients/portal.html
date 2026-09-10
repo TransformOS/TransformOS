@@ -458,29 +458,46 @@ const el=id=>document.getElementById(id);
 function md(t){
   const esc=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const lines=esc.split('\n');
-  let out='',inUl=false,inTable=false;
+  let out='',inUl=false,inTable=false,buf=[];
   const closeUl=()=>{if(inUl){out+='</ul>';inUl=false;}};
   const closeTable=()=>{if(inTable){out+='</tbody></table>';inTable=false;}};
+  // Consecutive lines belong to the same paragraph. Only a blank line,
+  // a heading, a list, a table or a rule ends one. Without this, prose
+  // wrapped around a quotation fragments into one paragraph per line.
+  const flush=()=>{
+    if(!buf.length) return;
+    out += '<p>'+buf.join(' ').replace(/\s+/g,' ').trim()+'</p>';
+    buf=[];
+  };
+
   for(let ln of lines){
     ln=ln.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+
     if(/^\s*\|.*\|\s*$/.test(ln)){
       if(/^[\s|:-]+$/.test(ln)) continue;
+      flush(); closeUl();
       const cells=ln.trim().replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
-      if(!inTable){closeUl();out+='<table><thead><tr>'+cells.map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>';inTable=true;}
+      if(!inTable){out+='<table><thead><tr>'+cells.map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>';inTable=true;}
       else out+='<tr>'+cells.map(c=>'<td>'+c+'</td>').join('')+'</tr>';
       continue;
     }
     closeTable();
+
     const h=ln.match(/^(#{1,4})\s+(.*)$/);
-    if(h){closeUl();const l=Math.min(h[1].length+1,4);out+='<h'+l+'>'+h[2]+'</h'+l+'>';continue;}
-    const li=ln.match(/^\s*[-*•]\s+(.*)$/);
-    if(li){if(!inUl){out+='<ul>';inUl=true;}out+='<li>'+li[1]+'</li>';continue;}
-    closeUl();
-    if(/^\s*---+\s*$/.test(ln)){out+='<hr>';continue;}
-    if(ln.trim()==='')continue;
-    out+='<p>'+ln+'</p>';
+    if(h){flush();closeUl();const l=Math.min(h[1].length+1,4);out+='<h'+l+'>'+h[2]+'</h'+l+'>';continue;}
+
+    const li=ln.match(/^\s*[-*\u2022]\s+(.*)$/);
+    if(li){flush();if(!inUl){out+='<ul>';inUl=true;}out+='<li>'+li[1]+'</li>';continue;}
+
+    if(/^\s*---+\s*$/.test(ln)){flush();closeUl();out+='<hr>';continue;}
+
+    if(ln.trim()===''){flush();closeUl();continue;}
+
+    // A blockquote line is folded into the surrounding paragraph so a
+    // quotation does not break the sentence it sits inside.
+    buf.push(ln.replace(/^\s*>\s?/,''));
   }
-  closeUl();closeTable();
+  flush();closeUl();closeTable();
   return out;
 }
 
