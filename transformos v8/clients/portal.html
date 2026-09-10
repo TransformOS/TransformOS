@@ -197,6 +197,12 @@ h1.doc em{font-style:italic;color:var(--gold2)}
 .output h4 .ico{margin-right:.5rem;width:14px;height:14px}
 .sb-link .ico,.sb-report .ico{color:var(--gold)}
 
+/* SCORE CELLS */
+.score-cell{white-space:nowrap;width:1%}
+.score-pill{display:inline-flex;align-items:baseline;gap:.1rem;font-family:var(--mono);font-size:.82rem;
+  border:1px solid;padding:.18rem .5rem;white-space:nowrap;line-height:1.2}
+.score-pill em{font-style:normal;opacity:.55;font-size:.72rem}
+
 /* STAGE METRIC CARDS */
 .smgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:2px;background:var(--bdim);margin:1.4rem 0 0}
 .sm{background:var(--navy3);padding:1.2rem 1.3rem 1.3rem}
@@ -793,9 +799,9 @@ const STAGE_LAYOUT = {
   3: {
     lead: 'Stage 3: Operational Excellence',
     sections: [
-      { n:1, title:'Operational Health Summary',    subs:['Strengths','Weaknesses'] },
-      { n:2, title:'Quick Wins' },
-      { n:3, title:'Process Improvement Priorities' },
+      { n:1, title:'Operational Health Summary',    boxes:[/^(top\s*3\s*)?strength/i,/^(top\s*3\s*)?weakness/i] },
+      { n:2, title:'Quick Wins',                    boxes:[/^quick win\s*\d/i] },
+      { n:3, title:'Process Improvement Priorities', boxes:[/^(priority|process)\s*\d/i] },
       { n:4, title:'Technology & Systems Gaps',     subs:['Recommendations'] },
       { n:5, title:'Capacity & Resource Analysis',  subs:['Bottlenecks'] },
       { n:6, title:'Operational Roadmap',           boxes:[/months?\s*\d/i,/^(q[1-4]|quarter)/i] },
@@ -1163,6 +1169,21 @@ function stageMetricCards(metrics){
       '<div class="sm-v">'+esc(head)+'</div>'+
       (tail?'<div class="sm-n">'+esc(tail)+'</div>':'<div class="sm-n">&nbsp;</div>')+'</div>';
   }).join('')+'</div>';
+}
+
+// Scores inside tables get the same red / amber / green treatment as
+// the cards, and are held on one line so a figure never breaks across
+// two rows.
+function colourScores(html){
+  return html.replace(/<td>([^<]*?)<\/td>/g, (full, cell) => {
+    const t = cell.trim();
+    const m = t.match(/^(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)$/);
+    if(!m) return full;
+    const v = parseFloat(m[1]), max = parseFloat(m[2]) || 5, ratio = v/max;
+    const col = ratio<=0.5 ? 'var(--red)' : ratio<=0.75 ? 'var(--gold2)' : 'var(--green)';
+    return '<td class="score-cell"><span class="score-pill" style="color:'+col+';border-color:'+col+'">'+
+      m[1]+'<em>/'+m[2]+'</em></span></td>';
+  });
 }
 
 function tokeniseHeadings(html){
@@ -1691,7 +1712,7 @@ function render(){
   html+=DATA.stages.map(st=>{
     const meta = sum && Array.isArray(sum.stages) ? sum.stages.find(x=>x.stage_number===st.stage_number) : null;
     const fin = extractFinancials(st.output_content||'');
-    const bodyHtml = stripOperatorContent(md(fin.rest));
+    const bodyHtml = colourScores(stripOperatorContent(md(fin.rest)));
     if(fin.data) FIN[st.stage_number] = fin.data;
     return '<section class="stage" id="st'+st.stage_number+'">'+
       '<div class="stage-head">Stage '+String(st.stage_number).padStart(2,'0')+'</div>'+
@@ -1718,7 +1739,7 @@ function render(){
     const parts = [];
 
     if(tomStage){
-      const tk = tokeniseHeadings(stripOperatorContent(md(tomStage.output_content||'')));
+      const tk = tokeniseHeadings(colourScores(stripOperatorContent(md(tomStage.output_content||''))));
       const g = groupBySection(tk.blocks).find(x=>x.n===11);
       if(g) parts.push({ title:'Current State Baseline', body: renderSection(g,{n:11,title:'TOM+',subs:['Top 3','Top three','TOM priorities']}) });
     }
