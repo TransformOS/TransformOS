@@ -184,6 +184,15 @@ h1.doc em{font-style:italic;color:var(--gold2)}
   .op-v,.op-e{text-align:left}
 }
 
+/* MODEL GALLERY */
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:2px;background:var(--bdim);margin:0 0 2rem}
+.gal-c{background:var(--navy2);padding:1.1rem 1.1rem 1.2rem;cursor:pointer;transition:background .2s}
+.gal-c:hover{background:var(--navy3)}
+.gal-v{background:var(--navy);border:1px solid var(--bdim);padding:.6rem;margin-bottom:.85rem}
+.gal-v svg{display:block;width:100%;height:78px}
+.gal-n{font-family:var(--serif);font-size:1rem;color:var(--white);line-height:1.3;margin-bottom:.35rem}
+.gal-h{font-size:.74rem;color:var(--slate);line-height:1.5}
+
 /* MODEL STRIP */
 .mstrip{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1.8rem}
 .mstrip span{display:inline-flex;align-items:center;gap:.45rem;font-size:.75rem;padding:.4rem .8rem;border:1px solid var(--bdim);color:var(--mist);cursor:pointer;transition:all .18s}
@@ -538,6 +547,7 @@ function md(t){
     }
     closeTable();
 
+    if(/^\s*#{1,6}\s*$/.test(ln)){flush();continue;}
     const h=ln.match(/^(#{1,4})\s+(.*)$/);
     if(h){flush();closeUl();const l=Math.min(h[1].length+1,4);out+='<h'+l+'>'+h[2]+'</h'+l+'>';continue;}
 
@@ -550,7 +560,7 @@ function md(t){
 
     // A blockquote line is folded into the surrounding paragraph so a
     // quotation does not break the sentence it sits inside.
-    buf.push(ln.replace(/^\s*>\s?/,''));
+    buf.push(ln.replace(/^\s*(&gt;|>)\s?/,''));
   }
   flush();closeUl();closeTable();
   return out;
@@ -826,6 +836,7 @@ const STAGE_LAYOUT = {
 
   5: {
     lead: 'Stage 5: Models Master',
+    gallery: true,
     sections: [
       { n:1, title:'Models Applied' },
       { n:2, title:'Where The Models Converge' },
@@ -1204,6 +1215,96 @@ function colourScores(html){
   });
 }
 
+/* ═══════════════════════════════════════════════════════════
+   MODEL GALLERY
+   A preview of each framework in its own shape — a spider looks
+   like a spider, a matrix like a matrix — so the reader picks by
+   recognition rather than by reading a list of names.
+   ═══════════════════════════════════════════════════════════ */
+function modelThumb(m){
+  const p = m.payload || {};
+  const t = m.render_type;
+  const G='#E8B454', D='rgba(184,196,208,.22)', R='#E07A5F', GR='#7FB069';
+
+  if(t==='scored' && Array.isArray(p.items) && p.items.length>=3){
+    const d=p.items.filter(i=>typeof i.score==='number').slice(0,11);
+    if(d.length>=5){
+      const R0=30,cx=46,cy=42,n=d.length,max=d[0].max||5;
+      const pt=(i,v)=>{const a=(Math.PI*2*i/n)-Math.PI/2;const r=R0*(v/max);return [cx+r*Math.cos(a),cy+r*Math.sin(a)];};
+      const avg=d.reduce((a,x)=>a+x.score,0)/d.length;
+      const col=ragColour(avg,max);
+      return '<svg viewBox="0 0 92 84"><polygon points="'+d.map((x,i)=>pt(i,max).join(',')).join(' ')+'" fill="none" stroke="'+D+'"/>'+
+        '<polygon points="'+d.map((x,i)=>pt(i,x.score).join(',')).join(' ')+'" fill="'+col+'" fill-opacity=".25" stroke="'+col+'" stroke-width="1.5"/></svg>';
+    }
+    const bars=d.slice(0,6).map((x,i)=>{
+      const max=x.max||5, h=Math.max(3,(x.score/max)*54);
+      return '<rect x="'+(6+i*14)+'" y="'+(66-h)+'" width="9" height="'+h+'" fill="'+ragColour(x.score,max)+'"/>';
+    }).join('');
+    return '<svg viewBox="0 0 92 84"><line x1="4" y1="68" x2="88" y2="68" stroke="'+D+'"/>'+bars+'</svg>';
+  }
+
+  if(t==='matrix'){
+    const items=(p.items||[]).slice(0,7);
+    const dots=items.map(it=>'<circle cx="'+(8+(it.x??.5)*76)+'" cy="'+(74-(it.y??.5)*64)+'" r="3.2" fill="'+G+'"/>').join('');
+    return '<svg viewBox="0 0 92 84"><rect x="8" y="10" width="76" height="64" fill="none" stroke="'+D+'"/>'+
+      '<line x1="46" y1="10" x2="46" y2="74" stroke="'+D+'"/><line x1="8" y1="42" x2="84" y2="42" stroke="'+D+'"/>'+dots+'</svg>';
+  }
+
+  if(t==='forces'){
+    const f=(p.forces||[]).slice(0,5);
+    const bars=f.map((x,i)=>{
+      const w=Math.max(6,((x.score||3)/5)*62);
+      return '<rect x="16" y="'+(10+i*13)+'" width="'+w+'" height="7" fill="'+ragColour(6-(x.score||3),5)+'"/>';
+    }).join('');
+    return '<svg viewBox="0 0 92 84"><circle cx="9" cy="42" r="5" fill="none" stroke="'+G+'"/>'+bars+'</svg>';
+  }
+
+  if(t==='grid'){
+    const n=Math.min((p.cells||[]).length||9,9);
+    let r='';
+    for(let i=0;i<9;i++){
+      const x=8+(i%3)*26, y=12+Math.floor(i/3)*21;
+      r+='<rect x="'+x+'" y="'+y+'" width="22" height="17" fill="'+(i<n?'rgba(232,180,84,.28)':'none')+'" stroke="'+D+'"/>';
+    }
+    return '<svg viewBox="0 0 92 84">'+r+'</svg>';
+  }
+
+  if(t==='quadrants'){
+    const cols=[GR,R,G,'#9BC98A'];
+    let r='';
+    for(let i=0;i<4;i++){
+      r+='<rect x="'+(10+(i%2)*38)+'" y="'+(12+Math.floor(i/2)*32)+'" width="34" height="28" fill="'+cols[i]+'" fill-opacity=".22" stroke="'+cols[i]+'" stroke-opacity=".5"/>';
+    }
+    return '<svg viewBox="0 0 92 84">'+r+'</svg>';
+  }
+
+  if(t==='ladder'){
+    const n=Math.min((p.steps||[]).length||4,5);
+    let r='';
+    for(let i=0;i<n;i++){
+      const h=14, y=72-(i+1)*h;
+      r+='<rect x="'+(10+i*4)+'" y="'+y+'" width="'+(70-i*8)+'" height="10" fill="'+G+'" fill-opacity="'+(0.25+i*0.14)+'"/>';
+    }
+    return '<svg viewBox="0 0 92 84">'+r+'</svg>';
+  }
+
+  const rows=Math.min((p.rows||[]).length||4,5);
+  let r='<rect x="8" y="12" width="76" height="8" fill="'+G+'" fill-opacity=".35"/>';
+  for(let i=0;i<rows;i++) r+='<rect x="8" y="'+(24+i*11)+'" width="76" height="7" fill="'+D+'"/>';
+  return '<svg viewBox="0 0 92 84">'+r+'</svg>';
+}
+
+function modelGallery(){
+  const ms=(DATA.models||[]).filter(m=>m.status!=='failed');
+  if(!ms.length) return '';
+  return '<div class="gal">'+ms.map(m=>
+    '<div class="gal-c" onclick="go(-9);setTimeout(()=>{const t=document.getElementById(\'mv-'+m.model_key+'\');if(t)t.scrollIntoView({behavior:\'smooth\'})},250)">'+
+    '<div class="gal-v">'+modelThumb(m)+'</div>'+
+    '<div class="gal-n">'+esc(m.model_name)+'</div>'+
+    (m.payload && m.payload.headline ? '<div class="gal-h">'+esc(m.payload.headline)+'</div>' : '')+
+    '</div>').join('')+'</div>';
+}
+
 function tokeniseHeadings(html){
   const out = [];
   const re = /<h([1-4])>([\s\S]*?)<\/h\1>/g;
@@ -1271,8 +1372,12 @@ function renderSection(group, cfg){
     const boxes = [];
     const leftover = [];
     rest.forEach(b => {
+      // Headings arrive numbered ("2.1 Opportunity 1 — ..."), so the
+      // numbering is removed before the pattern is tested.
+      const bare = b.title.replace(/^\s*\d+(\.\d+)*\s*[).:-]?\s*/,'');
       const hit = cfg.boxes.find(x =>
-        x instanceof RegExp ? x.test(b.title) : norm(b.title).includes(norm(x)));
+        x instanceof RegExp ? (x.test(bare) || x.test(b.title))
+                            : norm(bare).includes(norm(x)));
       if(hit) boxes.push({ label:b.title, body:b.body });
       else leftover.push(b);
     });
@@ -1371,7 +1476,8 @@ function renderStructuredStage(stageNum, html){
   if(!blocks.length) return html;
 
   const groups = groupBySection(blocks);
-  let out = (FIN[stageNum] ? renderFinancials(FIN[stageNum]) : '') + stageVisuals(layout) +
+  let out = (FIN[stageNum] ? renderFinancials(FIN[stageNum]) : '') +
+    (layout.gallery ? modelGallery() : '') + stageVisuals(layout) +
     '<button class="expand-all" onclick="toggleAll('+stageNum+',this)">Expand all</button>';
 
   // Everything before SECTION 2 sits under the opening banner.
@@ -1391,12 +1497,20 @@ function renderStructuredStage(stageNum, html){
   layout.sections.forEach(cfg => {
     const g = groups.find(x => x.n === cfg.n);
     if(!g) return;
-    out += detailsBlock('Section '+cfg.n+': '+cfg.title, renderSection(g, cfg));
+    const body = renderSection(g, cfg);
+    // Stripping can leave a section with nothing but a stray line.
+    // An empty dropdown is worse than a missing one.
+    if(body.replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim().length < 80) return;
+    out += detailsBlock('Section '+cfg.n+': '+cfg.title, body);
   });
 
   // Any section the layout does not name still appears, so nothing is lost.
   groups.filter(g => !named.has(g.n) && g.n >= 2)
-        .forEach(g => out += detailsBlock(g.title, renderSection(g, null)));
+        .forEach(g => {
+          const body = renderSection(g, null);
+          if(body.replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim().length < 80) return;
+          out += detailsBlock(g.title, body);
+        });
 
   return '<div id="grp-'+stageNum+'">'+out+'</div>';
 }
