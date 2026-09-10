@@ -181,7 +181,42 @@ SECTION 7: SCENARIO ANALYSIS — Base, Upside, Downside with key variables and t
 SECTION 8: FINANCIAL KPI DASHBOARD — 15 KPIs with current, Y1 target, Y3 target, frequency, owner
 SECTION 9: VALUATION IMPLICATIONS — current EV range, Y3 value base case, value drivers, exit multiple range
 SECTION 10: MODEL ASSUMPTIONS & LIMITATIONS — what is evidenced, what is assumed, what this model does not cover
-Every figure must reconcile with the business case. Show workings for derived numbers.`
+Every figure must reconcile with the business case. Show workings for derived numbers.
+
+═══ STRUCTURED DATA — REQUIRED ═══
+After the written analysis, and after any operator notes, append a fenced code block exactly as below. It is machine-read to draw the client's financial dashboard, so the format must be exact and every figure must match the narrative above.
+
+\`\`\`financials
+{
+  "currency": "£",
+  "years": ["FY26","FY27","FY28","FY29","FY30"],
+  "pnl": {
+    "revenue":      [15.5, 16.4, 17.8, 19.2, 21.0],
+    "gross_profit": [0,0,0,0,0],
+    "opex":         [0,0,0,0,0],
+    "ebitda":       [0,0,0,0,0]
+  },
+  "scenarios": {
+    "base":     [15.5, 16.4, 17.8, 19.2, 21.0],
+    "upside":   [0,0,0,0,0],
+    "downside": [0,0,0,0,0]
+  },
+  "cash": {
+    "labels": ["Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar"],
+    "values": [0,0,0,0,0,0,0,0,0,0,0,0]
+  },
+  "investment": [ { "label": "People", "value": 0 } ],
+  "kpis": [ { "label": "Short label", "value": "£1.2m", "trend": "up | down | flat", "note": "One short line" } ]
+}
+\`\`\`
+
+RULES FOR THE BLOCK
+- All monetary values in millions, as plain numbers. 15.5 means £15.5m. Never include currency symbols or commas inside the JSON.
+- "years" must match the length of every array in "pnl" and "scenarios".
+- "cash" is the twelve months of year one, in order, showing closing cash balance.
+- "investment" is total investment by category across the plan.
+- 4 to 8 "kpis" — the figures a chief executive would want on one screen. "trend" describes direction of travel, not whether it is good news.
+- Use only figures that appear in the analysis above. Where a line is not modelled, use zeros rather than inventing it.`
 };
 
 const SPEC = `Return ONLY valid JSON. No preamble, no markdown fences, no commentary.
