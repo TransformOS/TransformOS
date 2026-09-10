@@ -268,6 +268,7 @@ h1.doc em{font-style:italic;color:var(--gold2)}
 .avg-v{font-family:var(--serif);font-size:2.1rem;color:var(--gold2);line-height:1}
 .avg-l{font-family:var(--mono);font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--slate)}
 .bxgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:2px;background:var(--bdim);margin:1.4rem 0}
+.bxgrid.bxlist{grid-template-columns:1fr}
 .bx{background:var(--navy3);border:none}
 .bx>summary{cursor:pointer;padding:1rem 2.4rem 1rem 1.2rem;list-style:none;display:flex;justify-content:flex-start;align-items:flex-start;gap:.7rem;position:relative}
 .bx>summary::-webkit-details-marker{display:none}
@@ -281,6 +282,77 @@ h1.doc em{font-style:italic;color:var(--gold2)}
 .mlink{font-family:var(--mono);font-size:.6rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold2);border:1px solid var(--border);padding:.6rem 1rem;display:inline-block;margin-top:1.2rem;cursor:pointer;transition:all .2s}
 .mlink:hover{background:var(--gold2);color:var(--navy)}
 @media print{.bx-b,.sec.sub .sec-body{display:block!important}.mlink{display:none}}
+
+/* OPERATIONAL EXCELLENCE VISUALS */
+.ox-panel{border:1px solid var(--bdim);background:var(--navy);padding:1.25rem 1.35rem 1rem;margin:1.2rem 0}
+.dv-axis,.dv>summary,.dv-row{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1.5fr) 2.8rem;gap:1rem;align-items:center}
+.dv-axis{padding:0 2.4rem .45rem 0;border-bottom:1px solid var(--border)}
+.dv-sc{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;color:var(--slate)}
+.dv-g{font-family:var(--mono);font-size:.54rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);padding:1rem 0 .15rem}
+.dv{border-bottom:1px solid var(--bdim)}
+.dv>summary{list-style:none;cursor:pointer;padding:.75rem 2.4rem .75rem 0;position:relative}
+.dv>summary::-webkit-details-marker{display:none}
+.dv>summary:hover{background:rgba(201,146,42,.05)}
+.dv>summary>.sec-i{right:.5rem}
+.dv[open]>summary>.sec-i{transform:rotate(45deg)}
+.dv-row{padding:.75rem 2.4rem .75rem 0}
+.dv-lab{display:flex;flex-direction:column;min-width:0}
+.dv-t{font-family:var(--serif);font-size:1.05rem;color:var(--white);line-height:1.3}
+.dv-e{font-size:.76rem;color:var(--slate);line-height:1.4;margin-top:.15rem}
+.dv-trk{position:relative;height:12px}
+.dv-mid{position:absolute;left:50%;top:-10px;bottom:-10px;border-left:1px dashed rgba(184,196,208,.35)}
+.dv-bar{position:absolute;top:2px;height:8px}
+.dv-s{font-family:var(--mono);font-size:.82rem;text-align:right;white-space:nowrap}
+.dv-b{padding:.2rem 0 1rem;font-size:.85rem}
+.dv-b p{margin-bottom:.7rem}
+.wm{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:1.6rem;align-items:center}
+.wm-plot{position:relative;padding:1.2rem 0 1.6rem 1.6rem}
+.wm-g{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;background:var(--bdim);aspect-ratio:1.25}
+.wm-q{background:var(--navy3)}
+.wm-q.hot{outline:1px solid var(--border);outline-offset:-1px}
+.wm-ql{position:absolute;font-family:var(--mono);font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);line-height:1}
+.wm-ql.tl{color:var(--gold2)}
+.wm-ql.tl{top:0;left:1.6rem}.wm-ql.tr{top:0;right:0}
+.wm-ql.bl{bottom:.05rem;left:1.6rem}.wm-ql.br{bottom:.05rem;right:0}
+.wm-dots{position:absolute;left:1.6rem;right:0;top:1.2rem;bottom:1.6rem;pointer-events:none}
+.wm-dot{position:absolute;transform:translate(-50%,50%);width:22px;height:22px;border-radius:50%;background:var(--gold2);color:var(--navy);font-family:var(--mono);font-size:.66rem;font-weight:500;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border:1.5px solid var(--navy);pointer-events:auto}
+.wm-ax{position:absolute;font-family:var(--mono);font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;color:var(--slate)}
+.wm-ax.x{left:1.6rem;right:0;bottom:0;text-align:center}
+.wm-ax.y{left:0;top:1.2rem;bottom:1.6rem;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center}
+.wm-key{display:flex;flex-direction:column;gap:.5rem}
+.wm-k{display:flex;gap:.65rem;align-items:baseline;font-size:.84rem;color:var(--cream);line-height:1.35}
+.wm-n,.wr-n{font-family:var(--mono);font-size:.66rem;color:var(--gold2);min-width:1rem;flex-shrink:0}
+.wr-axis,.wr-row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1.5fr) 4.4rem;gap:1rem;align-items:center}
+.wr-axis{padding-bottom:.45rem;border-bottom:1px solid var(--border)}
+.wr-sc{position:relative;height:.9rem;font-family:var(--mono);font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;color:var(--slate)}
+.wr-sc span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+.wr-sc span:first-child{transform:none}
+.wr-sc span:last-child{transform:translateX(-100%)}
+.wr-row{padding:.7rem 0;border-bottom:1px solid var(--bdim)}
+.wr-row:last-child{border-bottom:none}
+.wr-lab{display:flex;gap:.65rem;align-items:baseline;min-width:0}
+.wr-t{font-family:var(--serif);font-size:1rem;color:var(--white);line-height:1.3;display:block}
+.wr-o{font-size:.74rem;color:var(--slate);display:block;margin-top:.1rem}
+.wr-trk{position:relative;height:10px}
+.wr-trk i{position:absolute;top:-8px;bottom:-8px;border-left:1px dashed rgba(184,196,208,.2)}
+.wr-bar{position:absolute;left:0;top:1px;height:8px;background:var(--gold2)}
+.wr-none{width:100%;background:none;border:1px dashed var(--red);box-sizing:border-box}
+.wr-over{width:100%;background:none;border:1px solid var(--red);box-sizing:border-box}
+.wr-d{font-family:var(--mono);font-size:.72rem;color:var(--mist);text-align:right;white-space:nowrap}
+.wr-d.bad{color:var(--red)}
+@media (max-width:760px){
+  .wm{grid-template-columns:1fr}
+  .dv-axis,.dv>summary,.dv-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 2.6rem}
+  .wr-axis,.wr-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 3.8rem}
+}
+@media print{
+  .ox-panel{background:#fff;border:1px solid #ddd;break-inside:avoid}
+  .dv-t,.wr-t,.wm-k{color:#0D1B2A}
+  .dv-e,.wr-o{color:#555}
+  .wm-q{background:#f6f4f0}
+  .dv-b{display:block!important}
+  .dv .sec-i{display:none}
+}
 
 /* SECTION DISCLOSURE */
 .sec{border:1px solid var(--bdim);margin-bottom:.6rem;background:var(--navy2)}
@@ -809,8 +881,8 @@ const STAGE_LAYOUT = {
   3: {
     lead: 'Stage 3: Operational Excellence',
     sections: [
-      { n:1, title:'Operational Health Summary',    boxes:[/strength/i,/weakness/i] },
-      { n:2, title:'Quick Wins',                    boxes:[/^quick win\s*\d/i] },
+      { n:1, title:'Operational Health Summary',    boxes:[/strength/i,/weakness/i], chart:'diverging' },
+      { n:2, title:'Quick Wins',                    boxes:[/^quick win\s*\d/i], chart:'wins' },
       { n:3, title:'Process Improvement Priorities', boxes:[/^(priority|process)\s*\d/i] },
       { n:4, title:'Technology & Systems Gaps',     subs:['Recommendations'] },
       { n:5, title:'Capacity & Resource Analysis',  subs:['Bottlenecks'] },
@@ -1361,6 +1433,184 @@ function modelLink(key){
     'View the '+esc(m.model_name)+' &rarr;</div>';
 }
 
+/* ═══════════════════════════════════════════════════════════
+   OPERATIONAL EXCELLENCE VISUALS
+   Stage 3 writes two structured blocks beside its prose: scored
+   strengths and weaknesses, and quick wins with owner, deadline,
+   impact and effort. They draw the diverging bars, the impact
+   against effort matrix and the 90-day runway. A stage written
+   before the blocks existed falls back to boxes, so nothing breaks.
+   ═══════════════════════════════════════════════════════════ */
+let OPEX = { health:null, wins:null, count:0 };
+
+function extractOpex(raw){
+  const out = { health:null, wins:null, rest:String(raw||'') };
+  const num = v => { const n = parseFloat(v); return Number.isFinite(n) ? n : null; };
+  // Every copy of a block is removed so a repeat never shows as raw
+  // text; the first one is the one that is read.
+  const grab = name => {
+    const re = new RegExp('```'+name+'\\s*([\\s\\S]*?)```','gi');
+    let first = null;
+    out.rest = out.rest.replace(re, (full, body) => { if(first === null) first = body; return ''; });
+    if(first === null) return null;
+    try { return JSON.parse(first.trim()); } catch(e){ return null; }
+  };
+  const h = grab('opex_health');
+  const w = grab('opex_wins');
+
+  if(h){
+    const clean = arr => (Array.isArray(arr) ? arr : []).map(x => ({
+      dimension: String(x.dimension||'').trim(),
+      score: num(x.score),
+      evidence: String(x.evidence||'').trim()
+    })).filter(x => x.dimension && x.score !== null);
+    const s = clean(h.strengths), wk = clean(h.weaknesses);
+    if(s.length || wk.length) out.health = { strengths:s, weaknesses:wk };
+  }
+  if(w && Array.isArray(w.wins)){
+    const list = w.wins.map((x,i) => ({
+      n: num(x.n) || i+1,
+      title: String(x.title||'').trim(),
+      owner: String(x.owner||'').trim(),
+      day: num(x.day), impact: num(x.impact), effort: num(x.effort)
+    })).filter(x => x.title);
+    if(list.length) out.wins = list;
+  }
+  return out;
+}
+
+// For stages written before the blocks existed, the count comes from
+// the quick win headings themselves.
+function countQuickWins(raw){
+  const seen = new Set();
+  const re = /^#{1,4}\s*(?:\*\*)?\s*(?:\d+(?:\.\d+)*\s*[).:-]?\s*)?quick\s*win\s*(\d+)/gim;
+  let m;
+  while((m = re.exec(raw||'')) !== null) seen.add(m[1]);
+  return seen.size;
+}
+
+// The headline figure is written by the summary, the section by the
+// stage. Counting what actually rendered means the two can never
+// contradict each other.
+function syncWinCount(metrics, count){
+  if(!count || !Array.isArray(metrics)) return metrics;
+  return metrics.map(m => {
+    const label = String(m.label||''), value = String(m.value==null ? '' : m.value);
+    if(/quick\s*wins?/i.test(value)){
+      if(/\d+(\s*quick\s*wins?)/i.test(value)) return { ...m, value: value.replace(/\d+(\s*quick\s*wins?)/i, count+'$1') };
+      if(/(quick\s*wins?\D{0,3})\d+/i.test(value)) return { ...m, value: value.replace(/(quick\s*wins?\D{0,3})\d+/i, '$1'+count) };
+      return m;
+    }
+    // Label names the wins and the value leads with a count rather than
+    // a duration ("8", "8 in 90 days" — but never "90 days").
+    if(/quick\s*wins?/i.test(label) && /^\s*\d+(?!\d)(?!\s*(days?|weeks?|months?|%))/i.test(value))
+      return { ...m, value: value.replace(/^\s*\d+/, String(count)) };
+    return m;
+  });
+}
+
+// Every score is measured from 3/5, "adequate". Right of the line is
+// holding up, left is holding back, so an uneven number of strengths
+// and weaknesses reads as deliberate rather than missing.
+function opexDiverging(health, boxes){
+  const used = new Set();
+  const pos = s => (s-1)/4*100;
+
+  const bodyFor = (item, isStrength, idx) => {
+    const pool = boxes.filter(b => isStrength ? (/strength/i.test(b.label) && !/weakness/i.test(b.label)) : /weakness/i.test(b.label));
+    let hit = pool.find(b => !used.has(b) && norm(b.label).includes(norm(item.dimension)));
+    if(!hit){
+      const numbered = pool.filter(b => /(strength|weakness)\s*\d/i.test(b.label));
+      if(numbered[idx] && !used.has(numbered[idx])) hit = numbered[idx];
+    }
+    if(hit) used.add(hit);
+    return hit ? hit.body : '';
+  };
+
+  const row = (it, isStrength, idx) => {
+    const s = Math.max(1, Math.min(5, it.score));
+    const col = ragColour(s, 5);
+    const p = pos(s), left = Math.min(p, 50), width = Math.abs(p - 50);
+    const bar = width < 0.5
+      ? '<div class="dv-bar" style="left:calc(50% - 1px);width:3px;background:'+col+'"></div>'
+      : '<div class="dv-bar" style="left:'+left+'%;width:'+width+'%;background:'+col+'"></div>';
+    const cells = '<div class="dv-lab"><span class="dv-t">'+esc(it.dimension)+'</span>'+
+        (it.evidence ? '<span class="dv-e">'+esc(it.evidence)+'</span>' : '')+'</div>'+
+      '<div class="dv-trk"><div class="dv-mid"></div>'+bar+'</div>'+
+      '<span class="dv-s" style="color:'+col+'">'+s.toFixed(1)+'</span>';
+    const body = bodyFor(it, isStrength, idx);
+    return body
+      ? '<details class="dv"><summary>'+cells+'<span class="sec-i">+</span></summary><div class="dv-b">'+body+'</div></details>'
+      : '<div class="dv"><div class="dv-row">'+cells+'</div></div>';
+  };
+
+  let html = '<div class="ox-panel"><div class="ctitle">Strengths and weaknesses</div>'+
+    '<div class="dv-axis"><span></span><div class="dv-sc"><span>1 Weak</span><span>3 Adequate</span><span>5 Strong</span></div><span></span></div>';
+  if(health.strengths.length) html += '<div class="dv-g">Holding up</div>' + health.strengths.map((it,i) => row(it, true, i)).join('');
+  if(health.weaknesses.length) html += '<div class="dv-g">Holding back</div>' + health.weaknesses.map((it,i) => row(it, false, i)).join('');
+  html += '</div>';
+  return { html, used };
+}
+
+function opexMatrix(wins){
+  const pts = wins.filter(w => w.impact !== null && w.effort !== null);
+  if(!pts.length) return '';
+  const c = v => Math.max(1, Math.min(5, Math.round(v)));
+
+  // Wins sharing a coordinate are spread round a small circle, sized so
+  // neighbouring markers never overlap.
+  const groups = {};
+  pts.forEach(w => { const k = c(w.effort)+'|'+c(w.impact); (groups[k] = groups[k] || []).push(w); });
+  const dots = Object.values(groups).map(g => g.map((w,i) => {
+    const x = 6 + (c(w.effort)-1)/4*88, y = 6 + (c(w.impact)-1)/4*88;
+    const r = g.length > 1 ? Math.max(13, 12/Math.sin(Math.PI/g.length)) : 0;
+    const a = 2*Math.PI*i/g.length - Math.PI/2;
+    const dx = Math.round(Math.cos(a)*r), dy = Math.round(-Math.sin(a)*r);
+    return '<span class="wm-dot" style="left:'+x+'%;bottom:'+y+'%;margin-left:'+dx+'px;margin-bottom:'+dy+'px" title="'+esc(w.title)+'">'+w.n+'</span>';
+  }).join('')).join('');
+
+  const key = wins.slice().sort((a,b) => a.n - b.n).map(w =>
+    '<div class="wm-k"><span class="wm-n">'+w.n+'</span><span>'+esc(w.title)+'</span></div>').join('');
+
+  return '<div class="ox-panel"><div class="ctitle">Impact against effort</div><div class="wm">'+
+    '<div class="wm-plot"><div class="wm-g">'+
+      '<div class="wm-q hot"></div><div class="wm-q"></div><div class="wm-q"></div><div class="wm-q"></div>'+
+    '</div><div class="wm-dots">'+dots+'</div>'+
+    '<span class="wm-ql tl">Do now</span><span class="wm-ql tr">Plan it</span>'+
+    '<span class="wm-ql bl">Fill-ins</span><span class="wm-ql br">Question it</span>'+
+    '<div class="wm-ax x">Effort, low to high</div><div class="wm-ax y">Impact, low to high</div></div>'+
+    '<div class="wm-key">'+key+'</div></div></div>';
+}
+
+// Each win is a bar ending on its go-live day, sorted by deadline, so
+// the order on screen is the order to act in. A win with no date, or
+// one that falls outside ninety days, is marked rather than hidden.
+function opexRunway(wins){
+  const rows = wins.slice().sort((a,b) => {
+    const da = (a.day === null || a.day <= 0) ? 1e9 : a.day, db = (b.day === null || b.day <= 0) ? 1e9 : b.day;
+    return da - db || (b.impact||0) - (a.impact||0) || a.n - b.n;
+  });
+  let html = '<div class="ox-panel"><div class="ctitle">90-day runway</div>'+
+    '<div class="wr-axis"><span></span><div class="wr-sc">'+
+    [0,30,60,90].map(t => '<span style="left:'+(t/90*100)+'%">Day '+t+'</span>').join('')+
+    '</div><span></span></div>';
+  rows.forEach(w => {
+    let bar, tag, bad = false;
+    if(w.day === null || w.day <= 0){
+      bar = '<div class="wr-bar wr-none"></div>'; tag = 'No date'; bad = true;
+    } else if(w.day > 90){
+      bar = '<div class="wr-bar wr-over"></div>'; tag = 'Day '+Math.round(w.day); bad = true;
+    } else {
+      bar = '<div class="wr-bar" style="width:'+Math.max(2, w.day/90*100)+'%"></div>'; tag = 'Day '+Math.round(w.day);
+    }
+    html += '<div class="wr-row"><div class="wr-lab"><span class="wr-n">'+w.n+'</span><span><span class="wr-t">'+esc(w.title)+'</span>'+
+      (w.owner ? '<span class="wr-o">'+esc(w.owner)+'</span>' : '')+'</span></div>'+
+      '<div class="wr-trk"><i style="left:33.333%"></i><i style="left:66.667%"></i>'+bar+'</div>'+
+      '<span class="wr-d'+(bad ? ' bad' : '')+'">'+tag+'</span></div>';
+  });
+  return html + '</div>';
+}
+
 /* Render one section according to its configuration. */
 function renderSection(group, cfg){
   const head = group.blocks.find(b => b.isHead);
@@ -1382,6 +1632,19 @@ function renderSection(group, cfg){
       else leftover.push(b);
     });
 
+    // Stage 3 charts. The quick win visuals lead the section so the
+    // shape of the plan is seen before the detail; the diverging bars
+    // replace the strength and weakness boxes, each bar opening onto
+    // its own narrative. Anything the bars cannot match stays as prose.
+    let chartTail = '';
+    if(cfg.chart === 'wins' && OPEX.wins) inner += opexMatrix(OPEX.wins) + opexRunway(OPEX.wins);
+    if(cfg.chart === 'diverging' && OPEX.health){
+      const dv = opexDiverging(OPEX.health, boxes);
+      boxes.filter(b => !dv.used.has(b)).forEach(b => leftover.push({ title:b.label, body:b.body }));
+      boxes.length = 0;
+      chartTail = dv.html;
+    }
+
     // Narrative first. The boxes close the section, so a reader meets
     // the argument before the detail behind it.
     leftover.forEach(b => { inner += '<h4>'+iconFor(b.title,14)+esc(b.title)+'</h4>' + b.body; });
@@ -1393,7 +1656,8 @@ function renderSection(group, cfg){
       const scored = boxes.filter(b => /(\d(?:\.\d)?)\s*\/\s*(\d)/.test(b.label));
       const useCards = scored.length >= Math.max(2, boxes.length - 1);
 
-      inner += '<div class="'+(useCards?'cardgrid':'bxgrid')+'">' + boxes.map(bx => {
+      const asList = !useCards && cfg.chart === 'wins' && OPEX.wins;
+      inner += '<div class="'+(useCards?'cardgrid':'bxgrid')+(asList?' bxlist':'')+'">' + boxes.map(bx => {
         const sm = bx.label.match(/(\d(?:\.\d)?)\s*\/\s*(\d)/);
         const title = bx.label.replace(/^\d+(\.\d+)?\s*/,'').replace(/\s*[—–-]\s*\d(\.\d)?\s*\/\s*\d\s*$/,'').trim();
 
@@ -1428,6 +1692,7 @@ function renderSection(group, cfg){
       }).join('') + '</div>';
     }
 
+    inner += chartTail;
     if(cfg.model) inner += modelLink(cfg.model);
     return inner;
   }
@@ -1744,6 +2009,15 @@ function render(){
 
   const sum = c.summary;
 
+  // Stage 3's structured blocks are read once, before anything that
+  // shows the number of quick wins is drawn.
+  OPEX = { health:null, wins:null, count:0 };
+  const st3 = DATA.stages.find(s => s.stage_number === 3);
+  if(st3){
+    const ox = extractOpex(extractFinancials(st3.output_content||'').rest);
+    OPEX = { health:ox.health, wins:ox.wins, count: ox.wins ? ox.wins.length : countQuickWins(ox.rest) };
+  }
+
   const S = n => sum && Array.isArray(sum[n]) ? sum[n] : [];
 
   let html='<section class="stage on" id="st-1">'+
@@ -1805,7 +2079,7 @@ function render(){
   if(sum && Array.isArray(sum.metrics) && sum.metrics.length){
     html += '<div class="blk"><div class="blk-h"><span class="blk-n">The numbers</span>'+
       '<span class="blk-s">Click any figure for the working behind it.</span></div>';
-    html += '<div class="mgrid">'+sum.metrics.map(m=>{
+    html += '<div class="mgrid">'+syncWinCount(sum.metrics, OPEX.count).map(m=>{
       const st = m.stage;
       return '<div class="mcard '+(m.tone==='good'?'good':m.tone==='bad'?'bad':'')+(st?' clickable" onclick="go('+st+')':'"')+'>'+
       '<div class="mval '+(m.tone==='bad'?'bad':m.tone==='good'?'good':'')+'">'+esc(m.value)+'</div>'+
@@ -1844,7 +2118,7 @@ function render(){
   html+=DATA.stages.map(st=>{
     const meta = sum && Array.isArray(sum.stages) ? sum.stages.find(x=>x.stage_number===st.stage_number) : null;
     const fin = extractFinancials(st.output_content||'');
-    const bodyHtml = colourScores(stripOperatorContent(md(fin.rest)));
+    const bodyHtml = colourScores(stripOperatorContent(md(extractOpex(fin.rest).rest)));
     if(fin.data) FIN[st.stage_number] = fin.data;
     return '<section class="stage" id="st'+st.stage_number+'">'+
       '<div class="stage-head">Stage '+String(st.stage_number).padStart(2,'0')+'</div>'+
@@ -1852,7 +2126,7 @@ function render(){
       (meta ? '<div class="ssum">'+
         (meta.headline?'<div class="ssum-h">'+esc(meta.headline)+'</div>':'')+
         (meta.summary?'<div class="ssum-p">'+esc(meta.summary)+'</div>':'')+
-        '</div>' + stageMetricCards(meta.metrics) : '')+
+        '</div>' + stageMetricCards(st.stage_number === 3 ? syncWinCount(meta.metrics, OPEX.count) : meta.metrics) : '')+
       ((STAGE_LAYOUT[st.stage_number] && STAGE_LAYOUT[st.stage_number].gallery) ? '' : jumpNav(bodyHtml, st.stage_number))+
       '<div class="output">'+renderStructuredStage(st.stage_number, bodyHtml)+'</div></section>';
   }).join('');
