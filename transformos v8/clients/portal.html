@@ -184,6 +184,11 @@ h1.doc em{font-style:italic;color:var(--gold2)}
   .op-v,.op-e{text-align:left}
 }
 
+/* MODEL STRIP */
+.mstrip{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1.8rem}
+.mstrip span{display:inline-flex;align-items:center;gap:.45rem;font-size:.75rem;padding:.4rem .8rem;border:1px solid var(--bdim);color:var(--mist);cursor:pointer;transition:all .18s}
+.mstrip span:hover{border-color:var(--gold);color:var(--gold2)}
+
 /* ICONS */
 .ico{flex-shrink:0;color:var(--gold);vertical-align:middle}
 .sec>summary .ico,.bx>summary .ico{margin-right:.15rem}
@@ -706,6 +711,8 @@ function toggleAll(n, btn){
 const STAGE_LAYOUT = {
   1: {
     lead: 'Stage 1: Business Diagnostic',
+    visuals: ['scores'],
+    models: ['bmc','swot','porters5','valuation'],
     sections: [
       { n:2,  title:'Executive Summary',              subs:['Biggest Opportunity','Recommended Focus'] },
       { n:3,  title:'Business Model Canvas',          model:'bmc' },
@@ -724,10 +731,12 @@ const STAGE_LAYOUT = {
 
   2: {
     lead: 'Stage 2: Road to 2030',
+    visuals: ['trajectory'],
+    models: ['three_horizons','ansoff','scenarios','growth_loops'],
     sections: [
-      { n:1, title:'Strategic Baseline',        subs:['The gap','Burning platform'] },
-      { n:2, title:'The 2030 Ambition',         subs:['Revenue target','Market position'] },
-      { n:3, title:'The Growth Thesis',         subs:['Strategic bets','Key assumptions'] },
+      { n:1, title:'Strategic Baseline',        boxes:['Where we are','The gap','Burning platform','Position'] },
+      { n:2, title:'The 2030 Ambition',         boxes:['Headline','Revenue target','Market position'] },
+      { n:3, title:'The Growth Thesis',         boxes:['Bet 1','Bet 2','Bet 3','Bet 4','Strategic bet','Core strategic logic','Key assumptions'] },
       { n:4, title:'Strategic Pillars',         boxes:['Pillar 1','Pillar 2','Pillar 3','Pillar 4'] },
       { n:5, title:'Milestone Map',             boxes:['2026','2027','2028','2029','2030'] },
       { n:6, title:'Critical Success Factors' },
@@ -752,6 +761,7 @@ const STAGE_LAYOUT = {
 
   4: {
     lead: 'Stage 4: Strategic Opportunities',
+    models: ['ansoff','bcg','competitor','market_sizing'],
     sections: [
       { n:0, title:'Market Research',            model:'competitor' },
       { n:1, title:'Opportunity Landscape' },
@@ -779,6 +789,8 @@ const STAGE_LAYOUT = {
 
   6: {
     lead: 'Stage 6: Roadmap for Growth',
+    visuals: ['trajectory'],
+    models: ['impact_effort','okrs','balanced_sc'],
     sections: [
       { n:1, title:'Growth Thesis',                  subs:['Growth drivers'] },
       { n:2, title:'Strategic Priorities' },
@@ -808,6 +820,8 @@ const STAGE_LAYOUT = {
 
   8: {
     lead: 'Stage 8: Financial Models',
+    visuals: ['trajectory'],
+    models: ['break_even','cost_structure','scenario_fin'],
     sections: [
       { n:1,  title:'Financial Baseline' },
       { n:2,  title:'Three-Year P&L Forecast',   boxes:['Base','Upside','Downside'] },
@@ -1072,6 +1086,31 @@ function renderSection(group, cfg){
   return inner;
 }
 
+// Charts and framework visuals that belong to a stage, shown above the
+// written analysis so the shape of the argument is visible first.
+function stageVisuals(layout){
+  const sum = DATA.company && DATA.company.summary;
+  let out = '';
+  const vis = [];
+
+  if(sum && layout.visuals){
+    if(layout.visuals.includes('trajectory') && sum.trajectory) vis.push(drawTrajectory(sum.trajectory));
+    if(layout.visuals.includes('scores') && sum.scores) vis.push(drawSpider(sum.scores));
+    if(layout.visuals.includes('charts') && Array.isArray(sum.charts)) sum.charts.forEach(c=>vis.push(drawChart(c)));
+  }
+  if(vis.filter(Boolean).length) out += '<div class="cgrid">'+vis.join('')+'</div>';
+
+  if(layout.models && DATA.models){
+    const found = layout.models.map(k => DATA.models.find(m => m.model_key === k)).filter(Boolean);
+    if(found.length){
+      out += '<div class="mstrip">'+found.map(m =>
+        '<span onclick="go(-9);setTimeout(()=>{const t=document.getElementById(\'mv-'+m.model_key+'\');if(t)t.scrollIntoView({behavior:\'smooth\'})},250)">'+
+        iconFor(m.model_name,14)+esc(m.model_name)+'</span>').join('')+'</div>';
+    }
+  }
+  return out;
+}
+
 function renderStructuredStage(stageNum, html){
   const layout = STAGE_LAYOUT[stageNum];
   if(!layout) return groupSections(html, stageNum);
@@ -1080,7 +1119,8 @@ function renderStructuredStage(stageNum, html){
   if(!blocks.length) return html;
 
   const groups = groupBySection(blocks);
-  let out = '<button class="expand-all" onclick="toggleAll('+stageNum+',this)">Expand all</button>';
+  let out = stageVisuals(layout) +
+    '<button class="expand-all" onclick="toggleAll('+stageNum+',this)">Expand all</button>';
 
   // Everything before SECTION 2 sits under the opening banner.
   const named = new Set(layout.sections.map(c => c.n));
@@ -1090,7 +1130,10 @@ function renderStructuredStage(stageNum, html){
     opening.forEach(g => g.blocks.forEach(b => {
       body += '<h4>'+iconFor(b.title,14)+esc(b.title)+'</h4>' + b.body;
     }));
-    out += detailsBlock(layout.lead, body);
+    // After stripping there is often nothing left but the client name.
+    // An empty dropdown is worse than no dropdown.
+    const substance = body.replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
+    if(substance.length > 120) out += detailsBlock(layout.lead, body);
   }
 
   layout.sections.forEach(cfg => {
